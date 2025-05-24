@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="ru">
+<!DOCTYPE html>
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,19 +14,22 @@
       --light-gray: #ffffff;
       --text-color: #1f2937;
     }
+
     * {
       box-sizing: border-box;
     }
+
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
-      background: url('https://images.unsplash.com/photo-1600585154356-c8e8c0905f0c?auto=format&fit=crop&w=1950&q=80') no-repeat center center fixed;
+      background: url('path/to/your-background.jpg') no-repeat center center fixed;
       background-size: cover;
       color: var(--text-color);
       overflow-x: hidden;
     }
+
     header {
-      background: url('https://images.unsplash.com/photo-1548786817-9c13a1caa8c6?auto=format&fit=crop&w=1950&q=80') center/cover;
+      background: url('path/to/your-header-texture.jpg') center/cover;
       color: white;
       padding: 1.5rem 2rem 1.5rem;
       text-align: center;
@@ -33,35 +37,41 @@
       top: 0;
       z-index: 1000;
     }
+
     header h1 {
       font-family: 'Playfair Display', serif;
       font-size: 2rem;
       margin: 0;
     }
+
     nav {
       margin-top: 0.5rem;
     }
+
     nav a {
       color: white;
       margin: 0 1rem;
       text-decoration: none;
       font-weight: 600;
     }
+
     section {
       padding: 3rem 2rem;
       max-width: 1200px;
       margin: auto;
       position: relative;
       z-index: 1;
-      background: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.85);
       border-radius: 12px;
     }
+
     h2 {
       font-size: 2rem;
       font-family: 'Playfair Display', serif;
       margin-bottom: 1rem;
       color: var(--accent-color);
     }
+
     .model-carousel {
       display: flex;
       gap: 2rem;
@@ -69,10 +79,12 @@
       scroll-snap-type: x mandatory;
       -webkit-overflow-scrolling: touch;
     }
+
     .carousel-container {
       overflow: hidden;
       width: 100%;
     }
+
     .model-card {
       width: 300px;
       background: var(--light-gray);
@@ -83,9 +95,11 @@
       scroll-snap-align: start;
       cursor: pointer;
     }
+
     .model-card:hover {
       transform: scale(1.03);
     }
+
     .model-card .thumbnail {
       width: 100%;
       height: 200px;
@@ -97,9 +111,11 @@
       font-size: 1.2rem;
       border-bottom: 1px solid #ddd;
     }
+
     .model-card .desc {
       padding: 1rem;
     }
+
     .model-popup {
       display: none;
       position: fixed;
@@ -112,12 +128,14 @@
       justify-content: center;
       align-items: center;
     }
+
     .model-popup iframe {
       width: 90vw;
       height: 80vh;
       border-radius: 12px;
       border: none;
     }
+
     .model-popup .close {
       position: absolute;
       top: 20px;
@@ -126,6 +144,7 @@
       font-size: 2rem;
       cursor: pointer;
     }
+
     footer {
       background: var(--dark-bg);
       color: white;
@@ -133,19 +152,24 @@
       padding: 2rem;
       font-size: 0.9rem;
     }
+
     @media (max-width: 768px) {
       header h1 {
         font-size: 1.5rem;
       }
+
       h2 {
         font-size: 1.5rem;
       }
+
       .model-card {
         width: 240px;
       }
+
       .model-card .thumbnail {
         height: 160px;
       }
+
       .model-popup iframe {
         width: 95vw;
         height: 70vh;
@@ -162,10 +186,14 @@
       <a href="#projects">Проекты</a>
       <a href="#contact">Контакты</a>
     </nav>
-  </header>  <section id="about">
+  </header>
+
+  <section id="about">
     <h2>Обо мне</h2>
     <p>Я инженер-проектировщик с более чем 5-летним опытом проектирования. Работаю с ArchiCAD, ЛИРА-САПР, SolidWorks и другими инструментами. Умею совмещать расчёты с визуализацией и BIM-технологиями.</p>
-  </section>  <section id="projects">
+  </section>
+
+  <section id="projects">
     <h2>3D Модели</h2>
     <div class="carousel-container">
       <div class="model-carousel">
@@ -185,23 +213,33 @@
         </div>
       </div>
     </div>
-  </section>  <section id="contact">
+  </section>
+
+  <section id="contact">
     <h2>Контакты</h2>
     <p>Email: your.email@example.com</p>
     <p>Telegram: @yourusername</p>
-  </section>  <div class="model-popup" id="modelPopup">
+  </section>
+
+  <div class="model-popup" id="modelPopup">
     <div class="close" onclick="closeModel()">×</div>
     <iframe id="modelFrame" src=""></iframe>
-  </div>  <footer>
+  </div>
+
+  <footer>
     <p>&copy; 2025 Имя Фамилия — Портфолио инженера-проектировщика</p>
-  </footer>  <script>
+  </footer>
+
+  <script>
     function openModel(url) {
       document.getElementById('modelFrame').src = url;
       document.getElementById('modelPopup').style.display = 'flex';
     }
+
     function closeModel() {
       document.getElementById('modelPopup').style.display = 'none';
       document.getElementById('modelFrame').src = '';
     }
-  </script></body>
+  </script>
+</body>
 </html>
