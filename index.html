@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Портфолио | Инженер-конструктор</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@600&family=Pacifico&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Pacifico&display=swap" rel="stylesheet" />
   <style>
     :root {
       --primary-color: #0ea5e9;
@@ -17,21 +17,20 @@
 
     * {
       box-sizing: border-box;
+      scroll-behavior: smooth;
     }
 
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
-      background: url('a2.png') no-repeat center center fixed;
-      background-size: cover;
+      background: #f4f4f4;
       color: var(--text-color);
-      overflow-x: hidden;
     }
 
     header {
-      background: url('file_0000000030986246a48be624a539648a.png') center/cover;
+      background: var(--primary-color);
       color: white;
-      padding: 1.5rem 2rem 1.5rem;
+      padding: 2rem;
       text-align: center;
       position: sticky;
       top: 0;
@@ -56,44 +55,22 @@
     }
 
     section {
-      padding: 3rem 2rem;
+      padding: 5rem 2rem 3rem;
       max-width: 1200px;
       margin: auto;
-      position: relative;
-      z-index: 1;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 12px;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
     h2 {
-      font-size: 2.2rem;
+      font-size: 2rem;
       font-family: 'Pacifico', cursive;
       margin-bottom: 1rem;
-      color: #111111;
-      text-shadow: 1px 1px 4px rgba(255, 255, 255, 0.6);
-    }
-
-    section p,
-    section h3 {
-      font-size: 1.2rem;
-      color: #222222;
-      text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.7);
+      color: #111;
     }
 
     .model-carousel {
       display: flex;
       gap: 2rem;
       overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .carousel-container {
-      overflow: hidden;
-      width: 100%;
     }
 
     .model-card {
@@ -101,53 +78,70 @@
       background: var(--light-gray);
       border-radius: 16px;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-      transition: transform 0.3s;
       flex-shrink: 0;
-      scroll-snap-align: start;
       cursor: pointer;
-    }
-
-    .model-card:hover {
-      transform: scale(1.03);
+      padding-bottom: 1rem;
     }
 
     .model-card .thumbnail {
       width: 100%;
       height: 200px;
-      background: #ccc;
+      background: #ddd;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
       font-size: 1.2rem;
-      border-bottom: 1px solid #ddd;
+      border-bottom: 1px solid #ccc;
     }
 
-    .model-card .desc {
+    .desc {
       padding: 1rem;
     }
 
-    .model-popup {
+    .gallery {
+      display: flex;
+      gap: 10px;
+      margin-top: 1rem;
+    }
+
+    .gallery img {
+      width: 70px;
+      height: 70px;
+      object-fit: cover;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      transition: transform 0.2s;
+    }
+
+    .gallery img:hover {
+      transform: scale(1.05);
+    }
+
+    .model-popup,
+    .image-popup {
       display: none;
       position: fixed;
       top: 0;
       left: 0;
+      z-index: 10000;
       width: 100vw;
       height: 100vh;
       background: rgba(0, 0, 0, 0.85);
-      z-index: 9999;
       justify-content: center;
       align-items: center;
     }
 
-    .model-popup iframe {
-      width: 90vw;
-      height: 80vh;
+    .model-popup iframe,
+    .image-popup img {
+      max-width: 90vw;
+      max-height: 90vh;
       border-radius: 12px;
-      border: none;
     }
 
-    .model-popup .close {
+    .model-popup .close,
+    .image-popup .close {
       position: absolute;
       top: 20px;
       right: 30px;
@@ -164,27 +158,36 @@
       font-size: 0.9rem;
     }
 
-    @media (max-width: 768px) {
-      header h1 {
-        font-size: 1.5rem;
-      }
+    .social-icons {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+    }
 
-      h2 {
-        font-size: 1.5rem;
-      }
+    .social-icons a {
+      color: white;
+      text-decoration: none;
+      transition: opacity 0.3s;
+    }
 
-      .model-card {
-        width: 240px;
-      }
+    .social-icons a:hover {
+      opacity: 0.7;
+    }
 
-      .model-card .thumbnail {
-        height: 160px;
-      }
+    .social-icons svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
+    }
 
-      .model-popup iframe {
-        width: 95vw;
-        height: 70vh;
-      }
+    /* Якорная коррекция: отступ вверх */
+    [id]::before {
+      content: "";
+      display: block;
+      height: 80px;
+      margin-top: -80px;
+      visibility: hidden;
     }
   </style>
 </head>
@@ -201,25 +204,20 @@
 
   <section id="about">
     <h2>Обо мне</h2>
-    <p>Я инженер-проектировщик с более чем 5-летним опытом проектирования. Работаю с ArchiCAD, ЛИРА-САПР, SolidWorks и другими инструментами. Умею совмещать расчёты с визуализацией и BIM-технологиями.</p>
+    <p>Я инженер-проектировщик с более чем 5-летним опытом. Работаю с ArchiCAD, ЛИРА-САПР, SolidWorks. Совмещаю расчёты с визуализацией и BIM.</p>
   </section>
 
   <section id="projects">
     <h2>3D Модели</h2>
-    <div class="carousel-container">
-      <div class="model-carousel">
-        <div class="model-card" onclick="openModel('https://sketchfab.com/models/YOUR_MODEL_ID/embed')">
-          <div class="thumbnail">Модель 1</div>
-          <div class="desc">
-            <h3>Жилой дом</h3>
-            <p>Архитектурная и конструктивная модель.</p>
-          </div>
-        </div>
-        <div class="model-card" onclick="openModel('https://sketchfab.com/models/YOUR_MODEL_ID/embed')">
-          <div class="thumbnail">Модель 2</div>
-          <div class="desc">
-            <h3>Плита перекрытия</h3>
-            <p>Расчёт и армирование.</p>
+    <div class="model-carousel">
+      <div class="model-card">
+        <div class="thumbnail" onclick="openModel('https://sketchfab.com/models/7w7pAfrjaTnpdWLRjEWmZ2YZB2H/embed')">Открыть 3D</div>
+        <div class="desc">
+          <h3>Жилой дом</h3>
+          <p>Архитектурная и конструктивная модель.</p>
+          <div class="gallery">
+            <img src="https://via.placeholder.com/150x100.png?text=Фото+1" onclick="openImage('https://via.placeholder.com/900x600.png?text=Фото+1')" />
+            <img src="https://via.placeholder.com/150x100.png?text=Фото+2" onclick="openImage('https://via.placeholder.com/900x600.png?text=Фото+2')" />
           </div>
         </div>
       </div>
@@ -232,13 +230,28 @@
     <p>Telegram: @yourusername</p>
   </section>
 
+  <!-- 3D модель -->
   <div class="model-popup" id="modelPopup">
     <div class="close" onclick="closeModel()">×</div>
     <iframe id="modelFrame" src=""></iframe>
   </div>
 
+  <!-- Фото -->
+  <div class="image-popup" id="imagePopup">
+    <div class="close" onclick="closeImage()">×</div>
+    <img id="popupImage" src="" />
+  </div>
+
   <footer>
     <p>&copy; 2025 Имя Фамилия — Портфолио инженера-проектировщика</p>
+    <div class="social-icons">
+      <a href="https://t.me/yourusername" target="_blank" aria-label="Telegram">
+        <svg viewBox="0 0 24 24"><path d="M9.04 16.91l-.39 3.91c.56 0 .8-.24 1.1-.53l2.65-2.5 5.5 4.03c1.01.56 1.72.26 1.97-.93L23.93 2.7c.31-1.43-.51-2-1.44-1.64L1.1 9.4c-1.4.54-1.38 1.3-.24 1.64l5.9 1.84L19.82 5.1c.45-.31.86-.14.52.2L9.04 16.91z"/></svg>
+      </a>
+      <a href="https://instagram.com/yourusername" target="_blank" aria-label="Instagram">
+        <svg viewBox="0 0 24 24"><path d="M7.75 2h8.5A5.76 5.76 0 0122 7.75v8.5A5.76 5.76 0 0116.25 22h-8.5A5.76 5.76 0 012 16.25v-8.5A5.76 5.76 0 017.75 2zm0 1.5A4.25 4.25 0 003.5 7.75v8.5A4.25 4.25 0 007.75 20.5h8.5a4.25 4.25 0 004.25-4.25v-8.5A4.25 4.25 0 0016.25 3.5h-8.5zM12 7a5 5 0 110 10 5 5 0 010-10zm0 1.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zm5.25-.75a1 1 0 110 2 1 1 0 010-2z"/></svg>
+      </a>
+    </div>
   </footer>
 
   <script>
@@ -250,6 +263,16 @@
     function closeModel() {
       document.getElementById('modelPopup').style.display = 'none';
       document.getElementById('modelFrame').src = '';
+    }
+
+    function openImage(src) {
+      document.getElementById('popupImage').src = src;
+      document.getElementById('imagePopup').style.display = 'flex';
+    }
+
+    function closeImage() {
+      document.getElementById('imagePopup').style.display = 'none';
+      document.getElementById('popupImage').src = '';
     }
   </script>
 </body>
