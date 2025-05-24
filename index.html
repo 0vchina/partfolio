@@ -95,12 +95,7 @@
       margin: auto;
       margin-bottom: 3rem;
     }
-    section:target::before {
-      content: "";
-      display: block;
-      height: 80px;
-      margin-top: -80px;
-    }
+    
     header {
       background: url('file_0000000030986246a48be624a539648a.png') center/cover;
       color: black;
@@ -117,6 +112,15 @@
       margin: 0.3rem 0 0;
       color: black;
       text-shadow: 1px 1px 3px white, -1px -1px 3px white;
+    }
+
+  
+    section[id]::before {
+      content: "";
+      display: block;
+      height: 90px;
+      margin-top: -90px;
+      visibility: hidden;
     }
 
   </style>
