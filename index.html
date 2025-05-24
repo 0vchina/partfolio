@@ -86,48 +86,34 @@
       text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.7);
     }
 
+    .carousel-container {
+      overflow: hidden;
+      width: 100%;
+    }
+
     .model-carousel {
       display: flex;
       gap: 2rem;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
       -webkit-overflow-scrolling: touch;
-    }
-
-    .carousel-container {
-      overflow: hidden;
-      width: 100%;
+      padding-bottom: 1rem;
     }
 
     .model-card {
-      width: 300px;
+      flex-shrink: 0;
+      width: 320px;
       background: var(--light-gray);
       border-radius: 16px;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-      transition: transform 0.3s;
-      flex-shrink: 0;
-      scroll-snap-align: start;
-      cursor: pointer;
-    }
-
-    .model-card:hover {
-      transform: scale(1.03);
-    }
-
-    .model-card .thumbnail {
-      width: 100%;
-      height: 200px;
-      background: #ccc;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 1.2rem;
-      border-bottom: 1px solid #ddd;
-    }
-
-    .model-card .desc {
       padding: 1rem;
+      scroll-snap-align: start;
+    }
+
+    .sketchfab-embed-wrapper iframe {
+      width: 100%;
+      height: 250px;
+      border-radius: 12px;
     }
 
     .model-popup {
@@ -192,11 +178,7 @@
       }
 
       .model-card {
-        width: 240px;
-      }
-
-      .model-card .thumbnail {
-        height: 160px;
+        width: 260px;
       }
 
       .model-popup iframe {
@@ -226,18 +208,21 @@
     <h2>3D Модели</h2>
     <div class="carousel-container">
       <div class="model-carousel">
-        <div class="model-card" onclick="openModel('https://skfb.ly/puJGC')">
-          <div class="thumbnail">Модель 1</div>
-          <div class="desc">
-            <h3>Жилой дом</h3>
-            <p>Архитектурная и конструктивная модель.</p>
-          </div>
-        </div>
-        <div class="model-card" onclick="openModel('https://skfb.ly/puJGC')">
-          <div class="thumbnail">Модель 2</div>
-          <div class="desc">
-            <h3>Плита перекрытия</h3>
-            <p>Расчёт и армирование.</p>
+        <div class="model-card">
+          <div class="sketchfab-embed-wrapper">
+            <iframe title="Аэлита5" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true"
+              allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport
+              execution-while-not-rendered web-share
+              src="https://sketchfab.com/models/ba839c7fda4f4fb89e2c1d18a2c1526c/embed">
+            </iframe>
+            <p style="font-size: 13px; font-weight: normal; margin: 5px; color: #4A4A4A;">
+              <a href="https://sketchfab.com/3d-models/5-ba839c7fda4f4fb89e2c1d18a2c1526c"
+                target="_blank" rel="nofollow" style="font-weight: bold; color: #1CAAD9;">Аэлита5</a> by
+              <a href="https://sketchfab.com/Ovchina"
+                target="_blank" rel="nofollow" style="font-weight: bold; color: #1CAAD9;">Ovchina</a> on
+              <a href="https://sketchfab.com"
+                target="_blank" rel="nofollow" style="font-weight: bold; color: #1CAAD9;">Sketchfab</a>
+            </p>
           </div>
         </div>
       </div>
@@ -250,11 +235,6 @@
     <p>Telegram: @yourusername</p>
   </section>
 
-  <div class="model-popup" id="modelPopup">
-    <div class="close" onclick="closeModel()">×</div>
-    <iframe id="modelFrame" src=""></iframe>
-  </div>
-
   <footer>
     <p>&copy; 2025 Имя Фамилия — Портфолио инженера-проектировщика</p>
     <div class="social-icons">
@@ -266,17 +246,5 @@
       </a>
     </div>
   </footer>
-
-  <script>
-    function openModel(url) {
-      document.getElementById('modelFrame').src = url;
-      document.getElementById('modelPopup').style.display = 'flex';
-    }
-
-    function closeModel() {
-      document.getElementById('modelPopup').style.display = 'none';
-      document.getElementById('modelFrame').src = '';
-    }
-  </script>
 </body>
 </html>
