@@ -4,30 +4,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Портфолио | Инженер-конструктор</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet" />
-  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <style>
     :root {
       --primary-color: #0ea5e9;
       --accent-color: #6366f1;
-      --bg-color: #ffffff;
+      --bg-color: #f0f4f8;
       --dark-bg: #0f172a;
-      --light-gray: #f3f4f6;
+      --light-gray: #ffffff;
       --text-color: #1f2937;
     }
     * {
       box-sizing: border-box;
-      scroll-behavior: smooth;
     }
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
-      background: var(--bg-color);
+      background: linear-gradient(to right, #e0f7fa, #e8f5e9);
       color: var(--text-color);
-      transition: background 0.3s, color 0.3s;
-    }
-    body.dark {
-      background: #111827;
-      color: #f3f4f6;
+      overflow-x: hidden;
     }
     header {
       background: var(--dark-bg);
@@ -36,8 +30,7 @@
       text-align: center;
       position: sticky;
       top: 0;
-      z-index: 999;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
     }
     header h1 {
       font-family: 'Playfair Display', serif;
@@ -52,91 +45,118 @@
       margin: 0 1rem;
       text-decoration: none;
       font-weight: 600;
-      position: relative;
-    }
-    nav a::after {
-      content: '';
-      position: absolute;
-      width: 0;
-      height: 2px;
-      background: var(--primary-color);
-      bottom: -5px;
-      left: 0;
-      transition: 0.3s;
-    }
-    nav a:hover::after {
-      width: 100%;
-    }
-    .toggle-theme {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      z-index: 1000;
     }
     section {
       padding: 4rem 2rem;
-      max-width: 1000px;
+      max-width: 1200px;
       margin: auto;
+      position: relative;
+      z-index: 1;
     }
     h2 {
       font-size: 2.25rem;
       font-family: 'Playfair Display', serif;
       margin-bottom: 1rem;
       color: var(--accent-color);
-    }/* Горизонтальная каскадная галерея */
-.model-carousel {
-  display: flex;
-  gap: 2rem;
-  overflow-x: scroll;
-  padding-bottom: 1rem;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  perspective: 1200px;
-}
-.model-carousel::-webkit-scrollbar {
-  display: none;
-}
-.model-card {
-  min-width: 300px;
-  flex-shrink: 0;
-  background: var(--light-gray);
-  border-radius: 16px;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-  transform: rotateY(-10deg) scale(0.95);
-  transition: transform 0.4s ease;
-}
-.model-card:hover {
-  transform: rotateY(0deg) scale(1.03);
-}
-.model-card iframe {
-  width: 100%;
-  height: 320px;
-  border: none;
-  border-radius: 16px 16px 0 0;
-}
-.model-card .desc {
-  padding: 1rem;
-}
-
-footer {
-  background: var(--dark-bg);
-  color: white;
-  text-align: center;
-  padding: 2rem;
-  font-size: 0.9rem;
-}
-
+    }
+    .model-carousel {
+      display: flex;
+      gap: 2rem;
+      transform: translateX(0);
+      transition: transform 0.3s ease-out;
+      will-change: transform;
+    }
+    .carousel-container {
+      overflow: hidden;
+      position: relative;
+      width: 100%;
+      cursor: grab;
+      background: rgba(255,255,255,0.4);
+      border-radius: 16px;
+      padding: 2rem;
+    }
+    .model-card {
+      width: 300px;
+      background: var(--light-gray);
+      border-radius: 16px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+      transition: transform 0.3s;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .model-card:hover {
+      transform: scale(1.03);
+    }
+    .model-card .thumbnail {
+      width: 100%;
+      height: 200px;
+      background: #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+      border-bottom: 1px solid #ddd;
+    }
+    .model-card .desc {
+      padding: 1rem;
+    }
+    .model-popup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.85);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+    .model-popup iframe {
+      width: 90vw;
+      height: 80vh;
+      border-radius: 12px;
+      border: none;
+    }
+    .model-popup .close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+    }
+    footer {
+      background: var(--dark-bg);
+      color: white;
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.9rem;
+    }
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 2rem;
+      }
+      h2 {
+        font-size: 1.75rem;
+      }
+      .model-card {
+        width: 240px;
+      }
+      .model-card .thumbnail {
+        height: 160px;
+      }
+      .model-popup iframe {
+        width: 95vw;
+        height: 70vh;
+      }
+    }
   </style>
 </head>
 <body>
-  <button class="toggle-theme" onclick="document.body.classList.toggle('dark')">Тема</button>
   <header>
     <h1>Имя Фамилия</h1>
     <p>Инженер-проектировщик | BIM | Расчёты | 3D визуализация</p>
@@ -145,34 +165,88 @@ footer {
       <a href="#projects">Проекты</a>
       <a href="#contact">Контакты</a>
     </nav>
-  </header>  <section id="about" data-aos="fade-up">
+  </header>  <section id="about">
     <h2>Обо мне</h2>
     <p>Я инженер-проектировщик с более чем 5-летним опытом проектирования. Работаю с ArchiCAD, ЛИРА-САПР, SolidWorks и другими инструментами. Умею совмещать расчёты с визуализацией и BIM-технологиями.</p>
   </section>  <section id="projects">
     <h2>3D Модели</h2>
-    <div class="model-carousel">
-      <div class="model-card">
-        <iframe src="https://sketchfab.com/models/YOUR_MODEL_ID/embed" allowfullscreen></iframe>
-        <div class="desc">
-          <h3>Жилой дом</h3>
-          <p>Полная архитектурная и конструктивная модель жилого здания.</p>
+    <div class="carousel-container" id="carousel-container">
+      <div class="model-carousel" id="model-carousel">
+        <div class="model-card" onclick="openModel('https://sketchfab.com/models/YOUR_MODEL_ID/embed')">
+          <div class="thumbnail">Модель 1</div>
+          <div class="desc">
+            <h3>Жилой дом</h3>
+            <p>Архитектурная и конструктивная модель.</p>
+          </div>
         </div>
-      </div>
-      <div class="model-card">
-        <iframe src="https://sketchfab.com/models/YOUR_MODEL_ID/embed" allowfullscreen></iframe>
-        <div class="desc">
-          <h3>Плита перекрытия</h3>
-          <p>Модель армирования и расчётов монолитной плиты.</p>
+        <div class="model-card" onclick="openModel('https://sketchfab.com/models/YOUR_MODEL_ID/embed')">
+          <div class="thumbnail">Модель 2</div>
+          <div class="desc">
+            <h3>Плита перекрытия</h3>
+            <p>Расчёт и армирование.</p>
+          </div>
         </div>
       </div>
     </div>
-  </section>  <section id="contact" data-aos="fade-up">
+  </section>  <section id="contact">
     <h2>Контакты</h2>
     <p>Email: your.email@example.com</p>
     <p>Telegram: @yourusername</p>
-  </section>  <footer>
+  </section>  <div class="model-popup" id="modelPopup">
+    <div class="close" onclick="closeModel()">×</div>
+    <iframe id="modelFrame" src=""></iframe>
+  </div>  <footer>
     <p>&copy; 2025 Имя Фамилия — Портфолио инженера-проектировщика</p>
-  </footer>  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>  <script>
-    AOS.init({ once: true });
+  </footer>  <script>
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+    const carousel = document.getElementById('carousel-container');
+    const inner = document.getElementById('model-carousel');
+
+    carousel.addEventListener('mousedown', (e) => {
+      isDown = true;
+      startX = e.pageX - carousel.offsetLeft;
+      scrollLeft = carousel.scrollLeft;
+    });
+    carousel.addEventListener('mouseleave', () => { isDown = false; });
+    carousel.addEventListener('mouseup', () => { isDown = false; });
+    carousel.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - carousel.offsetLeft;
+      const walk = (x - startX) * 2;
+      carousel.scrollLeft = scrollLeft - walk;
+    });
+
+    carousel.addEventListener('mouseenter', () => {
+      autoScroll = setInterval(() => {
+        carousel.scrollLeft += 1;
+      }, 20);
+    });
+    carousel.addEventListener('mouseleave', () => {
+      clearInterval(autoScroll);
+    });
+
+    function openModel(url) {
+      const popup = document.getElementById('modelPopup');
+      const iframe = document.getElementById('modelFrame');
+      iframe.src = url;
+      popup.style.display = 'flex';
+      popup.style.opacity = 0;
+      setTimeout(() => {
+        popup.style.transition = 'opacity 0.4s ease';
+        popup.style.opacity = 1;
+      }, 10);
+    }
+
+    function closeModel() {
+      const popup = document.getElementById('modelPopup');
+      popup.style.opacity = 0;
+      setTimeout(() => {
+        popup.style.display = 'none';
+        document.getElementById('modelFrame').src = '';
+      }, 400);
+    }
   </script></body>
 </html>
