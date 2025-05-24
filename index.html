@@ -1,177 +1,109 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Портфолио | Инженер-конструктор</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@600&family=Pacifico&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Pacifico&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --primary-color: #0ea5e9;
-      --accent-color: #6366f1;
-      --bg-color: #f4f1ec;
-      --dark-bg: #3b2f2f;
-      --light-gray: #ffffff;
-      --text-color: #222222;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
-      background: url('a2.png') no-repeat center center fixed;
-      background-size: cover;
-      color: var(--text-color);
+      background: url('a2.png') center center / cover no-repeat fixed;
       overflow-x: hidden;
     }
-
     header {
       background: url('file_0000000030986246a48be624a539648a.png') center/cover;
       color: black;
-      padding: 1.5rem 2rem;
+      padding: 1.2rem 1.5rem;
       text-align: center;
       position: sticky;
       top: 0;
       z-index: 1000;
+      line-height: 1.2;
     }
-
     header h1 {
       font-family: 'Pacifico', cursive;
-      font-size: 2.5rem;
+      font-size: 2.4rem;
       margin: 0;
       color: black;
+      text-shadow: 1px 1px 3px white, -1px -1px 3px white;
     }
-
     header p {
-      font-size: 1.3rem;
-      margin-top: 0.5rem;
+      font-size: 1.2rem;
+      margin: 0.3rem 0 0;
       color: black;
+      text-shadow: 1px 1px 3px white, -1px -1px 3px white;
     }
-
-    nav {
-      margin-top: 0.5rem;
-    }
-
     nav a {
       color: black;
       margin: 0 1rem;
       text-decoration: none;
       font-weight: 600;
     }
-
     section {
-      padding: 3rem 2rem;
+      padding: 2rem 1.5rem;
       max-width: 1200px;
       margin: auto;
-      position: relative;
-      z-index: 1;
-      margin-bottom: 4rem;
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 12px;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     }
-
     h2 {
-      font-size: 2.2rem;
       font-family: 'Pacifico', cursive;
+      font-size: 2rem;
       margin-bottom: 1rem;
-      color: #111111;
-      text-shadow: 1px 1px 4px rgba(255, 255, 255, 0.6);
+      color: #111;
     }
-
-    section p,
-    section h3 {
-      font-size: 1.2rem;
-      color: #222222;
-      text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.7);
-    }
-
-    .carousel-container {
-      width: 100%;
-      overflow-x: auto;
-      position: relative;
-    }
-
-    .model-carousel {
+    .model-carousel, .renders-grid {
       display: flex;
-      gap: 2rem;
+      gap: 1rem;
       overflow-x: auto;
-      scroll-snap-type: x mandatory;
       padding-bottom: 1rem;
     }
-
-    .model-card {
+    .model-card, .render-thumb {
       flex-shrink: 0;
-      width: 320px;
-      background: var(--light-gray);
-      border-radius: 16px;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-      padding: 1rem;
-      scroll-snap-align: start;
+      width: 300px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      cursor: pointer;
     }
-
-    .sketchfab-embed-wrapper iframe {
+    .model-card iframe {
       width: 100%;
-      height: 250px;
+      height: 220px;
+      border: none;
+    }
+    .render-thumb img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .popup-overlay img {
+      max-width: 90vw;
+      max-height: 90vh;
       border-radius: 12px;
     }
-
+    .popup-overlay .close-btn {
+      position: absolute;
+      top: 20px; right: 30px;
+      font-size: 2rem;
+      color: white;
+      cursor: pointer;
+    }
     footer {
-      background: var(--dark-bg);
-      color: white;
       text-align: center;
-      padding: 2rem;
-      font-size: 0.9rem;
-    }
-
-    .social-icons {
-      margin-top: 1rem;
-    }
-
-    .social-icons a {
-      margin: 0 0.5rem;
-      display: inline-block;
+      background: #333;
       color: white;
-      transition: transform 0.3s;
-    }
-
-    .social-icons a:hover {
-      transform: scale(1.2);
-    }
-
-    @media (max-width: 768px) {
-      header h1 {
-        font-size: 2rem;
-      }
-
-      header p {
-        font-size: 1.1rem;
-      }
-
-      h2 {
-        font-size: 1.5rem;
-      }
-
-      section {
-        padding: 2rem 1rem;
-        margin-bottom: 2rem;
-      }
-
-      .model-card {
-        width: 260px;
-        margin-bottom: 1rem;
-      }
-
-      .model-carousel {
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch;
-      }
+      padding: 2rem;
     }
   </style>
 </head>
@@ -181,7 +113,8 @@
     <p>Инженер-проектировщик | BIM | Расчёты | 3D визуализация</p>
     <nav>
       <a href="#about">Обо мне</a>
-      <a href="#projects">Проекты</a>
+      <a href="#projects">3D Модели</a>
+      <a href="#renders">Рендеры</a>
       <a href="#contact">Контакты</a>
     </nav>
   </header>
@@ -193,13 +126,19 @@
 
   <section id="projects">
     <h2>3D Модели</h2>
-    <div class="carousel-container">
-      <div class="model-carousel">
-        <div class="model-card"><div class="sketchfab-embed-wrapper"><iframe src="https://sketchfab.com/models/ba839c7fda4f4fb89e2c1d18a2c1526c/embed?ui_theme=dark" allow="autoplay; fullscreen; xr-spatial-tracking" frameborder="0"></iframe></div></div>
-        <div class="model-card"><div class="sketchfab-embed-wrapper"><iframe src="https://sketchfab.com/models/7f768bd3cee64d979c5fb96b96b2beb0/embed?ui_theme=dark" allow="autoplay; fullscreen; xr-spatial-tracking" frameborder="0"></iframe></div></div>
-        <div class="model-card"><div class="sketchfab-embed-wrapper"><iframe src="https://sketchfab.com/models/deef518c17884aaf89432efcb1236a13/embed?ui_theme=dark" allow="autoplay; fullscreen; xr-spatial-tracking" frameborder="0"></iframe></div></div>
-        <div class="model-card"><div class="sketchfab-embed-wrapper"><iframe src="https://sketchfab.com/models/a9fb81fce32d4bd6bf86a720d5458c96/embed?ui_theme=dark" allow="autoplay; fullscreen; xr-spatial-tracking" frameborder="0"></iframe></div></div>
-      </div>
+    <div class="model-carousel">
+      <div class="model-card"><iframe src="https://sketchfab.com/models/ba839c7fda4f4fb89e2c1d18a2c1526c/embed?ui_theme=dark"></iframe></div>
+      <div class="model-card"><iframe src="https://sketchfab.com/models/7f768bd3cee64d979c5fb96b96b2beb0/embed?ui_theme=dark"></iframe></div>
+      <div class="model-card"><iframe src="https://sketchfab.com/models/deef518c17884aaf89432efcb1236a13/embed?ui_theme=dark"></iframe></div>
+    </div>
+  </section>
+
+  <section id="renders">
+    <h2>Визуализации</h2>
+    <div class="renders-grid">
+      <div class="render-thumb"><img src="render1.jpg" alt="Рендер 1"></div>
+      <div class="render-thumb"><img src="render2.jpg" alt="Рендер 2"></div>
+      <div class="render-thumb"><img src="render3.jpg" alt="Рендер 3"></div>
     </div>
   </section>
 
@@ -210,11 +149,21 @@
   </section>
 
   <footer>
-    <p>&copy; 2025 Овчинников Виталий — Портфолио инженера-проектировщика</p>
-    <div class="social-icons">
-      <a href="https://t.me/VitaliPro" target="_blank">Telegram</a>
-      <a href="https://instagram.com/0vchina" target="_blank">Instagram</a>
-    </div>
+    <p>&copy; 2025 Виталий Овчинников — Портфолио инженера</p>
   </footer>
+
+  <div class="popup-overlay" id="imagePopup">
+    <span class="close-btn" onclick="document.getElementById('imagePopup').style.display='none'">&times;</span>
+    <img id="popupImage" src="" alt="Просмотр изображения">
+  </div>
+
+  <script>
+    document.querySelectorAll('.render-thumb img').forEach(img => {
+      img.addEventListener('click', () => {
+        document.getElementById('popupImage').src = img.src;
+        document.getElementById('imagePopup').style.display = 'flex';
+      });
+    });
+  </script>
 </body>
 </html>
