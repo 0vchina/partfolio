@@ -6,6 +6,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@600&family=Pacifico&display=swap" rel="stylesheet" />
   <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
   <style>
+    html {
+      scroll-behavior: smooth;
+    }
     :root {
       --primary-color: #0ea5e9;
       --accent-color: #6366f1;
@@ -20,21 +23,15 @@
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
-  background: url('a2.png') no-repeat center center fixed;
+  background: url('path/to/your-background.jpg') no-repeat center center fixed;
   background-size: cover;
   color: var(--text-color);
   overflow-x: hidden;
 }
 
 header {
-  background: url('file_0000000030986246a48be624a539648a.png') center/cover;
-  color: white;
-  padding: 1.5rem 2rem 1.5rem;
-  text-align: center;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
+
+padding: 1rem 1.5rem; text-align: center; position: sticky; top: 0; z-index: 1000; }
 
 header h1 {
 
@@ -49,20 +46,8 @@ nav a {
 color: #f0f0f0; margin: 0 1rem; text-decoration: none; font-weight: 600; text-shadow: 1px 1px 4px rgba(0,0,0,0.5); font-size: 1.1rem; }
 
 section {
-  padding: 3rem 2rem;
-  max-width: 1200px;
-  margin: auto;
-  position: relative;
-  z-index: 1;
-  margin-bottom: 4rem;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: none;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  scroll-margin-top: 120px;
-}
+
+scroll-margin-top: 180px; }
 
 h2 {
   font-size: 2.2rem;
@@ -222,23 +207,33 @@ h2 {
   <p>Email: your.email@example.com</p>
   <p>Telegram: @yourusername</p>
   <div style="margin-top: 1rem; font-size: 1.8rem;">
-    <a href="mailto:your.email@example.com" style="margin-right: 1rem; text-decoration: none; color: #333;">
-      ✉️
-    </a>
-    <a href="https://t.me/yourusername" target="_blank" style="margin-right: 1rem; text-decoration: none; color: #0088cc;">
-      🔵
-    </a>
-    <a href="https://linkedin.com/in/yourusername" target="_blank" style="margin-right: 1rem; text-decoration: none; color: #0077b5;">
-      in
-    </a>
-    <a href="https://github.com/yourusername" target="_blank" style="text-decoration: none; color: #333;">
-      &#xf09b;
-    </a>
-  </div>
+  <a href="https://t.me/yourusername" target="_blank" style="margin-right: 1.5rem; text-decoration: none; color: #0088cc;">
+    Telegram
+  </a>
+  <a href="https://instagram.com/yourusername" target="_blank" style="text-decoration: none; color: #e1306c;">
+    Instagram
+  </a>
+</div>
 </section>  <div class="model-popup" id="modelPopup">
     <div class="close" onclick="closeModel()">×</div>
     <iframe id="modelFrame" src=""></iframe>
-  </div>  <footer>
+    <div style="margin-top: 1rem; display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+      <img src="models/model1/img1.jpg" onclick="openPhoto(this.src)" style="width: 100px; height: 80px; object-fit: cover; border-radius: 6px; cursor: pointer;" />
+      <img src="models/model1/img2.jpg" onclick="openPhoto(this.src)" style="width: 100px; height: 80px; object-fit: cover; border-radius: 6px; cursor: pointer;" />
+    </div>
+  </div>  <!-- модальное окно для фото -->  <div id="photoModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index:10000;">
+    <span onclick="closePhoto()" style="position:absolute; top:20px; right:30px; font-size:2rem; color:white; cursor:pointer">×</span>
+    <img id="photoModalImg" src="" style="max-width:90vw; max-height:90vh; border-radius:10px;" />
+  </div>  <script>
+    function openPhoto(src) {
+      document.getElementById('photoModalImg').src = src;
+      document.getElementById('photoModal').style.display = 'flex';
+    }
+    function closePhoto() {
+      document.getElementById('photoModal').style.display = 'none';
+      document.getElementById('photoModalImg').src = '';
+    }
+  </script><footer>
     <p>&copy; 2025 Имя Фамилия — Портфолио инженера-проектировщика</p>
   </footer>  <script>
     function openModel(url) {
