@@ -90,108 +90,87 @@
       font-family: 'Playfair Display', serif;
       margin-bottom: 1rem;
       color: var(--accent-color);
-    }
-    .project {
-      background: var(--light-gray);
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
-      transition: transform 0.3s;
-    }
-    .project:hover {
-      transform: translateY(-6px);
-    }
-    iframe {
-      width: 100%;
-      height: 420px;
-      border: none;
-      border-radius: 8px;
-      margin-top: 1rem;
-    }
-    .gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-    .gallery img {
-      width: 100%;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s;
-      cursor: pointer;
-    }
-    .gallery img:hover {
-      transform: scale(1.03);
-    }
-    .lightbox {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      display: none;
-    }
-    .lightbox img {
-      max-width: 90%;
-      max-height: 90%;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    }
-    .button {
-      display: inline-block;
-      margin-top: 1.5rem;
-      padding: 0.75rem 1.25rem;
-      background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-      color: white;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 600;
-      transition: opacity 0.3s;
-    }
-    .button:hover {
-      opacity: 0.9;
-    }
-    .contact-form {
-      margin-top: 2rem;
-      background: var(--light-gray);
-      padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
-    }
-    .contact-form label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-    }
-    .contact-form input,
-    .contact-form textarea {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
-      margin-bottom: 1rem;
-      transition: border-color 0.3s;
-    }
-    .contact-form input:focus,
-    .contact-form textarea:focus {
-      border-color: var(--primary-color);
-      outline: none;
-    }
-    footer {
-      background: var(--dark-bg);
-      color: white;
-      text-align: center;
-      padding: 2rem;
-      font-size: 0.9rem;
-    }
+    }/* Горизонтальная галерея 3D */
+.model-carousel {
+  display: flex;
+  gap: 2rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  perspective: 1000px;
+  scroll-snap-type: x mandatory;
+}
+.model-card {
+  min-width: 300px;
+  flex-shrink: 0;
+  scroll-snap-align: center;
+  background: var(--light-gray);
+  border-radius: 16px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease;
+  transform: rotateY(-5deg);
+}
+.model-card:hover {
+  transform: rotateY(0deg) scale(1.02);
+}
+.model-card iframe {
+  width: 100%;
+  height: 320px;
+  border: none;
+  border-radius: 16px 16px 0 0;
+}
+.model-card .desc {
+  padding: 1rem;
+}
+
+.contact-form {
+  margin-top: 2rem;
+  background: var(--light-gray);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+.contact-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  transition: border-color 0.3s;
+}
+.contact-form input:focus,
+.contact-form textarea:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+.button {
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity 0.3s;
+}
+.button:hover {
+  opacity: 0.9;
+}
+footer {
+  background: var(--dark-bg);
+  color: white;
+  text-align: center;
+  padding: 2rem;
+  font-size: 0.9rem;
+}
+
   </style>
 </head>
 <body>
@@ -208,14 +187,21 @@
     <h2>Обо мне</h2>
     <p>Я инженер-проектировщик с более чем 5-летним опытом проектирования. Работаю с ArchiCAD, ЛИРА-САПР, SolidWorks и другими инструментами. Умею совмещать расчёты с визуализацией и BIM-технологиями.</p>
   </section>  <section id="projects">
-    <h2>Проекты</h2>
-    <div class="project" data-aos="fade-up">
-      <h3>3D-модель жилого дома</h3>
-      <p>Модель здания с проработанными конструкциями и расчётами в ЛИРА-САПР.</p>
-      <iframe src="https://sketchfab.com/models/YOUR_MODEL_ID/embed" allowfullscreen></iframe>
-      <div class="gallery">
-        <img src="images/project1_1.jpg" alt="Вид модели 1" onclick="openLightbox(this.src)" />
-        <img src="images/project1_2.jpg" alt="Вид модели 2" onclick="openLightbox(this.src)" />
+    <h2>3D Модели</h2>
+    <div class="model-carousel">
+      <div class="model-card">
+        <iframe src="https://sketchfab.com/models/YOUR_MODEL_ID/embed" allowfullscreen></iframe>
+        <div class="desc">
+          <h3>Жилой дом</h3>
+          <p>Полная архитектурная и конструктивная модель жилого здания.</p>
+        </div>
+      </div>
+      <div class="model-card">
+        <iframe src="https://sketchfab.com/models/YOUR_MODEL_ID/embed" allowfullscreen></iframe>
+        <div class="desc">
+          <h3>Плита перекрытия</h3>
+          <p>Модель армирования и расчётов монолитной плиты.</p>
+        </div>
       </div>
     </div>
   </section>  <section id="contact" data-aos="fade-up">
@@ -233,20 +219,9 @@
       </label>
       <button type="submit" class="button">Отправить</button>
     </form>
-  </section>  <div class="lightbox" id="lightbox" onclick="closeLightbox()">
-    <img src="" alt="preview" id="lightbox-img">
-  </div>  <footer>
+  </section>  <footer>
     <p>&copy; 2025 Имя Фамилия — Портфолио инженера-проектировщика</p>
   </footer>  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>  <script>
     AOS.init({ once: true });
-
-    function openLightbox(src) {
-      document.getElementById('lightbox-img').src = src;
-      document.getElementById('lightbox').style.display = 'flex';
-    }
-
-    function closeLightbox() {
-      document.getElementById('lightbox').style.display = 'none';
-    }
   </script></body>
 </html>
