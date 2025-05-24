@@ -201,26 +201,10 @@
     <h2>3D Модели</h2>
     <div class="carousel-container">
       <div class="model-carousel">
-        <div class="model-card">
-          <div class="sketchfab-embed-wrapper">
-            <iframe title="Гостинница" src="https://sketchfab.com/models/ba839c7fda4f4fb89e2c1d18a2c1526c/embed?ui_theme=dark" allow="autoplay; fullscreen; xr-spatial-tracking" frameborder="0"></iframe>
-          </div>
-        </div>
-        <div class="model-card">
-          <div class="sketchfab-embed-wrapper">
-            <iframe title="Завод" src="https://sketchfab.com/models/7f768bd3cee64d979c5fb96b96b2beb0/embed?ui_theme=dark" allow="autoplay; fullscreen; xr-spatial-tracking" frameborder="0"></iframe>
-          </div>
-        </div>
-        <div class="model-card">
-          <div class="sketchfab-embed-wrapper">
-            <iframe title="Завод" src="https://sketchfab.com/models/deef518c17884aaf89432efcb1236a13/embed?ui_theme=dark" allow="autoplay; fullscreen; xr-spatial-tracking" frameborder="0"></iframe>
-          </div>
-        </div>
-        <div class="model-card">
-          <div class="sketchfab-embed-wrapper">
-            <iframe title="Камертон" src="https://sketchfab.com/models/a9fb81fce32d4bd6bf86a720d5458c96/embed?ui_theme=dark" allow="autoplay; fullscreen; xr-spatial-tracking" frameborder="0"></iframe>
-          </div>
-        </div>
+        <div class="model-card"><div class="sketchfab-embed-wrapper"><iframe src="https://sketchfab.com/models/ba839c7fda4f4fb89e2c1d18a2c1526c/embed?ui_theme=dark" allow="autoplay; fullscreen; xr-spatial-tracking" frameborder="0"></iframe></div></div>
+        <div class="model-card"><div class="sketchfab-embed-wrapper"><iframe src="https://sketchfab.com/models/7f768bd3cee64d979c5fb96b96b2beb0/embed?ui_theme=dark" allow="autoplay; fullscreen; xr-spatial-tracking" frameborder="0"></iframe></div></div>
+        <div class="model-card"><div class="sketchfab-embed-wrapper"><iframe src="https://sketchfab.com/models/deef518c17884aaf89432efcb1236a13/embed?ui_theme=dark" allow="autoplay; fullscreen; xr-spatial-tracking" frameborder="0"></iframe></div></div>
+        <div class="model-card"><div class="sketchfab-embed-wrapper"><iframe src="https://sketchfab.com/models/a9fb81fce32d4bd6bf86a720d5458c96/embed?ui_theme=dark" allow="autoplay; fullscreen; xr-spatial-tracking" frameborder="0"></iframe></div></div>
       </div>
     </div>
   </section>
@@ -234,47 +218,41 @@
   <footer>
     <p>&copy; 2025 Овчинников Виталий — Портфолио инженера-проектировщика</p>
     <div class="social-icons">
-      <a href="https://t.me/VitaliPro" target="_blank" aria-label="Telegram">Telegram</a>
-      <a href="https://instagram.com/0vchina" target="_blank" aria-label="Instagram">Instagram</a>
+      <a href="https://t.me/VitaliPro" target="_blank">Telegram</a>
+      <a href="https://instagram.com/0vchina" target="_blank">Instagram</a>
     </div>
   </footer>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const carousel = document.querySelector('.model-carousel');
+    document.addEventListener("DOMContentLoaded", function () {
+      const container = document.querySelector(".carousel-container");
+      const carousel = container.querySelector(".model-carousel");
       let scrollInterval;
 
-      function startScroll(direction) {
-        stopScroll();
-        scrollInterval = setInterval(() => {
-          carousel.scrollLeft += direction * 10;
-        }, 10);
+      function createScrollZone(direction) {
+        const zone = document.createElement("div");
+        zone.style.position = "absolute";
+        zone.style.top = "0";
+        zone.style.bottom = "0";
+        zone.style.width = "80px";
+        zone.style.cursor = "pointer";
+        zone.style.zIndex = "20";
+        zone.style[direction === "left" ? "left" : "right"] = "0";
+        zone.style.background = "rgba(255,255,255,0)";
+
+        zone.addEventListener("mouseenter", () => {
+          clearInterval(scrollInterval);
+          scrollInterval = setInterval(() => {
+            carousel.scrollLeft += direction === "left" ? -10 : 10;
+          }, 10);
+        });
+
+        zone.addEventListener("mouseleave", () => clearInterval(scrollInterval));
+        return zone;
       }
 
-      function stopScroll() {
-        clearInterval(scrollInterval);
-      }
-
-      const leftZone = document.createElement('div');
-      const rightZone = document.createElement('div');
-
-      [leftZone, rightZone].forEach(zone => {
-        zone.style.position = 'absolute';
-        zone.style.top = '0';
-        zone.style.bottom = '0';
-        zone.style.width = '80px';
-        zone.style.zIndex = '10';
-      });
-
-      leftZone.style.left = '0';
-      rightZone.style.right = '0';
-
-      leftZone.addEventListener('mouseenter', () => startScroll(-1));
-      rightZone.addEventListener('mouseenter', () => startScroll(1));
-      leftZone.addEventListener('mouseleave', stopScroll);
-      rightZone.addEventListener('mouseleave', stopScroll);
-
-      document.querySelector('.carousel-container').append(leftZone, rightZone);
+      container.appendChild(createScrollZone("left"));
+      container.appendChild(createScrollZone("right"));
     });
   </script>
 </body>
