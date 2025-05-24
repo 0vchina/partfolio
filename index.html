@@ -14,7 +14,11 @@
       --light-gray: #ffffff;
       --text-color: #222222;
     }
-    * { box-sizing: border-box; }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
@@ -23,6 +27,7 @@
       color: var(--text-color);
       overflow-x: hidden;
     }
+
     header {
       background: url('file_0000000030986246a48be624a539648a.png') center/cover;
       color: white;
@@ -32,42 +37,81 @@
       top: 0;
       z-index: 1000;
     }
+
     header h1 {
       font-family: 'Pacifico', cursive;
       font-size: 2rem;
       margin: 0;
     }
-    nav { margin-top: 0.5rem; }
+
+    nav {
+      margin-top: 0.5rem;
+    }
+
     nav a {
       color: white;
       margin: 0 1rem;
       text-decoration: none;
       font-weight: 600;
     }
+
     section {
       padding: 3rem 2rem;
       max-width: 1200px;
       margin: auto;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 4rem;
       background: rgba(255, 255, 255, 0.15);
       border-radius: 12px;
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.3);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     }
+
     h2 {
       font-size: 2.2rem;
       font-family: 'Pacifico', cursive;
       margin-bottom: 1rem;
-      color: #111;
-      text-shadow: 1px 1px 4px rgba(255,255,255,0.6);
+      color: #111111;
+      text-shadow: 1px 1px 4px rgba(255, 255, 255, 0.6);
     }
-    .carousel-container { overflow: hidden; width: 100%; }
+
+    section p,
+    section h3 {
+      font-size: 1.2rem;
+      color: #222222;
+      text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.7);
+    }
+
+    .carousel-container {
+      width: 100%;
+      overflow: hidden;
+    }
+
     .model-carousel {
       display: flex;
       gap: 2rem;
-      cursor: grab;
-      overflow: hidden;
+      overflow-x: hidden;
+      scroll-snap-type: x mandatory;
+      padding-bottom: 1rem;
+      position: relative;
     }
+
+    .carousel-container:hover .model-carousel {
+      overflow-x: auto;
+    }
+
+    .model-carousel::-webkit-scrollbar {
+      display: none;
+    }
+
+    .model-carousel {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
     .model-card {
       flex-shrink: 0;
       width: 320px;
@@ -75,17 +119,95 @@
       border-radius: 16px;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
       padding: 1rem;
+      scroll-snap-align: start;
     }
+
     .sketchfab-embed-wrapper iframe {
       width: 100%;
       height: 250px;
       border-radius: 12px;
     }
+
+    .model-popup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .model-popup iframe {
+      width: 90vw;
+      height: 80vh;
+      border-radius: 12px;
+      border: none;
+    }
+
+    .model-popup .close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+    }
+
     footer {
       background: var(--dark-bg);
       color: white;
       text-align: center;
       padding: 2rem;
+      font-size: 0.9rem;
+    }
+
+    .social-icons {
+      margin-top: 1rem;
+    }
+
+    .social-icons a {
+      margin: 0 0.5rem;
+      display: inline-block;
+      color: white;
+      transition: transform 0.3s;
+    }
+
+    .social-icons a:hover {
+      transform: scale(1.2);
+    }
+
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 1.5rem;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      section {
+        padding: 2rem 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .model-card {
+        width: 260px;
+        margin-bottom: 1rem;
+      }
+
+      .model-carousel {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .model-popup iframe {
+        width: 95vw;
+        height: 70vh;
+      }
     }
   </style>
 </head>
@@ -109,25 +231,40 @@
     <h2>3D Модели</h2>
     <div class="carousel-container">
       <div class="model-carousel">
-        <!-- Карточки с моделями -->
         <div class="model-card">
           <div class="sketchfab-embed-wrapper">
-            <iframe src="https://sketchfab.com/models/ba839c7fda4f4fb89e2c1d18a2c1526c/embed?ui_theme=dark" frameborder="0" allow="autoplay; fullscreen; xr-spatial-tracking" allowfullscreen></iframe>
+            <iframe title="Гостинница" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true"
+              allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport
+              execution-while-not-rendered web-share
+              src="https://sketchfab.com/models/ba839c7fda4f4fb89e2c1d18a2c1526c/embed?ui_theme=dark">
+            </iframe>
           </div>
         </div>
         <div class="model-card">
           <div class="sketchfab-embed-wrapper">
-            <iframe src="https://sketchfab.com/models/7f768bd3cee64d979c5fb96b96b2beb0/embed?ui_theme=dark" frameborder="0" allow="autoplay; fullscreen; xr-spatial-tracking" allowfullscreen></iframe>
+            <iframe title="Завод" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true"
+              allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport
+              execution-while-not-rendered web-share
+              src="https://sketchfab.com/models/7f768bd3cee64d979c5fb96b96b2beb0/embed?ui_theme=dark">
+            </iframe>
           </div>
         </div>
         <div class="model-card">
           <div class="sketchfab-embed-wrapper">
-            <iframe src="https://sketchfab.com/models/deef518c17884aaf89432efcb1236a13/embed?ui_theme=dark" frameborder="0" allow="autoplay; fullscreen; xr-spatial-tracking" allowfullscreen></iframe>
+            <iframe title="Завод" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true"
+              allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport
+              execution-while-not-rendered web-share
+              src="https://sketchfab.com/models/deef518c17884aaf89432efcb1236a13/embed?ui_theme=dark">
+            </iframe>
           </div>
         </div>
         <div class="model-card">
           <div class="sketchfab-embed-wrapper">
-            <iframe src="https://sketchfab.com/models/a9fb81fce32d4bd6bf86a720d5458c96/embed?ui_theme=dark" frameborder="0" allow="autoplay; fullscreen; xr-spatial-tracking" allowfullscreen></iframe>
+            <iframe title="Камертон" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true"
+              allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport
+              execution-while-not-rendered web-share
+              src="https://sketchfab.com/models/a9fb81fce32d4bd6bf86a720d5458c96/embed?ui_theme=dark">
+            </iframe>
           </div>
         </div>
       </div>
@@ -142,38 +279,14 @@
 
   <footer>
     <p>&copy; 2025 Овчинников Виталий — Портфолио инженера-проектировщика</p>
+    <div class="social-icons">
+      <a href="https://t.me/VitaliPro" target="_blank" aria-label="Telegram">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" fill="white"><path d="M9.45 16.7l-.4 3.6c.575 0 .825-.25 1.125-.55l2.7-2.575 5.6 4.1c1.025.575 1.75.275 2.05-.95l3.7-16.075c.35-1.625-.625-2.25-1.625-1.875L2.325 9.275C.775 9.9.8 10.75 2.05 11.125l5.1 1.6 11.85-7.475c.55-.35 1.075-.15.65.2L9.45 16.7Z"/></svg>
+      </a>
+      <a href="https://instagram.com/0vchina" target="_blank" aria-label="Instagram">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" fill="white"><path d="M7 2C4.2 2 2 4.2 2 7v10c0 2.8 2.2 5 5 5h10c2.8 0 5-2.2 5-5V7c0-2.8-2.2-5-5-5H7zm10 2c1.6 0 3 1.4 3 3v10c0 1.6-1.4 3-3 3H7c-1.6 0-3-1.4-3-3V7c0-1.6 1.4-3 3-3h10zm-5 3c-2.2 0-4 1.8-4 4s1.8 4 4 4a4 4 0 100-8zm0 2a2 2 0 110 4 2 2 0 010-4zm4.5-2a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"/></svg>
+      </a>
+    </div>
   </footer>
-
-  <script>
-    const carousel = document.querySelector('.model-carousel');
-    let isDown = false;
-    let startX;
-    let scrollLeft;
-
-    carousel.addEventListener('mousedown', (e) => {
-      isDown = true;
-      carousel.classList.add('active');
-      startX = e.pageX - carousel.offsetLeft;
-      scrollLeft = carousel.scrollLeft;
-    });
-
-    carousel.addEventListener('mouseleave', () => {
-      isDown = false;
-      carousel.classList.remove('active');
-    });
-
-    carousel.addEventListener('mouseup', () => {
-      isDown = false;
-      carousel.classList.remove('active');
-    });
-
-    carousel.addEventListener('mousemove', (e) => {
-      if (!isDown) return;
-      e.preventDefault();
-      const x = e.pageX - carousel.offsetLeft;
-      const walk = (x - startX) * 2;
-      carousel.scrollLeft = scrollLeft - walk;
-    });
-  </script>
 </body>
 </html>
