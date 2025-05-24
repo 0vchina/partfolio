@@ -90,27 +90,30 @@
       font-family: 'Playfair Display', serif;
       margin-bottom: 1rem;
       color: var(--accent-color);
-    }/* Горизонтальная галерея 3D */
+    }/* Горизонтальная каскадная галерея */
 .model-carousel {
   display: flex;
   gap: 2rem;
-  overflow-x: auto;
+  overflow-x: scroll;
   padding-bottom: 1rem;
-  perspective: 1000px;
-  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  perspective: 1200px;
+}
+.model-carousel::-webkit-scrollbar {
+  display: none;
 }
 .model-card {
   min-width: 300px;
   flex-shrink: 0;
-  scroll-snap-align: center;
   background: var(--light-gray);
   border-radius: 16px;
   box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-  transition: transform 0.3s ease;
-  transform: rotateY(-5deg);
+  transform: rotateY(-10deg) scale(0.95);
+  transition: transform 0.4s ease;
 }
 .model-card:hover {
-  transform: rotateY(0deg) scale(1.02);
+  transform: rotateY(0deg) scale(1.03);
 }
 .model-card iframe {
   width: 100%;
@@ -122,47 +125,6 @@
   padding: 1rem;
 }
 
-.contact-form {
-  margin-top: 2rem;
-  background: var(--light-gray);
-  padding: 2rem;
-  border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
-}
-.contact-form label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-}
-.contact-form input,
-.contact-form textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 1rem;
-  margin-bottom: 1rem;
-  transition: border-color 0.3s;
-}
-.contact-form input:focus,
-.contact-form textarea:focus {
-  border-color: var(--primary-color);
-  outline: none;
-}
-.button {
-  display: inline-block;
-  margin-top: 1.5rem;
-  padding: 0.75rem 1.25rem;
-  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-  color: white;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 600;
-  transition: opacity 0.3s;
-}
-.button:hover {
-  opacity: 0.9;
-}
 footer {
   background: var(--dark-bg);
   color: white;
@@ -206,19 +168,8 @@ footer {
     </div>
   </section>  <section id="contact" data-aos="fade-up">
     <h2>Контакты</h2>
-    <p>Свяжитесь со мной для обсуждения проектов или сотрудничества:</p>
-    <form action="https://formspree.io/f/yourFormID" method="POST" class="contact-form">
-      <label>Ваше имя
-        <input type="text" name="name" required>
-      </label>
-      <label>Email
-        <input type="email" name="_replyto" required>
-      </label>
-      <label>Сообщение
-        <textarea name="message" rows="5" required></textarea>
-      </label>
-      <button type="submit" class="button">Отправить</button>
-    </form>
+    <p>Email: your.email@example.com</p>
+    <p>Telegram: @yourusername</p>
   </section>  <footer>
     <p>&copy; 2025 Имя Фамилия — Портфолио инженера-проектировщика</p>
   </footer>  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>  <script>
