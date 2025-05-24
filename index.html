@@ -30,7 +30,7 @@
 
     header {
       background: url('file_0000000030986246a48be624a539648a.png') center/cover;
-      color: white;
+      color: black;
       padding: 1.5rem 2rem;
       text-align: center;
       position: sticky;
@@ -40,8 +40,15 @@
 
     header h1 {
       font-family: 'Pacifico', cursive;
-      font-size: 2rem;
+      font-size: 2.5rem;
       margin: 0;
+      color: black;
+    }
+
+    header p {
+      font-size: 1.3rem;
+      margin-top: 0.5rem;
+      color: black;
     }
 
     nav {
@@ -49,7 +56,7 @@
     }
 
     nav a {
-      color: white;
+      color: black;
       margin: 0 1rem;
       text-decoration: none;
       font-weight: 600;
@@ -88,28 +95,21 @@
     .carousel-container {
       width: 100%;
       overflow: hidden;
+      position: relative;
     }
 
     .model-carousel {
       display: flex;
       gap: 2rem;
-      overflow-x: hidden;
+      overflow-x: auto;
       scroll-snap-type: x mandatory;
       padding-bottom: 1rem;
-      position: relative;
-    }
-
-    .carousel-container:hover .model-carousel {
-      overflow-x: auto;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
 
     .model-carousel::-webkit-scrollbar {
       display: none;
-    }
-
-    .model-carousel {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
     }
 
     .model-card {
@@ -126,35 +126,6 @@
       width: 100%;
       height: 250px;
       border-radius: 12px;
-    }
-
-    .model-popup {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.85);
-      z-index: 9999;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .model-popup iframe {
-      width: 90vw;
-      height: 80vh;
-      border-radius: 12px;
-      border: none;
-    }
-
-    .model-popup .close {
-      position: absolute;
-      top: 20px;
-      right: 30px;
-      color: white;
-      font-size: 2rem;
-      cursor: pointer;
     }
 
     footer {
@@ -182,7 +153,11 @@
 
     @media (max-width: 768px) {
       header h1 {
-        font-size: 1.5rem;
+        font-size: 2rem;
+      }
+
+      header p {
+        font-size: 1.1rem;
       }
 
       h2 {
@@ -202,11 +177,6 @@
       .model-carousel {
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch;
-      }
-
-      .model-popup iframe {
-        width: 95vw;
-        height: 70vh;
       }
     }
   </style>
@@ -233,38 +203,22 @@
       <div class="model-carousel">
         <div class="model-card">
           <div class="sketchfab-embed-wrapper">
-            <iframe title="Гостинница" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true"
-              allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport
-              execution-while-not-rendered web-share
-              src="https://sketchfab.com/models/ba839c7fda4f4fb89e2c1d18a2c1526c/embed?ui_theme=dark">
-            </iframe>
+            <iframe title="Гостинница" src="https://sketchfab.com/models/ba839c7fda4f4fb89e2c1d18a2c1526c/embed?ui_theme=dark" allow="autoplay; fullscreen; xr-spatial-tracking" frameborder="0"></iframe>
           </div>
         </div>
         <div class="model-card">
           <div class="sketchfab-embed-wrapper">
-            <iframe title="Завод" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true"
-              allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport
-              execution-while-not-rendered web-share
-              src="https://sketchfab.com/models/7f768bd3cee64d979c5fb96b96b2beb0/embed?ui_theme=dark">
-            </iframe>
+            <iframe title="Завод" src="https://sketchfab.com/models/7f768bd3cee64d979c5fb96b96b2beb0/embed?ui_theme=dark" allow="autoplay; fullscreen; xr-spatial-tracking" frameborder="0"></iframe>
           </div>
         </div>
         <div class="model-card">
           <div class="sketchfab-embed-wrapper">
-            <iframe title="Завод" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true"
-              allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport
-              execution-while-not-rendered web-share
-              src="https://sketchfab.com/models/deef518c17884aaf89432efcb1236a13/embed?ui_theme=dark">
-            </iframe>
+            <iframe title="Завод" src="https://sketchfab.com/models/deef518c17884aaf89432efcb1236a13/embed?ui_theme=dark" allow="autoplay; fullscreen; xr-spatial-tracking" frameborder="0"></iframe>
           </div>
         </div>
         <div class="model-card">
           <div class="sketchfab-embed-wrapper">
-            <iframe title="Камертон" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true"
-              allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport
-              execution-while-not-rendered web-share
-              src="https://sketchfab.com/models/a9fb81fce32d4bd6bf86a720d5458c96/embed?ui_theme=dark">
-            </iframe>
+            <iframe title="Камертон" src="https://sketchfab.com/models/a9fb81fce32d4bd6bf86a720d5458c96/embed?ui_theme=dark" allow="autoplay; fullscreen; xr-spatial-tracking" frameborder="0"></iframe>
           </div>
         </div>
       </div>
@@ -280,13 +234,48 @@
   <footer>
     <p>&copy; 2025 Овчинников Виталий — Портфолио инженера-проектировщика</p>
     <div class="social-icons">
-      <a href="https://t.me/VitaliPro" target="_blank" aria-label="Telegram">
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" fill="white"><path d="M9.45 16.7l-.4 3.6c.575 0 .825-.25 1.125-.55l2.7-2.575 5.6 4.1c1.025.575 1.75.275 2.05-.95l3.7-16.075c.35-1.625-.625-2.25-1.625-1.875L2.325 9.275C.775 9.9.8 10.75 2.05 11.125l5.1 1.6 11.85-7.475c.55-.35 1.075-.15.65.2L9.45 16.7Z"/></svg>
-      </a>
-      <a href="https://instagram.com/0vchina" target="_blank" aria-label="Instagram">
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" fill="white"><path d="M7 2C4.2 2 2 4.2 2 7v10c0 2.8 2.2 5 5 5h10c2.8 0 5-2.2 5-5V7c0-2.8-2.2-5-5-5H7zm10 2c1.6 0 3 1.4 3 3v10c0 1.6-1.4 3-3 3H7c-1.6 0-3-1.4-3-3V7c0-1.6 1.4-3 3-3h10zm-5 3c-2.2 0-4 1.8-4 4s1.8 4 4 4a4 4 0 100-8zm0 2a2 2 0 110 4 2 2 0 010-4zm4.5-2a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"/></svg>
-      </a>
+      <a href="https://t.me/VitaliPro" target="_blank" aria-label="Telegram">Telegram</a>
+      <a href="https://instagram.com/0vchina" target="_blank" aria-label="Instagram">Instagram</a>
     </div>
   </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const carousel = document.querySelector('.model-carousel');
+      let scrollInterval;
+
+      function startScroll(direction) {
+        stopScroll();
+        scrollInterval = setInterval(() => {
+          carousel.scrollLeft += direction * 10;
+        }, 10);
+      }
+
+      function stopScroll() {
+        clearInterval(scrollInterval);
+      }
+
+      const leftZone = document.createElement('div');
+      const rightZone = document.createElement('div');
+
+      [leftZone, rightZone].forEach(zone => {
+        zone.style.position = 'absolute';
+        zone.style.top = '0';
+        zone.style.bottom = '0';
+        zone.style.width = '80px';
+        zone.style.zIndex = '10';
+      });
+
+      leftZone.style.left = '0';
+      rightZone.style.right = '0';
+
+      leftZone.addEventListener('mouseenter', () => startScroll(-1));
+      rightZone.addEventListener('mouseenter', () => startScroll(1));
+      leftZone.addEventListener('mouseleave', stopScroll);
+      rightZone.addEventListener('mouseleave', stopScroll);
+
+      document.querySelector('.carousel-container').append(leftZone, rightZone);
+    });
+  </script>
 </body>
 </html>
