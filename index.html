@@ -8,8 +8,8 @@
     :root {
       --primary-color: #0ea5e9;
       --accent-color: #6366f1;
-      --bg-color: #f0f4f8;
-      --dark-bg: #0f172a;
+      --bg-color: #f4f1ec;
+      --dark-bg: #3b2f2f;
       --light-gray: #ffffff;
       --text-color: #1f2937;
     }
@@ -19,14 +19,15 @@
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(to right, #e0f7fa, #e8f5e9);
+      background: url('https://images.unsplash.com/photo-1600585154356-c8e8c0905f0c?auto=format&fit=crop&w=1950&q=80') no-repeat center center fixed;
+      background-size: cover;
       color: var(--text-color);
       overflow-x: hidden;
     }
     header {
-      background: var(--dark-bg);
+      background: url('https://images.unsplash.com/photo-1548786817-9c13a1caa8c6?auto=format&fit=crop&w=1950&q=80') center/cover;
       color: white;
-      padding: 3rem 2rem 2rem;
+      padding: 1.5rem 2rem 1.5rem;
       text-align: center;
       position: sticky;
       top: 0;
@@ -34,11 +35,11 @@
     }
     header h1 {
       font-family: 'Playfair Display', serif;
-      font-size: 2.75rem;
+      font-size: 2rem;
       margin: 0;
     }
     nav {
-      margin-top: 1rem;
+      margin-top: 0.5rem;
     }
     nav a {
       color: white;
@@ -47,14 +48,16 @@
       font-weight: 600;
     }
     section {
-      padding: 4rem 2rem;
+      padding: 3rem 2rem;
       max-width: 1200px;
       margin: auto;
       position: relative;
       z-index: 1;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 12px;
     }
     h2 {
-      font-size: 2.25rem;
+      font-size: 2rem;
       font-family: 'Playfair Display', serif;
       margin-bottom: 1rem;
       color: var(--accent-color);
@@ -62,18 +65,13 @@
     .model-carousel {
       display: flex;
       gap: 2rem;
-      transform: translateX(0);
-      transition: transform 0.3s ease-out;
-      will-change: transform;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
     }
     .carousel-container {
       overflow: hidden;
-      position: relative;
       width: 100%;
-      cursor: grab;
-      background: rgba(255,255,255,0.4);
-      border-radius: 16px;
-      padding: 2rem;
     }
     .model-card {
       width: 300px;
@@ -82,8 +80,7 @@
       box-shadow: 0 10px 20px rgba(0,0,0,0.08);
       transition: transform 0.3s;
       flex-shrink: 0;
-      position: relative;
-      overflow: hidden;
+      scroll-snap-align: start;
       cursor: pointer;
     }
     .model-card:hover {
@@ -138,10 +135,10 @@
     }
     @media (max-width: 768px) {
       header h1 {
-        font-size: 2rem;
+        font-size: 1.5rem;
       }
       h2 {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
       }
       .model-card {
         width: 240px;
@@ -170,8 +167,8 @@
     <p>Я инженер-проектировщик с более чем 5-летним опытом проектирования. Работаю с ArchiCAD, ЛИРА-САПР, SolidWorks и другими инструментами. Умею совмещать расчёты с визуализацией и BIM-технологиями.</p>
   </section>  <section id="projects">
     <h2>3D Модели</h2>
-    <div class="carousel-container" id="carousel-container">
-      <div class="model-carousel" id="model-carousel">
+    <div class="carousel-container">
+      <div class="model-carousel">
         <div class="model-card" onclick="openModel('https://sketchfab.com/models/YOUR_MODEL_ID/embed')">
           <div class="thumbnail">Модель 1</div>
           <div class="desc">
@@ -198,55 +195,13 @@
   </div>  <footer>
     <p>&copy; 2025 Имя Фамилия — Портфолио инженера-проектировщика</p>
   </footer>  <script>
-    let isDown = false;
-    let startX;
-    let scrollLeft;
-    const carousel = document.getElementById('carousel-container');
-    const inner = document.getElementById('model-carousel');
-
-    carousel.addEventListener('mousedown', (e) => {
-      isDown = true;
-      startX = e.pageX - carousel.offsetLeft;
-      scrollLeft = carousel.scrollLeft;
-    });
-    carousel.addEventListener('mouseleave', () => { isDown = false; });
-    carousel.addEventListener('mouseup', () => { isDown = false; });
-    carousel.addEventListener('mousemove', (e) => {
-      if (!isDown) return;
-      e.preventDefault();
-      const x = e.pageX - carousel.offsetLeft;
-      const walk = (x - startX) * 2;
-      carousel.scrollLeft = scrollLeft - walk;
-    });
-
-    carousel.addEventListener('mouseenter', () => {
-      autoScroll = setInterval(() => {
-        carousel.scrollLeft += 1;
-      }, 20);
-    });
-    carousel.addEventListener('mouseleave', () => {
-      clearInterval(autoScroll);
-    });
-
     function openModel(url) {
-      const popup = document.getElementById('modelPopup');
-      const iframe = document.getElementById('modelFrame');
-      iframe.src = url;
-      popup.style.display = 'flex';
-      popup.style.opacity = 0;
-      setTimeout(() => {
-        popup.style.transition = 'opacity 0.4s ease';
-        popup.style.opacity = 1;
-      }, 10);
+      document.getElementById('modelFrame').src = url;
+      document.getElementById('modelPopup').style.display = 'flex';
     }
-
     function closeModel() {
-      const popup = document.getElementById('modelPopup');
-      popup.style.opacity = 0;
-      setTimeout(() => {
-        popup.style.display = 'none';
-        document.getElementById('modelFrame').src = '';
-      }, 400);
+      document.getElementById('modelPopup').style.display = 'none';
+      document.getElementById('modelFrame').src = '';
     }
   </script></body>
 </html>
