@@ -6,100 +6,19 @@
   <title>Мой сайт | Инженер-конструктор</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Pacifico&display=swap" rel="stylesheet" />
   <style>
+    :root {
+      --header-offset: 90px;
+    }
+
+    * { box-sizing: border-box; }
+
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
       background: url('a2.webp') center center / cover no-repeat fixed;
       overflow-x: hidden;
     }
-    
-    header h1 {
-      font-family: 'Pacifico', cursive;
-      font-size: 2.4rem;
-      margin: 0;
-      color: black;
-      text-shadow: 1px 1px 3px white, -1px -1px 3px white;
-    }
-    
-    nav a {
-      text-shadow: 1px 1px 3px white, -1px -1px 3px white;
-      color: black;
-      margin: 0 1rem;
-      text-decoration: none;
-      font-weight: 600;
-    }
-    
-    h2 {
-      font-family: 'Pacifico', cursive;
-      font-size: 2rem;
-      margin-bottom: 1rem;
-      color: #111;
-    }
-    .model-carousel, .renders-grid {
-      display: flex;
-      gap: 1rem;
-      overflow-x: auto;
-      padding-bottom: 1rem;
-    }
-    .model-card, .render-thumb {
-      flex-shrink: 0;
-      width: 350px;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      cursor: pointer;
-    }
-    .model-card iframe {
-      width: 100%;
-      height: 270px;
-      border: none;
-    }
-    .model-cardd iframe {
-      width: 100%;
-      height: 270px;
-      border: none;
-    }
-    .render-thumb img {
-      width: 200%;
-      height: auto;
-      display: block;
-    }
-    .popup-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.8);
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-    }
-    .popup-overlay img {
-      max-width: 90vw;
-      max-height: 90vh;
-      border-radius: 12px;
-    }
-    .popup-overlay .close-btn {
-      position: absolute;
-      top: 20px; right: 30px;
-      font-size: 2rem;
-      color: white;
-      cursor: pointer;
-    }
-    footer {
-      text-align: center;
-      background: #333;
-      color: white;
-      padding: 2rem;
-    }
-  
-    section {
-      padding: 2rem 1.5rem;
-      max-width: 1200px;
-      margin: auto;
-      margin-bottom: 3rem;
-    }
-    
+
     header {
       background: url('file_0000000030986246a48be624a539648a.webp') center/cover;
       color: black;
@@ -110,6 +29,15 @@
       z-index: 1000;
       line-height: 1.6;
     }
+
+    header h1 {
+      font-family: 'Pacifico', cursive;
+      font-size: 2.4rem;
+      margin: 0;
+      color: black;
+      text-shadow: 1px 1px 3px white, -1px -1px 3px white;
+    }
+
     header p {
       line-height: 1.8;
       font-size: 1.2rem;
@@ -118,36 +46,172 @@
       text-shadow: 1px 1px 3px white, -1px -1px 3px white;
     }
 
-  
+    nav a {
+      text-shadow: 1px 1px 3px white, -1px -1px 3px white;
+      color: black;
+      margin: 0 1rem;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    h2 {
+      font-family: 'Pacifico', cursive;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #111;
+    }
+
+    section {
+      padding: 2rem 1.5rem;
+      max-width: 1200px;
+      margin: auto;
+      margin-bottom: 3rem;
+      background: rgba(150, 75, 0, 0.01);
+      border-radius: 12px;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(150, 75, 0, 0.01);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    /* смещение якорей под липкий хедер */
     section[id]::before {
       content: "";
       display: block;
-      height: 90px;
-      margin-top: -90px;
+      height: var(--header-offset);
+      margin-top: calc(-1 * var(--header-offset));
       visibility: hidden;
     }
 
-  
-    @media (max-width: 600px) {
-      header {
-        padding: 0.6rem 1rem;
-      }
-
-      header h1 {
-        font-size: 1.6rem;
-      }
-
-      header p {
-        font-size: 1rem;
-        line-height: 1.4;
-      }
-
-      nav a {
-        margin: 0 0.5rem;
-        font-size: 0.95rem;
-      }
+    /* карусель моделей */
+    .model-carousel {
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+      padding-bottom: 1rem;
+      scroll-snap-type: x mandatory;
+    }
+    .model-card { 
+      flex-shrink: 0; 
+      width: 350px; 
+      border-radius: 12px; 
+      overflow: hidden; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      scroll-snap-align: start;
+    }
+    .model-card iframe, .model-cardd iframe {
+      width: 100%;
+      height: 270px;
+      border: none;
     }
 
+    /* превью визуализаций */
+    .renders-grid {
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+      padding-bottom: 1rem;
+    }
+    .render-thumb {
+      flex-shrink: 0;
+      width: 280px;
+      height: 180px;          /* фиксированная карточка */
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      cursor: zoom-in;
+      position: relative;
+    }
+    .render-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;      /* ровные плитки */
+      display: block;
+    }
+
+    footer {
+      text-align: center;
+      background: #333;
+      color: white;
+      padding: 2rem;
+    }
+
+    /* Модалка полноэкранного просмотра */
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      overscroll-behavior: contain;
+    }
+    body.no-scroll { overflow: hidden; }
+
+    .popup-content {
+      position: relative;
+      max-width: 92vw;
+      max-height: 92vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+    }
+    .popup-canvas {
+      max-width: 92vw;
+      max-height: 92vh;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      transform-origin: center center;
+      user-select: none;
+      -webkit-user-drag: none;
+      cursor: grab;
+    }
+    .popup-overlay .close-btn {
+      position: absolute;
+      top: 16px; right: 20px;
+      font-size: 2rem;
+      color: white;
+      cursor: pointer;
+    }
+
+    .popup-toolbar {
+      position: absolute;
+      bottom: 16px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(20,20,20,0.6);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 999px;
+      display: flex;
+      gap: 8px;
+      padding: 6px 10px;
+    }
+    .popup-toolbar button {
+      background: rgba(255,255,255,0.9);
+      border: none;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .popup-zoom-indicator {
+      color: #fff;
+      margin: 0 6px;
+      min-width: 56px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 0.6rem 1rem; }
+      header h1 { font-size: 1.6rem; }
+      header p { font-size: 1rem; line-height: 1.4; }
+      nav a { margin: 0 0.5rem; font-size: 0.95rem; }
+      .render-thumb { width: 70vw; height: 44vw; }
+    }
   </style>
 </head>
 <body>
@@ -162,16 +226,17 @@
     </nav>
   </header>
 
-  <section style="background: rgba(150, 75, 0, 0.01); border-radius: 12px; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(150, 75, 0, 0.01); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);" id="about">
+  <section id="about">
     <h2>Обо мне</h2>
-    <p>Я инженер-проектировщик. Работаю с ArchiCAD, ЛИРА-САПР + SAPFIR, SolidWorks, Ansys(little bit) и другими инструментами. Умею совмещать расчёты с визуализацией и BIM-технологиями.</p>
+    <p>Я инженер-проектировщик. Работаю с ArchiCAD, ЛИРА-САПР + SAPFIR, SolidWorks, Ansys (немного) и другими инструментами. Умею совмещать расчёты с визуализацией и BIM‑технологиями.</p>
     <p>Now in work:</p>
-    <div class="model-cardd" style="text-align: center;"> 
-      <iframe title="now in work" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/60eb4e7c22af4072b6b6cc531cbb1cb9/embed?autospin=1&autostart=1&preload=1&transparent=1&ui_theme=dark"> 
-      </iframe> <p style="font-size: 26px; font-weight: normal; margin: 5px; color: #4A4A4A;"> <a href="https://sketchfab.com/3d-models/rec1-before-60eb4e7c22af4072b6b6cc531cbb1cb9?utm_medium=embed&utm_campaign=share-popup&utm_content=60eb4e7c22af4072b6b6cc531cbb1cb9" target="_blank" rel="nofollow" style="font-weight: bold; color: #1CAAD9;"></a></p>
+    <div class="model-cardd" style="text-align: center;">
+      <iframe title="now in work" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/60eb4e7c22af4072b6b6cc531cbb1cb9/embed?autospin=1&autostart=1&preload=1&transparent=1&ui_theme=dark"></iframe>
+      <p style="font-size: 26px; font-weight: normal; margin: 5px; color: #4A4A4A;"><a href="https://sketchfab.com/3d-models/rec1-before-60eb4e7c22af4072b6b6cc531cbb1cb9?utm_medium=embed&utm_campaign=share-popup&utm_content=60eb4e7c22af4072b6b6cc531cbb1cb9" target="_blank" rel="nofollow" style="font-weight: bold; color: #1CAAD9;"></a></p>
     </div>
-    
-  <section style="background: rgba(150, 75, 0, 0.01); border-radius: 12px; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(150, 75, 0, 0.01); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);" id="projects">
+  </section>
+
+  <section id="projects">
     <h2>3D Модели</h2>
     <div class="model-carousel">
       <div class="model-card"><iframe src="https://sketchfab.com/models/084cad3643db4e4e8eaba72e629140ac/embed?transparent=1&ui_theme=dark"></iframe></div>
@@ -191,18 +256,18 @@
     </div>
   </section>
 
-  <section style="background: rgba(150, 75, 0, 0.01); border-radius: 12px; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(150, 75, 0, 0.01); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);" id="renders">
+  <section id="renders">
     <h2>Визуализации</h2>
     <div class="renders-grid">
       <div class="render-thumb"><img src="1.webp" alt="1"></div>
       <div class="render-thumb"><img src="5.webp" alt="2"></div>
       <div class="render-thumb"><img src="7.webp" alt="3"></div>
-      <div class="render-thumb"><img src="Камертон планы 16.07.2024 - Изображение4-1.webp" alt="4"></div>
-      <div class="render-thumb"><img src="Камертон планы 27.07.2024 - Изображение2.webp" alt="4"></div>
+      <div class="render-thumb"><img src="Камертон планы 16.07.2024 - Изображение4-1.webp" alt="Камертон 16.07.2024"></div>
+      <div class="render-thumb"><img src="Камертон планы 27.07.2024 - Изображение2.webp" alt="Камертон 27.07.2024"></div>
     </div>
   </section>
-    
-  <section style="background: rgba(150, 75, 0, 0.01); border-radius: 12px; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(150, 75, 0, 0.01); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);" id="renders">
+
+  <section id="house">
     <h2>Жилой дом</h2>
     <div class="renders-grid">
       <div class="render-thumb"><img src="22.webp" alt="22"></div>
@@ -210,7 +275,7 @@
     </div>
   </section>
 
-  <section style="background: rgba(150, 75, 0, 0.01); border-radius: 12px; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(150, 75, 0, 0.01); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);" id="renders">
+  <section id="dorm">
     <h2>Общежитие Минск</h2>
     <div class="renders-grid">
       <div class="render-thumb"><img src="111.webp" alt="111"></div>
@@ -219,43 +284,151 @@
     </div>
   </section>
 
-  <section style="background: rgba(150, 75, 0, 0.01); border-radius: 12px; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(150, 75, 0, 0.01); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);" id="contact">
+  <section id="contact">
     <h2>Контакты</h2>
-    <p>Email: vitaliy.structengineer@gmail.com</p>
-    <p>Telegram: @VitaliPro</p>
+    <p>Email: <a href="mailto:vitaliy.structengineer@gmail.com">vitaliy.structengineer@gmail.com</a></p>
+    <p>Telegram: <a href="https://t.me/VitaliPro" target="_blank" rel="noopener">@VitaliPro</a></p>
   </section>
 
   <footer>
     <p>&copy; 2025 Виталий Овчинников — Сайт инженера</p>
   </footer>
 
+  <!-- Модалка полноэкранного просмотра -->
   <div class="popup-overlay" id="imagePopup">
-    <span class="close-btn" onclick="document.getElementById('imagePopup').style.display='none'">&times;</span>
-    <img id="popupImage" src="" alt="Просмотр изображения">
+    <span class="close-btn" id="popupClose">&times;</span>
+    <div class="popup-content" id="popupContent">
+      <img id="popupImage" class="popup-canvas" src="" alt="Просмотр изображения">
+      <div class="popup-toolbar">
+        <button type="button" id="zoomOut">–</button>
+        <span class="popup-zoom-indicator" id="zoomLabel">100%</span>
+        <button type="button" id="zoomIn">+</button>
+        <button type="button" id="zoomReset">100%</button>
+        <button type="button" id="popupClose2">Закрыть</button>
+      </div>
+    </div>
   </div>
 
   <script>
-    document.querySelectorAll('.render-thumb img').forEach(img => {
-      img.addEventListener('click', () => {
-        document.getElementById('popupImage').src = img.src;
-        document.getElementById('imagePopup').style.display = 'flex';
-      });
-    });
-  </script>
-
-  <script>
+    // ======= Плавная прокрутка якорей =======
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function(e) {
+        const href = this.getAttribute('href');
+        if (!href || href === '#') return; // пропускаем пустые ссылки
         e.preventDefault();
-        const id = this.getAttribute('href').slice(1);
+        const id = href.slice(1);
         const target = document.getElementById(id);
         if (target) {
-          const top = target.getBoundingClientRect().top + window.scrollY - 90;
+          const top = target.getBoundingClientRect().top + window.scrollY - parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-offset'));
           window.scrollTo({ top, behavior: 'smooth' });
         }
       });
     });
-  </script>
 
+    // ======= Попап изображений с зумом и перетаскиванием =======
+    const overlay = document.getElementById('imagePopup');
+    const imgEl = document.getElementById('popupImage');
+    const content = document.getElementById('popupContent');
+    const closeBtn = document.getElementById('popupClose');
+    const closeBtn2 = document.getElementById('popupClose2');
+    const zoomInBtn = document.getElementById('zoomIn');
+    const zoomOutBtn = document.getElementById('zoomOut');
+    const zoomResetBtn = document.getElementById('zoomReset');
+    const zoomLabel = document.getElementById('zoomLabel');
+
+    let scale = 1;
+    let pos = { x: 0, y: 0 };
+    let isPanning = false;
+    let start = { x: 0, y: 0 };
+
+    function openPopup(src, alt='') {
+      imgEl.src = src;
+      imgEl.alt = alt || 'Просмотр изображения';
+      overlay.style.display = 'flex';
+      document.body.classList.add('no-scroll');
+      resetTransform();
+    }
+
+    function closePopup() {
+      overlay.style.display = 'none';
+      document.body.classList.remove('no-scroll');
+      imgEl.src = '';
+    }
+
+    function resetTransform() {
+      scale = 1;
+      pos = { x: 0, y: 0 };
+      applyTransform();
+    }
+
+    function applyTransform() {
+      imgEl.style.transform = `translate(${pos.x}px, ${pos.y}px) scale(${scale})`;
+      zoomLabel.textContent = Math.round(scale * 100) + '%';
+      imgEl.style.cursor = scale > 1 ? (isPanning ? 'grabbing' : 'grab') : 'default';
+    }
+
+    function zoomAt(pointX, pointY, deltaScale) {
+      const prevScale = scale;
+      scale = Math.min(6, Math.max(0.2, scale * deltaScale));
+      const rect = imgEl.getBoundingClientRect();
+      const imgCenterX = rect.left + rect.width / 2;
+      const imgCenterY = rect.top + rect.height / 2;
+      const dx = pointX - imgCenterX;
+      const dy = pointY - imgCenterY;
+      pos.x -= dx * (scale/prevScale - 1);
+      pos.y -= dy * (scale/prevScale - 1);
+      applyTransform();
+    }
+
+    document.querySelectorAll('.render-thumb img').forEach(img => {
+      img.addEventListener('click', () => openPopup(img.src, img.alt));
+    });
+
+    closeBtn.addEventListener('click', closePopup);
+    closeBtn2.addEventListener('click', closePopup);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closePopup();
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closePopup();
+    });
+
+    zoomInBtn.addEventListener('click', () => zoomAt(window.innerWidth/2, window.innerHeight/2, 1.2));
+    zoomOutBtn.addEventListener('click', () => zoomAt(window.innerWidth/2, window.innerHeight/2, 1/1.2));
+    zoomResetBtn.addEventListener('click', resetTransform);
+
+    content.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 1.1 : 1/1.1;
+      zoomAt(e.clientX, e.clientY, delta);
+    }, { passive: false });
+
+    content.addEventListener('dblclick', (e) => {
+      if (scale <= 1.01) {
+        zoomAt(e.clientX, e.clientY, 2);
+      } else {
+        resetTransform();
+      }
+    });
+
+    content.addEventListener('pointerdown', (e) => {
+      if (scale <= 1.01) return;
+      isPanning = true;
+      start = { x: e.clientX - pos.x, y: e.clientY - pos.y };
+      imgEl.setPointerCapture(e.pointerId);
+      applyTransform();
+    });
+    content.addEventListener('pointermove', (e) => {
+      if (!isPanning) return;
+      pos.x = e.clientX - start.x;
+      pos.y = e.clientY - start.y;
+      applyTransform();
+    });
+    content.addEventListener('pointerup', (e) => {
+      isPanning = false;
+      imgEl.releasePointerCapture(e.pointerId);
+      applyTransform();
+    });
+  </script>
 </body>
 </html>
