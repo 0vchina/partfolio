@@ -33,6 +33,10 @@
   <style>
     :root {
       --header-offset: 90px;
+      --accent: #1CAAD9;
+      --panel-bg: rgba(255,255,255,.72);   /* подложка под текст */
+      --panel-brd: rgba(0,0,0,.08);
+      --panel-shadow: 0 8px 32px rgba(0,0,0,.18);
     }
 
     * { box-sizing: border-box; }
@@ -42,42 +46,49 @@
       font-family: 'Inter', sans-serif;
       background: url('a2.webp') center center / cover no-repeat fixed;
       overflow-x: hidden;
+      color: #111;
     }
 
     header {
       background: url('file_0000000030986246a48be624a539648a.webp') center/cover;
       color: black;
-      padding: 1.2rem 1.5rem;
+      padding: 1rem 1.2rem;
       text-align: center;
       position: sticky;
       top: 0;
       z-index: 1000;
-      line-height: 1.6;
+      line-height: 1.5;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
     }
 
     header h1 {
       font-family: 'Pacifico', cursive;
-      font-size: 2.4rem;
+      font-size: 2.3rem;
       margin: 0;
       color: black;
-      text-shadow: 1px 1px 3px white, -1px -1px 3px white;
+      /* тени мягче */
+      text-shadow: 0 1px 2px rgba(255,255,255,.95);
     }
 
     header p {
-      line-height: 1.8;
-      font-size: 1.2rem;
-      margin: 0.3rem 0 0;
-      color: black;
-      text-shadow: 1px 1px 3px white, -1px -1px 3px white;
+      line-height: 1.6;
+      font-size: 1.08rem;
+      margin: .25rem 0 0;
+      color: #111;
+      text-shadow: 0 1px 2px rgba(255,255,255,.95);
     }
 
     nav a {
-      text-shadow: 1px 1px 3px white, -1px -1px 3px white;
-      color: black;
-      margin: 0 1rem;
+      color: #0d0d0d;
+      margin: 0 .8rem;
       text-decoration: none;
       font-weight: 600;
+      text-shadow: 0 1px 2px rgba(255,255,255,.9);
+      border-bottom: 2px solid transparent;
+      padding-bottom: 2px;
     }
+    nav a:hover { border-color: var(--accent); }
 
     h2 {
       font-family: 'Pacifico', cursive;
@@ -89,14 +100,13 @@
     section {
       padding: 2rem 1.5rem;
       max-width: 1200px;
-      margin: auto;
-      margin-bottom: 3rem;
-      background: rgba(150, 75, 0, 0.01);
-      border-radius: 12px;
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(150, 75, 0, 0.01);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      margin: 1.2rem auto 2.4rem;
+      background: var(--panel-bg);
+      border-radius: 14px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--panel-brd);
+      box-shadow: var(--panel-shadow);
     }
 
     /* смещение якорей под липкий хедер */
@@ -109,26 +119,43 @@
     }
 
     /* карусель моделей */
+    .model-wrap { position: relative; }
     .model-carousel {
       display: flex;
       gap: 1rem;
       overflow-x: auto;
       padding-bottom: 1rem;
       scroll-snap-type: x mandatory;
+      scrollbar-width: thin;
     }
-    .model-card { 
-      flex-shrink: 0; 
-      width: 350px; 
-      border-radius: 12px; 
-      overflow: hidden; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    .model-card {
+      flex-shrink: 0;
+      width: 350px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
       scroll-snap-align: start;
+      background: #0001;
     }
     .model-card iframe, .model-cardd iframe {
       width: 100%;
       height: 270px;
       border: none;
     }
+    /* стрелки */
+    .carousel-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,.92);
+      border: 1px solid var(--panel-brd);
+      border-radius: 999px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.18);
+      width: 40px; height: 40px;
+      display: grid; place-items: center;
+      font-weight: 700; cursor: pointer; user-select: none;
+    }
+    .carousel-btn:disabled { opacity: .4; cursor: default; }
+    .carousel-btn.left  { left: -10px; }
+    .carousel-btn.right { right: -10px; }
 
     /* превью визуализаций */
     .renders-grid {
@@ -136,6 +163,7 @@
       gap: 1rem;
       overflow-x: auto;
       padding-bottom: 1rem;
+      scrollbar-width: thin;
     }
     .render-thumb {
       flex-shrink: 0;
@@ -146,6 +174,8 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       cursor: zoom-in;
       position: relative;
+      background: #f3f3f3;
+      border: 1px solid var(--panel-brd);
     }
     .render-thumb img {
       width: 100%;
@@ -156,7 +186,7 @@
 
     footer {
       text-align: center;
-      background: #333;
+      background: rgba(0,0,0,.85);
       color: white;
       padding: 2rem;
     }
@@ -166,7 +196,7 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.85);
+      background: rgba(0,0,0,0.86);
       z-index: 9999;
       align-items: center;
       justify-content: center;
@@ -215,8 +245,8 @@
       padding: 6px 10px;
     }
     .popup-toolbar button {
-      background: rgba(255,255,255,0.9);
-      border: none;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid var(--panel-brd);
       border-radius: 8px;
       padding: 6px 10px;
       font-weight: 600;
@@ -230,22 +260,39 @@
       font-weight: 600;
     }
 
+    /* Бейджи опыта */
+    .experience-badges {
+      display:flex; flex-wrap:wrap; gap:.5rem; margin:.75rem 0 0;
+    }
+    .experience-badge {
+      display:inline-block; padding:.35rem .6rem; border:1px solid var(--panel-brd);
+      border-radius:999px; font-size:.9rem; background:#fff8; backdrop-filter:blur(4px);
+    }
+    .experience-list { margin:.8rem 0 0; padding-left:1.1rem; }
+    .experience-list li { margin:.35rem 0; }
+
+    @media (max-width: 900px) {
+      .carousel-btn.left  { left: 4px; }
+      .carousel-btn.right { right: 4px; }
+    }
     @media (max-width: 600px) {
-      header { padding: 0.6rem 1rem; }
-      header h1 { font-size: 1.6rem; }
-      header p { font-size: 1rem; line-height: 1.4; }
-      nav a { margin: 0 0.5rem; font-size: 0.95rem; }
+      header { padding: .6rem .9rem; }
+      header h1 { font-size: 1.7rem; }
+      header p { font-size: .98rem; line-height: 1.35; }
+      nav a { margin: 0 .5rem; font-size: .96rem; }
       .render-thumb { width: 70vw; height: 44vw; }
       body { background-attachment: scroll; } /* фикс производительности на мобилках */
+      .model-card { width: 80vw; }
     }
   </style>
 </head>
 <body>
-  <header>
+  <header aria-label="Шапка сайта">
     <h1>Виталий Овчинников</h1>
     <p>Инженер-проектировщик | BIM | Расчёты | 3D визуализация</p>
-    <nav>
+    <nav aria-label="Основная навигация">
       <a href="#about">Обо мне</a>
+      <a href="#experience">Опыт</a>
       <a href="#projects">3D Модели</a>
       <a href="#renders">Рендеры</a>
       <a href="#contact">Контакты</a>
@@ -255,188 +302,183 @@
   <section id="about">
     <h2>Обо мне</h2>
     <p>Я инженер-проектировщик. Работаю с ArchiCAD, ЛИРА-САПР + SAPFIR, SolidWorks, Ansys (немного) и другими инструментами. Умею совмещать расчёты с визуализацией и BIM‑технологиями.</p>
+    <p>Помимо работы люблю путешествия, спорт и архитектурную визуализацию. В проектах для меня важно сочетать надёжность конструкций и выразительную архитектуру.</p>
     <p>Now in work:</p>
     <div class="model-cardd" style="text-align: center;">
       <iframe loading="lazy" title="now in work" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/60eb4e7c22af4072b6b6cc531cbb1cb9/embed?autospin=1&autostart=1&preload=1&transparent=1&ui_theme=dark"></iframe>
-      <p style="font-size: 26px; font-weight: normal; margin: 5px; color: #4A4A4A;"><a href="https://sketchfab.com/3d-models/rec1-before-60eb4e7c22af4072b6b6cc531cbb1cb9?utm_medium=embed&utm_campaign=share-popup&utm_content=60eb4e7c22af4072b6b6cc531cbb1cb9" target="_blank" rel="nofollow noopener"></a></p>
     </div>
   </section>
 
+  <!-- Опыт строительства -->
   <section id="experience">
-  <h2>Опыт строительства</h2>
-  <p>
-    Объекты на этом сайте — <strong>реальные</strong>. Я участвовал в их возведении как
-    <strong>прораб</strong> и инженер: организовывал работы, координировал подрядчиков,
-    следил за качеством и сроками. Благодаря опыту на стройке я проектирую решения,
-    которые удобно реализовывать в реальности.
-  </p>
-
-  <div class="experience-badges">
-    <span class="experience-badge">Роль: прораб / инженер</span>
-    <span class="experience-badge">BIM + расчёты + визуализация</span>
-    <span class="experience-badge">Европейские объекты</span>
-  </div>
-
-  <ul class="experience-list">
-    <li>Понимание технологии работ и последовательности монтажа конструкций.</li>
-    <li>Учет бюджета, сроков и логистики при принятии инженерных решений.</li>
-    <li>Навык общения с заказчиком, технадзором и подрядчиками.</li>
-  </ul>
+    <h2>Опыт строительства</h2>
+    <p>
+      Объекты на этом сайте — <strong>реальные</strong>. Я участвовал в их возведении как
+      <strong>прораб</strong> и инженер: организовывал работы, координировал подрядчиков,
+      следил за качеством и сроками. Этот опыт помогает мне проектировать решения,
+      которые удобно реализовывать на стройке.
+    </p>
+    <div class="experience-badges">
+      <span class="experience-badge">Роль: прораб / инженер</span>
+      <span class="experience-badge">BIM + расчёты + визуализация</span>
+      <span class="experience-badge">Европейские объекты</span>
+    </div>
+    <ul class="experience-list">
+      <li>Понимание технологии работ и последовательности монтажа конструкций.</li>
+      <li>Учёт бюджета, сроков и логистики при инженерных решениях.</li>
+      <li>Коммуникация с заказчиком, технадзором и подрядчиками.</li>
+    </ul>
   </section>
 
-  
   <section id="projects">
     <h2>3D Модели</h2>
-    <div class="model-carousel">
-      <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/084cad3643db4e4e8eaba72e629140ac/embed?transparent=1&ui_theme=dark"></iframe></div>
-      <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/ba839c7fda4f4fb89e2c1d18a2c1526c/embed?transparent=1&ui_theme=dark"></iframe></div>
-      <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/eafec3893bcb43b682ab2377f32ddcef/embed?transparent=1&ui_theme=dark"></iframe></div>
-      <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/e331aef5a1cb4ed38da9c9539499aced/embed?transparent=1&ui_theme=dark"></iframe></div>
-      <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/89d073bcf42c4eec87f4590ce6e25092/embed?transparent=1&ui_theme=dark"></iframe></div>
-      <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/bbff07d90f474439860a53789f130a2b/embed?transparent=1&ui_theme=dark"></iframe></div>
-      <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/7f768bd3cee64d979c5fb96b96b2beb0/embed?transparent=1&ui_theme=dark"></iframe></div>
-      <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/4c69c03d217f4bb6ad082e9a080c386c/embed?transparent=1&ui_theme=dark"></iframe></div>
-      <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/9c55246691b44ee8a069a30d75322ed9/embed?transparent=1&ui_theme=dark"></iframe></div>
-      <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/deef518c17884aaf89432efcb1236a13/embed?transparent=1&ui_theme=dark"></iframe></div>
-      <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/a9fb81fce32d4bd6bf86a720d5458c96/embed?transparent=1&ui_theme=dark"></iframe></div>
-      <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/6d44da7b1c89421c820dba806a988640/embed?transparent=1&ui_theme=dark"></iframe></div>
-      <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/7312b16ac3b242269e0994a03530345f/embed?transparent=1&ui_theme=dark"></iframe></div>
-      <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/0c33ff5138b847df80d8f24711ec1733/embed?transparent=1&ui_theme=dark"></iframe></div>
+    <div class="model-wrap">
+      <button class="carousel-btn left"  id="modelsPrev" aria-label="Назад">‹</button>
+      <button class="carousel-btn right" id="modelsNext" aria-label="Вперёд">›</button>
+
+      <div class="model-carousel" id="modelsCarousel">
+        <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/084cad3643db4e4e8eaba72e629140ac/embed?transparent=1&ui_theme=dark"></iframe></div>
+        <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/ba839c7fda4f4fb89e2c1d18a2c1526c/embed?transparent=1&ui_theme=dark"></iframe></div>
+        <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/eafec3893bcb43b682ab2377f32ddcef/embed?transparent=1&ui_theme=dark"></iframe></div>
+        <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/e331aef5a1cb4ed38da9c9539499aced/embed?transparent=1&ui_theme=dark"></iframe></div>
+        <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/89d073bcf42c4eec87f4590ce6e25092/embed?transparent=1&ui_theme=dark"></iframe></div>
+        <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/bbff07d90f474439860a53789f130a2b/embed?transparent=1&ui_theme=dark"></iframe></div>
+        <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/7f768bd3cee64d979c5fb96b96b2beb0/embed?transparent=1&ui_theme=dark"></iframe></div>
+        <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/4c69c03d217f4bb6ad082e9a080c386c/embed?transparent=1&ui_theme=dark"></iframe></div>
+        <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/9c55246691b44ee8a069a30d75322ed9/embed?transparent=1&ui_theme=dark"></iframe></div>
+        <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/deef518c17884aaf89432efcb1236a13/embed?transparent=1&ui_theme=dark"></iframe></div>
+        <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/a9fb81fce32d4bd6bf86a720d5458c96/embed?transparent=1&ui_theme=dark"></iframe></div>
+        <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/6d44da7b1c89421c820dba806a988640/embed?transparent=1&ui_theme=dark"></iframe></div>
+        <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/7312b16ac3b242269e0994a03530345f/embed?transparent=1&ui_theme=dark"></iframe></div>
+        <div class="model-card"><iframe loading="lazy" src="https://sketchfab.com/models/0c33ff5138b847df80d8f24711ec1733/embed?transparent=1&ui_theme=dark"></iframe></div>
+      </div>
     </div>
   </section>
 
   <section id="renders">
     <h2>Визуализации</h2>
     <div class="renders-grid">
-      <div class="render-thumb"><img src="1.webp" alt="1" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="5.webp" alt="2" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="7.webp" alt="3" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="Камертон планы 16.07.2024 - Изображение4-1.webp" alt="Камертон 16.07.2024" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="Камертон планы 27.07.2024 - Изображение2.webp" alt="Камертон 27.07.2024" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="1.webp" alt="Визуализация 1" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="5.webp" alt="Визуализация 2" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="7.webp" alt="Визуализация 3" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="Камертон планы 16.07.2024 - Изображение4-1.webp" alt="Камертон 16.07.2024 — вид 4-1" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="Камертон планы 27.07.2024 - Изображение2.webp" alt="Камертон 27.07.2024 — вид 2" loading="lazy" decoding="async"></div>
     </div>
   </section>
 
   <section id="house">
     <h2>Жилой дом</h2>
     <div class="renders-grid">
-      <div class="render-thumb"><img src="22.webp" alt="22" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="11.webp" alt="11" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="22.webp" alt="Жилой дом — вид 22" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="11.webp" alt="Жилой дом — вид 11" loading="lazy" decoding="async"></div>
     </div>
   </section>
 
   <section id="dorm-minsk">
     <h2>Общежитие Минск</h2>
     <div class="renders-grid">
-      <div class="render-thumb"><img src="111.webp" alt="111" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="222.webp" alt="222" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="333.webp" alt="333" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="111.webp" alt="Общежитие Минск — 111" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="222.webp" alt="Общежитие Минск — 222" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="333.webp" alt="Общежитие Минск — 333" loading="lazy" decoding="async"></div>
     </div>
   </section>
   
   <section id="beam-strengthening">
     <h2>Усиление несущей балки</h2>
     <div class="renders-grid">
-      <div class="render-thumb"><img src="1111.webp" alt="1111" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="2222.webp" alt="2222" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="3333.webp" alt="3333" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="4444.webp" alt="4444" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="5555.webp" alt="5555" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="1111.webp" alt="Усиление балки — 1111" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="2222.webp" alt="Усиление балки — 2222" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="3333.webp" alt="Усиление балки — 3333" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="4444.webp" alt="Усиление балки — 4444" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="5555.webp" alt="Усиление балки — 5555" loading="lazy" decoding="async"></div>
     </div>
   </section>
 
   <section id="slabs-carbon">
     <h2>Усиление плит углеволокном</h2>
     <div class="renders-grid">
-      <div class="render-thumb"><img src="uc1.webp" alt="uc1" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="uc2.webp" alt="uc2" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="uc1.webp" alt="Углеволокно — плита, вариант 1" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="uc2.webp" alt="Углеволокно — плита, вариант 2" loading="lazy" decoding="async"></div>
     </div>
   </section>
 
   <section id="supermarket-de">
     <h2>Супермаркет в Германии</h2>
     <div class="renders-grid">
-      <div class="render-thumb"><img src="11111.webp" alt="11111" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="22222.webp" alt="22222" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="33333.webp" alt="33333" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="44444.webp" alt="44444" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="55555.webp" alt="55555" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="11111.webp" alt="Супермаркет DE — 11111" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="22222.webp" alt="Супермаркет DE — 22222" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="33333.webp" alt="Супермаркет DE — 33333" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="44444.webp" alt="Супермаркет DE — 44444" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="55555.webp" alt="Супермаркет DE — 55555" loading="lazy" decoding="async"></div>
     </div>
     <p style="margin-top:1rem; font-weight:600;">
       📍 Адрес:
-      <a href="https://www.google.com/maps?q=51.47207375941072,6.956863035249297" target="_blank" rel="noopener">
-        Germany
-      </a>
+      <a href="https://www.google.com/maps?q=51.47207375941072,6.956863035249297" target="_blank" rel="noopener">Germany</a>
     </p>
   </section>
 
   <section id="firestation-de">
     <h2>Пожарная часть в Германии</h2>
     <div class="renders-grid">
-      <div class="render-thumb"><img src="111111.webp" alt="111111" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="222222.webp" alt="222222" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="111111.webp" alt="Пожарная часть DE — 111111" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="222222.webp" alt="Пожарная часть DE — 222222" loading="lazy" decoding="async"></div>
     </div>
     <p style="margin-top:1rem; font-weight:600;">
       📍 Адрес:
-      <a href="https://www.google.com/maps?q=51.37914501942016,7.508993444647588" target="_blank" rel="noopener">
-        Germany
-      </a>
+      <a href="https://www.google.com/maps?q=51.37914501942016,7.508993444647588" target="_blank" rel="noopener">Germany</a>
     </p>
   </section>
 
   <section id="school-de">
     <h2>Школа в Германии</h2>
     <div class="renders-grid">
-      <div class="render-thumb"><img src="112.webp" alt="112" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="113.webp" alt="113" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="114.webp" alt="114" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="112.webp" alt="Школа DE — вид 1" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="113.webp" alt="Школа DE — вид 2" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="114.webp" alt="Школа DE — вид 3" loading="lazy" decoding="async"></div>
     </div>
     <p style="margin-top:1rem; font-weight:600;">
       📍 Адрес:
-      <a href="https://www.google.com/maps?q=50.905589556277164,7.534640352935026" target="_blank" rel="noopener">
-        Germany
-      </a>
+      <a href="https://www.google.com/maps?q=50.905589556277164,7.534640352935026" target="_blank" rel="noopener">Germany</a>
     </p>
   </section>
 
   <section id="clinic-de">
     <h2>Психушка для наркаманов в Германии</h2>
     <div class="renders-grid">
-      <div class="render-thumb"><img src="gl1.webp" alt="gl1" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="gl2.webp" alt="gl2" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="gl3.webp" alt="gl3" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="gl4.webp" alt="gl4" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="gl1.webp" alt="Клиника DE — gl1" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="gl2.webp" alt="Клиника DE — gl2" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="gl3.webp" alt="Клиника DE — gl3" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="gl4.webp" alt="Клиника DE — gl4" loading="lazy" decoding="async"></div>
     </div>
     <p style="margin-top:1rem; font-weight:600;">
       📍 Адрес:
-      <a href="https://www.google.com/maps?q=49.15349373699453,11.71859724105959" target="_blank" rel="noopener">
-        Germany
-      </a>
+      <a href="https://www.google.com/maps?q=49.15349373699453,11.71859724105959" target="_blank" rel="noopener">Germany</a>
     </p>
   </section>
 
   <section id="houses-de">
     <h2>Частные дома в Германии по технологии Viebrockhaus/ </h2>
     <div class="renders-grid">
-      <div class="render-thumb"><img src="d9.webp" alt="d9" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="d11.webp" alt="d11" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="d2.webp" alt="d2" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="d3.webp" alt="d3" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="d4.webp" alt="d4" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="d5.webp" alt="d5" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="d6.webp" alt="d6" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="d7.webp" alt="d7" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="d8.webp" alt="d8" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="d1.webp" alt="d1" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="d10.webp" alt="d10" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="d12.webp" alt="d12" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="d9.webp" alt="Viebrockhaus — d9" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="d11.webp" alt="Viebrockhaus — d11" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="d2.webp"  alt="Viebrockhaus — d2"  loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="d3.webp"  alt="Viebrockhaus — d3"  loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="d4.webp"  alt="Viebrockhaus — d4"  loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="d5.webp"  alt="Viebrockhaus — d5"  loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="d6.webp"  alt="Viebrockhaus — d6"  loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="d7.webp"  alt="Viebrockhaus — d7"  loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="d8.webp"  alt="Viebrockhaus — d8"  loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="d1.webp"  alt="Viebrockhaus — d1"  loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="d10.webp" alt="Viebrockhaus — d10" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="d12.webp" alt="Viebrockhaus — d12" loading="lazy" decoding="async"></div>
     </div>
   </section>
 
   <section id="russia-old">
     <h2>Россия (давно)</h2>
     <div class="renders-grid">
-      <div class="render-thumb"><img src="cpb1.webp" alt="cpb1" loading="lazy" decoding="async"></div>
-      <div class="render-thumb"><img src="cpb2.webp" alt="cpb2" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="cpb1.webp" alt="Проект Россия — cpb1" loading="lazy" decoding="async"></div>
+      <div class="render-thumb"><img src="cpb2.webp" alt="Проект Россия — cpb2" loading="lazy" decoding="async"></div>
     </div>
   </section>
 
@@ -452,10 +494,10 @@
 
   <!-- Модалка полноэкранного просмотра -->
   <div class="popup-overlay" id="imagePopup">
-    <span class="close-btn" id="popupClose">&times;</span>
+    <span class="close-btn" id="popupClose" aria-label="Закрыть просмотр">&times;</span>
     <div class="popup-content" id="popupContent">
       <img id="popupImage" class="popup-canvas" src="" alt="Просмотр изображения">
-      <div class="popup-toolbar">
+      <div class="popup-toolbar" role="toolbar" aria-label="Управление масштабом">
         <button type="button" id="zoomOut">–</button>
         <span class="popup-zoom-indicator" id="zoomLabel">100%</span>
         <button type="button" id="zoomIn">+</button>
@@ -585,6 +627,30 @@
       imgEl.releasePointerCapture(e.pointerId);
       applyTransform();
     });
+
+    // ======= Стрелки карусели моделей =======
+    const carousel = document.getElementById('modelsCarousel');
+    const prevBtn   = document.getElementById('modelsPrev');
+    const nextBtn   = document.getElementById('modelsNext');
+
+    function updateArrows() {
+      const maxScroll = carousel.scrollWidth - carousel.clientWidth - 4;
+      prevBtn.disabled = carousel.scrollLeft <= 2;
+      nextBtn.disabled = carousel.scrollLeft >= maxScroll;
+    }
+    function scrollByStep(dir = 1) {
+      const step = Math.max(320, Math.round(carousel.clientWidth * 0.85));
+      carousel.scrollBy({ left: dir * step, behavior: 'smooth' });
+      // небольшой лаг перед проверкой, чтобы учесть плавный скролл
+      setTimeout(updateArrows, 400);
+    }
+
+    prevBtn.addEventListener('click', () => scrollByStep(-1));
+    nextBtn.addEventListener('click', () => scrollByStep( 1));
+    carousel.addEventListener('scroll', updateArrows);
+    window.addEventListener('resize', updateArrows);
+    // инициализация
+    updateArrows();
   </script>
 </body>
 </html>
