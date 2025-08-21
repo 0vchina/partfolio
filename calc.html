@@ -21,14 +21,23 @@
     section{padding:1.6rem 1.2rem;margin:1.2rem auto;background:var(--panel-bg);border:1px solid var(--panel-brd);border-radius:14px;box-shadow:var(--panel-shadow);max-width:1100px}
     section[id]::before{content:"";display:block;height:var(--header-offset);margin-top:calc(-1 * var(--header-offset));visibility:hidden}
     h2{font-family:'Montserrat',sans-serif;font-size:1.4rem;font-weight:700;margin:0 0 .8rem}
+
     .renders-grid{display:flex;gap:1rem;overflow-x:auto;padding-bottom:1rem;scrollbar-width:thin}
-    .render-thumb{flex-shrink:0;width:280px;height:180px;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.2);background:#f3f3f3;border:1px solid var(--panel-brd)}
+    .render-thumb{flex-shrink:0;width:280px;height:180px;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.2);background:#f3f3f3;border:1px solid var(--panel-brd);cursor:zoom-in}
     .render-thumb img{width:100%;height:100%;object-fit:cover;display:block}
     @media(min-width:900px){.renders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;overflow-x:visible;padding-bottom:0}.render-thumb{width:100%;height:200px}}
+
     footer{text-align:center;color:#fff;padding:24px;margin:18px auto 24px;background:rgba(0,0,0,.65);border-radius:12px;max-width:1100px}
     .contact-fab{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:10px;z-index:1001}
     .fab-btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;background:#fff;border:1px solid var(--panel-brd);box-shadow:0 8px 20px rgba(0,0,0,.15);padding:10px 14px;border-radius:999px;font-weight:700;color:#111;backdrop-filter:blur(6px)}
     .fab-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(0,0,0,.18)}
+
+    /* Попап: только крестик, pinch-to-zoom */
+    .popup-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.9);align-items:center;justify-content:center;touch-action:none}
+    .popup-content{position:relative;max-width:92vw;max-height:92vh;display:flex;align-items:center;justify-content:center}
+    .popup-img{max-width:92vw;max-height:92vh;object-fit:contain;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.4);transform-origin:center;user-select:none;-webkit-user-drag:none;cursor:grab}
+    .popup-img.grabbing{cursor:grabbing}
+    .popup-close{position:absolute;top:16px;right:20px;font-size:2rem;line-height:1;color:#fff;background:transparent;border:none;cursor:pointer}
   </style>
 </head>
 <body>
@@ -81,5 +90,104 @@
     <a class="fab-btn" href="index.html#contact">💬 Telegram</a>
     <a class="fab-btn" href="index.html#contact">✉️ Email</a>
   </div>
+
+  <!-- Попап -->
+  <div class="popup-overlay" id="imgPopup" aria-hidden="true">
+    <div class="popup-content" id="popupContent">
+      <button class="popup-close" id="popupClose" aria-label="Закрыть">✕</button>
+      <img id="popupImg" class="popup-img" src="" alt="">
+    </div>
+  </div>
+
+  <script>
+    // Открытие
+    const overlay = document.getElementById('imgPopup');
+    const imgEl = document.getElementById('popupImg');
+    const closeBtn = document.getElementById('popupClose');
+    const content = document.getElementById('popupContent');
+
+    document.querySelectorAll('.render-thumb img').forEach(img=>{
+      img.addEventListener('click',()=>{
+        imgEl.src = img.src;
+        resetTransform();
+        overlay.style.display='flex';
+        overlay.setAttribute('aria-hidden','false');
+        document.body.style.overflow='hidden';
+      });
+    });
+
+    function closeOverlay(){
+      overlay.style.display='none';
+      overlay.setAttribute('aria-hidden','true');
+      imgEl.src='';
+      document.body.style.overflow='';
+    }
+    closeBtn.addEventListener('click', closeOverlay);
+    window.addEventListener('keydown', e=>{ if(e.key==='Escape') closeOverlay(); });
+    overlay.addEventListener('click', e=>{ if(e.target===overlay) closeOverlay(); });
+
+    // Трансформации: колесо + drag (десктоп), pinch + drag (мобайл)
+    let scale=1, pos={x:0,y:0}, start={x:0,y:0}, isPanning=false;
+    function applyTransform(){ imgEl.style.transform=`translate(${pos.x}px,${pos.y}px) scale(${scale})`; imgEl.classList.toggle('grabbing', isPanning); }
+    function resetTransform(){ scale=1; pos={x:0,y:0}; isPanning=false; applyTransform(); }
+
+    content.addEventListener('wheel', e=>{
+      e.preventDefault();
+      const rect=imgEl.getBoundingClientRect();
+      const cx=e.clientX-rect.left, cy=e.clientY-rect.top;
+      const prev=scale, delta=e.deltaY<0?1.1:1/1.1;
+      scale=Math.min(6,Math.max(0.2,scale*delta));
+      pos.x-=(cx-rect.width/2)*(scale/prev-1);
+      pos.y-=(cy-rect.height/2)*(scale/prev-1);
+      applyTransform();
+    }, {passive:false});
+
+    content.addEventListener('mousedown', e=>{
+      if(scale<=1.01) return;
+      isPanning=true; start={x:e.clientX-pos.x, y:e.clientY-pos.y};
+      const move=e2=>{ if(!isPanning) return; pos.x=e2.clientX-start.x; pos.y=e2.clientY-start.y; applyTransform(); };
+      const up=()=>{ isPanning=false; document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up); applyTransform(); };
+      document.addEventListener('mousemove',move);
+      document.addEventListener('mouseup',up);
+      applyTransform();
+    });
+
+    const pointers=new Map();
+    content.addEventListener('pointerdown', e=>{
+      if(e.target!==imgEl) return;
+      content.setPointerCapture?.(e.pointerId);
+      pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      if(pointers.size===1 && scale>1.01){
+        const p=pointers.values().next().value;
+        isPanning=true; start={x:p.x-pos.x, y:p.y-pos.y}; applyTransform();
+      }
+      e.preventDefault();
+    }, {passive:false});
+
+    content.addEventListener('pointermove', e=>{
+      if(!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      const pts=[...pointers.values()];
+      if(pts.length===2){
+        const d0=distance(pts[0],pts[1]); if(!content._lastD) content._lastD=d0;
+        const rect=imgEl.getBoundingClientRect();
+        const mid=midpoint(pts[0],pts[1]);
+        const prev=scale, factor=d0/content._lastD;
+        scale=Math.min(6,Math.max(0.2,scale*factor));
+        const cx=mid.x-rect.left-rect.width/2, cy=mid.y-rect.top-rect.height/2;
+        pos.x-=cx*(scale/prev-1); pos.y-=cy*(scale/prev-1);
+        content._lastD=d0; applyTransform(); e.preventDefault(); return;
+      }
+      if(pts.length===1 && isPanning){
+        const p=pts[0]; pos.x=p.x-start.x; pos.y=p.y-start.y; applyTransform(); e.preventDefault(); return;
+      }
+    }, {passive:false});
+
+    content.addEventListener('pointerup', e=>{ pointers.delete(e.pointerId); if(pointers.size<2) content._lastD=null; if(pointers.size===0) isPanning=false; applyTransform(); });
+    content.addEventListener('pointercancel', e=>{ pointers.delete(e.pointerId); if(pointers.size<2) content._lastD=null; if(pointers.size===0) isPanning=false; applyTransform(); });
+
+    function distance(a,b){const dx=a.x-b.x, dy=a.y-b.y; return Math.hypot(dx,dy);}
+    function midpoint(a,b){return {x:(a.x+b.x)/2,y:(a.y+b.y)/2};}
+  </script>
 </body>
 </html>
