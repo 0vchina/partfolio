@@ -1,1 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Реальные объекты — Виталий Овчинников</title>
+
+  <link rel="canonical" href="https://0vchina.github.io/partfolio/real.html" />
+  <meta name="description" content="Реальные объекты: супермаркет, пожарная часть, школа, клиника и частные дома." />
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root{--header-offset:80px;--accent:#1CAAD9;--panel-bg:rgba(255,255,255,.78);--panel-brd:rgba(0,0,0,.08);--panel-shadow:0 8px 32px rgba(0,0,0,.18)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:'Inter',sans-serif;color:#111;background:url('a2.webp') center/cover no-repeat fixed;overflow-x:hidden}
+    header{background:#fff7;backdrop-filter:blur(6px);position:sticky;top:0;z-index:1000;border-bottom:1px solid var(--panel-brd);padding:10px 14px}
+    .wrap{max-width:1200px;margin:0 auto;padding:0 12px}
+    h1{font-family:'Montserrat',sans-serif;font-size:2rem;margin:.4rem 0;font-weight:800;text-shadow:0 1px 2px rgba(255,255,255,.9)}
+    nav a{margin-right:14px;text-decoration:none;font-weight:600;color:#0d0d0d;border-bottom:2px solid transparent;padding-bottom:2px}
+    nav a:hover{border-color:var(--accent)}
+    section{padding:1.6rem 1.2rem;margin:1.2rem auto;background:var(--panel-bg);border:1px solid var(--panel-brd);border-radius:14px;box-shadow:var(--panel-shadow);max-width:1100px}
+    section[id]::before{content:"";display:block;height:var(--header-offset);margin-top:calc(-1 * var(--header-offset));visibility:hidden}
+    h2{font-family:'Montserrat',sans-serif;font-size:1.4rem;font-weight:700;margin:0 0 .8rem}
+    .renders-grid{display:flex;gap:1rem;overflow-x:auto;padding-bottom:1rem;scrollbar-width:thin}
+    .render-thumb{flex-shrink:0;width:280px;height:180px;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.2);background:#f3f3f3;border:1px solid var(--panel-brd)}
+    .render-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    @media(min-width:900px){.renders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;overflow-x:visible;padding-bottom:0}.render-thumb{width:100%;height:200px}}
+    footer{text-align:center;color:#fff;padding:24px;margin:18px auto 24px;background:rgba(0,0,0,.65);border-radius:12px;max-width:1100px}
+    .contact-fab{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:10px;z-index:1001}
+    .fab-btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;background:#fff;border:1px solid var(--panel-brd);box-shadow:0 8px 20px rgba(0,0,0,.15);padding:10px 14px;border-radius:999px;font-weight:700;color:#111;backdrop-filter:blur(6px)}
+    .fab-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(0,0,0,.18)}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Реальные объекты</h1>
+      <nav>
+        <a href="index.html">Главная</a>
+        <a href="#supermarket-de">Супермаркет</a>
+        <a href="#firestation-de">Пожарная часть</a>
+        <a href="#school-de">Школа</a>
+        <a href="#clinic-de">Клиника</a>
+        <a href="#houses-de">Частные дома</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section id="supermarket-de">
+      <h2>Супермаркет в Германии</h2>
+      <div class="renders-grid">
+        <div class="render-thumb"><img src="11111.webp" alt="Супермаркет DE — 11111" loading="lazy"></div>
+        <div class="render-thumb"><img src="22222.webp" alt="Супермаркет DE — 22222" loading="lazy"></div>
+        <div class="render-thumb"><img src="33333.webp" alt="Супермаркет DE — 33333" loading="lazy"></div>
+        <div class="render-thumb"><img src="44444.webp" alt="Супермаркет DE — 44444" loading="lazy"></div>
+        <div class="render-thumb"><img src="55555.webp" alt="Супермаркет DE — 55555" loading="lazy"></div>
+      </div>
+      <p style="margin-top:1rem;font-weight:600">📍 Адрес: <a href="https://www.google.com/maps?q=51.47207375941072,6.956863035249297" target="_blank" rel="noopener">Germany</a></p>
+    </section>
+
+    <section id="firestation-de">
+      <h2>Пожарная часть в Германии</h2>
+      <div class="renders-grid">
+        <div class="render-thumb"><img src="111111.webp" alt="Пожарная часть DE — 111111" loading="lazy"></div>
+        <div class="render-thumb"><img src="222222.webp" alt="Пожарная часть DE — 222222" loading="lazy"></div>
+      </div>
+      <p style="margin-top:1rem;font-weight:600">📍 Адрес: <a href="https://www.google.com/maps?q=51.37914501942016,7.508993444647588" target="_blank" rel="noopener">Germany</a></p>
+    </section>
+
+    <section id="school-de">
+      <h2>Школа в Германии</h2>
+      <div class="renders-grid">
+        <div class="render-thumb"><img src="112.webp" alt="Школа DE — вид 1" loading="lazy"></div>
+        <div class="render-thumb"><img src="113.webp" alt="Школа DE — вид 2" loading="lazy"></div>
+        <div class="render-thumb"><img src="114.webp" alt="Школа DE — вид 3" loading="lazy"></div>
+      </div>
+      <p style="margin-top:1rem;font-weight:600">📍 Адрес: <a href="https://www.google.com/maps?q=50.905589556277164,7.534640352935026" target="_blank" rel="noopener">Germany</a></p>
+    </section>
+
+    <section id="clinic-de">
+      <h2>Клиника в Германии</h2>
+      <div class="renders-grid">
+        <div class="render-thumb"><img src="gl1.webp" alt="Клиника DE — gl1" loading="lazy"></div>
+        <div class="render-thumb"><img src="gl2.webp" alt="Клиника DE — gl2" loading="lazy"></div>
+        <div class="render-thumb"><img src="gl3.webp" alt="Клиника DE — gl3" loading="lazy"></div>
+        <div class="render-thumb"><img src="gl4.webp" alt="Клиника DE — gl4" loading="lazy"></div>
+      </div>
+      <p style="margin-top:1rem;font-weight:600">📍 Адрес: <a href="https://www.google.com/maps?q=49.15349373699453,11.71859724105959" target="_blank" rel="noopener">Germany</a></p>
+    </section>
+
+    <section id="houses-de">
+      <h2>Частные дома в Германии по технологии Viebrockhaus</h2>
+      <div class="renders-grid">
+        <div class="render-thumb"><img src="d9.webp" alt="Viebrockhaus — d9" loading="lazy"></div>
+        <div class="render-thumb"><img src="d11.webp" alt="Viebrockhaus — d11" loading="lazy"></div>
+        <div class="render-thumb"><img src="d2.webp" alt="Viebrockhaus — d2" loading="lazy"></div>
+        <div class="render-thumb"><img src="d3.webp" alt="Viebrockhaus — d3" loading="lazy"></div>
+        <div class="render-thumb"><img src="d4.webp" alt="Viebrockhaus — d4" loading="lazy"></div>
+        <div class="render-thumb"><img src="d5.webp" alt="Viebrockhaus — d5" loading="lazy"></div>
+        <div class="render-thumb"><img src="d6.webp" alt="Viebrockhaus — d6" loading="lazy"></div>
+        <div class="render-thumb"><img src="d7.webp" alt="Viebrockhaus — d7" loading="lazy"></div>
+        <div class="render-thumb"><img src="d8.webp" alt="Viebrockhaus — d8" loading="lazy"></div>
+        <div class="render-thumb"><img src="d1.webp" alt="Viebrockhaus — d1" loading="lazy"></div>
+        <div class="render-thumb"><img src="d10.webp" alt="Viebrockhaus — d10" loading="lazy"></div>
+        <div class="render-thumb"><img src="d12.webp" alt="Viebrockhaus — d12" loading="lazy"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>© 2025 Виталий Овчинников — Реальные объекты</footer>
+
+  <div class="contact-fab">
+    <a class="fab-btn" href="index.html#contact">💬 Telegram</a>
+    <a class="fab-btn" href="index.html#contact">✉️ Email</a>
+  </div>
+</body>
+</html>
 
