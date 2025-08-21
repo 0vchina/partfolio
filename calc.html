@@ -1,1 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Расчёты — Виталий Овчинников</title>
 
+  <link rel="canonical" href="https://0vchina.github.io/partfolio/calc.html" />
+  <meta name="description" content="Расчёты конструкций, усиление балок и плит, примеры результатов." />
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root{--header-offset:80px;--accent:#1CAAD9;--panel-bg:rgba(255,255,255,.78);--panel-brd:rgba(0,0,0,.08);--panel-shadow:0 8px 32px rgba(0,0,0,.18)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:'Inter',sans-serif;color:#111;background:url('a2.webp') center/cover no-repeat fixed;overflow-x:hidden}
+    header{background:#fff7;backdrop-filter:blur(6px);position:sticky;top:0;z-index:1000;border-bottom:1px solid var(--panel-brd);padding:10px 14px}
+    .wrap{max-width:1200px;margin:0 auto;padding:0 12px}
+    h1{font-family:'Montserrat',sans-serif;font-size:2rem;margin:.4rem 0;font-weight:800;text-shadow:0 1px 2px rgba(255,255,255,.9)}
+    nav a{margin-right:14px;text-decoration:none;font-weight:600;color:#0d0d0d;border-bottom:2px solid transparent;padding-bottom:2px}
+    nav a:hover{border-color:var(--accent)}
+    section{padding:1.6rem 1.2rem;margin:1.2rem auto;background:var(--panel-bg);border:1px solid var(--panel-brd);border-radius:14px;box-shadow:var(--panel-shadow);max-width:1100px}
+    section[id]::before{content:"";display:block;height:var(--header-offset);margin-top:calc(-1 * var(--header-offset));visibility:hidden}
+    h2{font-family:'Montserrat',sans-serif;font-size:1.4rem;font-weight:700;margin:0 0 .8rem}
+    .renders-grid{display:flex;gap:1rem;overflow-x:auto;padding-bottom:1rem;scrollbar-width:thin}
+    .render-thumb{flex-shrink:0;width:280px;height:180px;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.2);background:#f3f3f3;border:1px solid var(--panel-brd)}
+    .render-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    @media(min-width:900px){.renders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;overflow-x:visible;padding-bottom:0}.render-thumb{width:100%;height:200px}}
+    footer{text-align:center;color:#fff;padding:24px;margin:18px auto 24px;background:rgba(0,0,0,.65);border-radius:12px;max-width:1100px}
+    .contact-fab{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:10px;z-index:1001}
+    .fab-btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;background:#fff;border:1px solid var(--panel-brd);box-shadow:0 8px 20px rgba(0,0,0,.15);padding:10px 14px;border-radius:999px;font-weight:700;color:#111;backdrop-filter:blur(6px)}
+    .fab-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(0,0,0,.18)}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Расчёты</h1>
+      <nav>
+        <a href="index.html">Главная</a>
+        <a href="#beam-strengthening">Усиление балки</a>
+        <a href="#slabs-carbon">Плиты углеволокном</a>
+        <a href="#work">Скины расчётов</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section id="beam-strengthening">
+      <h2>Усиление несущей балки</h2>
+      <div class="renders-grid">
+        <div class="render-thumb"><img src="1111.webp" alt="Усиление балки — 1111" loading="lazy"></div>
+        <div class="render-thumb"><img src="2222.webp" alt="Усиление балки — 2222" loading="lazy"></div>
+        <div class="render-thumb"><img src="3333.webp" alt="Усиление балки — 3333" loading="lazy"></div>
+        <div class="render-thumb"><img src="4444.webp" alt="Усиление балки — 4444" loading="lazy"></div>
+        <div class="render-thumb"><img src="5555.webp" alt="Усиление балки — 5555" loading="lazy"></div>
+      </div>
+    </section>
+
+    <section id="slabs-carbon">
+      <h2>Усиление плит углеволокном</h2>
+      <div class="renders-grid">
+        <div class="render-thumb"><img src="uc1.webp" alt="Углеволокно — плита, вариант 1" loading="lazy"></div>
+        <div class="render-thumb"><img src="uc2.webp" alt="Углеволокно — плита, вариант 2" loading="lazy"></div>
+      </div>
+    </section>
+
+    <section id="work">
+      <h2>Интересные скины с моих расчётов</h2>
+      <div class="renders-grid">
+        <div class="render-thumb"><img src="Ol1.webp" alt="Проект — Ol1" loading="lazy"></div>
+        <div class="render-thumb"><img src="Ol2.webp" alt="Проект — Ol2" loading="lazy"></div>
+        <div class="render-thumb"><img src="Ol3.webp" alt="Проект — Ol3" loading="lazy"></div>
+        <div class="render-thumb"><img src="Ol4.webp" alt="Проект — Ol4" loading="lazy"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>© 2025 Виталий Овчинников — Расчёты</footer>
+
+  <div class="contact-fab">
+    <a class="fab-btn" href="index.html#contact">💬 Telegram</a>
+    <a class="fab-btn" href="index.html#contact">✉️ Email</a>
+  </div>
+</body>
+</html>
