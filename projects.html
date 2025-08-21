@@ -34,31 +34,14 @@
     section[id]::before{content:"";display:block;height:var(--header-offset);margin-top:calc(-1 * var(--header-offset));visibility:hidden}
     h2{font-family:'Montserrat',sans-serif;font-size:1.4rem;line-height:1.3;font-weight:700;letter-spacing:.2px;margin:0 0 .8rem}
 
-    /* 3D модели: мобилка — горизонтальный скролл, десктоп — сетка */
-    .models {
-      display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem; scrollbar-width:thin;
+    /* 3D модели: сразу iframe, адаптивная сетка */
+    .models-grid{display:grid;gap:1rem}
+    .models-grid iframe{
+      width:100%; height:400px; border:0; border-radius:12px;
+      box-shadow:0 6px 18px rgba(0,0,0,.15); background:#000;
     }
-    .model-card{
-      flex-shrink:0; width:320px; border-radius:12px; overflow:hidden;
-      box-shadow:0 4px 12px rgba(0,0,0,.18); background:#0001; position:relative;
-      scroll-snap-align:start;
-    }
-    .model-thumb{display:block;width:100%;height:220px;background:#eee;object-fit:cover;border:0}
-    .play-overlay{
-      position:absolute; inset:0; display:grid; place-items:center;
-      font-size:3rem; color:#fff; cursor:pointer; user-select:none;
-      background:linear-gradient(180deg,rgba(0,0,0,.25),rgba(0,0,0,.35));
-    }
-
-    /* Desktop grid */
-    @media (min-width: 900px){
-      .models{
-        display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap:1rem; overflow-x:visible; padding-bottom:0;
-      }
-      .model-card{width:auto}
-      .model-thumb{height:220px}
-    }
+    @media (min-width:768px){ .models-grid{grid-template-columns:repeat(2,1fr)} }
+    @media (min-width:1200px){ .models-grid{grid-template-columns:repeat(3,1fr)} }
 
     /* Renders grid */
     .renders-grid{display:flex;gap:1rem;overflow-x:auto;padding-bottom:1rem;scrollbar-width:thin}
@@ -90,80 +73,51 @@
   </header>
 
   <main>
-    <!-- 3D Модели (сеткой на десктопе, скролл на мобиле) -->
+    <!-- 3D Модели — без превью, сразу iframe (в сетке) -->
     <section id="projects">
       <h2>3D Модели</h2>
-      <div class="models" id="models">
-        <!-- Каждая карточка открывает модалку со своим Sketchfab-iframe -->
-        <a href="#" class="model-card" data-src="https://sketchfab.com/models/084cad3643db4e4e8eaba72e629140ac/embed?transparent=1&ui_theme=dark" aria-label="Открыть 3D модель 1">
-          <img class="model-thumb" src="a2.webp" alt="3D модель 1" loading="lazy" decoding="async" fetchpriority="low">
-          <div class="play-overlay">▶</div>
-        </a>
+      <div class="models-grid">
+        <iframe title="3D модель 1" allow="autoplay; fullscreen; xr-spatial-tracking" mozallowfullscreen webkitallowfullscreen
+          src="https://sketchfab.com/models/084cad3643db4e4e8eaba72e629140ac/embed?transparent=1&ui_theme=dark"></iframe>
 
-        <a href="#" class="model-card" data-src="https://sketchfab.com/models/ba839c7fda4f4fb89e2c1d18a2c1526c/embed?transparent=1&ui_theme=dark" aria-label="Открыть 3D модель 2">
-          <img class="model-thumb" src="a2.webp" alt="3D модель 2" loading="lazy" decoding="async" fetchpriority="low">
-          <div class="play-overlay">▶</div>
-        </a>
+        <iframe title="3D модель 2" allow="autoplay; fullscreen; xr-spatial-tracking" mozallowfullscreen webkitallowfullscreen
+          src="https://sketchfab.com/models/ba839c7fda4f4fb89e2c1d18a2c1526c/embed?transparent=1&ui_theme=dark"></iframe>
 
-        <a href="#" class="model-card" data-src="https://sketchfab.com/models/eafec3893bcb43b682ab2377f32ddcef/embed?transparent=1&ui_theme=dark" aria-label="Открыть 3D модель 3">
-          <img class="model-thumb" src="a2.webp" alt="3D модель 3" loading="lazy" decoding="async" fetchpriority="low">
-          <div class="play-overlay">▶</div>
-        </a>
+        <iframe title="3D модель 3" allow="autoplay; fullscreen; xr-spatial-tracking" mozallowfullscreen webkitallowfullscreen
+          src="https://sketchfab.com/models/eafec3893bcb43b682ab2377f32ddcef/embed?transparent=1&ui_theme=dark"></iframe>
 
-        <a href="#" class="model-card" data-src="https://sketchfab.com/models/e331aef5a1cb4ed38da9c9539499aced/embed?transparent=1&ui_theme=dark" aria-label="Открыть 3D модель 4">
-          <img class="model-thumb" src="a2.webp" alt="3D модель 4" loading="lazy" decoding="async" fetchpriority="low">
-          <div class="play-overlay">▶</div>
-        </a>
+        <iframe title="3D модель 4" allow="autoplay; fullscreen; xr-spatial-tracking" mozallowfullscreen webkitallowfullscreen
+          src="https://sketchfab.com/models/e331aef5a1cb4ed38da9c9539499aced/embed?transparent=1&ui_theme=dark"></iframe>
 
-        <a href="#" class="model-card" data-src="https://sketchfab.com/models/89d073bcf42c4eec87f4590ce6e25092/embed?transparent=1&ui_theme=dark" aria-label="Открыть 3D модель 5">
-          <img class="model-thumb" src="a2.webp" alt="3D модель 5" loading="lazy" decoding="async" fetchpriority="low">
-          <div class="play-overlay">▶</div>
-        </a>
+        <iframe title="3D модель 5" allow="autoplay; fullscreen; xr-spatial-tracking" mozallowfullscreen webkitallowfullscreen
+          src="https://sketchfab.com/models/89d073bcf42c4eec87f4590ce6e25092/embed?transparent=1&ui_theme=dark"></iframe>
 
-        <a href="#" class="model-card" data-src="https://sketchfab.com/models/bbff07d90f474439860a53789f130a2b/embed?transparent=1&ui_theme=dark" aria-label="Открыть 3D модель 6">
-          <img class="model-thumb" src="a2.webp" alt="3D модель 6" loading="lazy" decoding="async" fetchpriority="low">
-          <div class="play-overlay">▶</div>
-        </a>
+        <iframe title="3D модель 6" allow="autoplay; fullscreen; xr-spatial-tracking" mozallowfullscreen webkitallowfullscreen
+          src="https://sketchfab.com/models/bbff07d90f474439860a53789f130a2b/embed?transparent=1&ui_theme=dark"></iframe>
 
-        <a href="#" class="model-card" data-src="https://sketchfab.com/models/7f768bd3cee64d979c5fb96b96b2beb0/embed?transparent=1&ui_theme=dark" aria-label="Открыть 3D модель 7">
-          <img class="model-thumb" src="a2.webp" alt="3D модель 7" loading="lazy" decoding="async" fetchpriority="low">
-          <div class="play-overlay">▶</div>
-        </a>
+        <iframe title="3D модель 7" allow="autoplay; fullscreen; xr-spatial-tracking" mozallowfullscreen webkitallowfullscreen
+          src="https://sketchfab.com/models/7f768bd3cee64d979c5fb96b96b2beb0/embed?transparent=1&ui_theme=dark"></iframe>
 
-        <a href="#" class="model-card" data-src="https://sketchfab.com/models/4c69c03d217f4bb6ad082e9a080c386c/embed?transparent=1&ui_theme=dark" aria-label="Открыть 3D модель 8">
-          <img class="model-thumb" src="a2.webp" alt="3D модель 8" loading="lazy" decoding="async" fetchpriority="low">
-          <div class="play-overlay">▶</div>
-        </a>
+        <iframe title="3D модель 8" allow="autoplay; fullscreen; xr-spatial-tracking" mozallowfullscreen webkitallowfullscreen
+          src="https://sketchfab.com/models/4c69c03d217f4bb6ad082e9a080c386c/embed?transparent=1&ui_theme=dark"></iframe>
 
-        <a href="#" class="model-card" data-src="https://sketchfab.com/models/9c55246691b44ee8a069a30d75322ed9/embed?transparent=1&ui_theme=dark" aria-label="Открыть 3D модель 9">
-          <img class="model-thumb" src="a2.webp" alt="3D модель 9" loading="lazy" decoding="async" fetchpriority="low">
-          <div class="play-overlay">▶</div>
-        </a>
+        <iframe title="3D модель 9" allow="autoplay; fullscreen; xr-spatial-tracking" mozallowfullscreen webkitallowfullscreen
+          src="https://sketchfab.com/models/9c55246691b44ee8a069a30d75322ed9/embed?transparent=1&ui_theme=dark"></iframe>
 
-        <a href="#" class="model-card" data-src="https://sketchfab.com/models/deef518c17884aaf89432efcb1236a13/embed?transparent=1&ui_theme=dark" aria-label="Открыть 3D модель 10">
-          <img class="model-thumb" src="a2.webp" alt="3D модель 10" loading="lazy" decoding="async" fetchpriority="low">
-          <div class="play-overlay">▶</div>
-        </a>
+        <iframe title="3D модель 10" allow="autoplay; fullscreen; xr-spatial-tracking" mozallowfullscreen webkitallowfullscreen
+          src="https://sketchfab.com/models/deef518c17884aaf89432efcb1236a13/embed?transparent=1&ui_theme=dark"></iframe>
 
-        <a href="#" class="model-card" data-src="https://sketchfab.com/models/a9fb81fce32d4bd6bf86a720d5458c96/embed?transparent=1&ui_theme=dark" aria-label="Открыть 3D модель 11">
-          <img class="model-thumb" src="a2.webp" alt="3D модель 11" loading="lazy" decoding="async" fetchpriority="low">
-          <div class="play-overlay">▶</div>
-        </a>
+        <iframe title="3D модель 11" allow="autoplay; fullscreen; xr-spatial-tracking" mozallowfullscreen webkitallowfullscreen
+          src="https://sketchfab.com/models/a9fb81fce32d4bd6bf86a720d5458c96/embed?transparent=1&ui_theme=dark"></iframe>
 
-        <a href="#" class="model-card" data-src="https://sketchfab.com/models/6d44da7b1c89421c820dba806a988640/embed?transparent=1&ui_theme=dark" aria-label="Открыть 3D модель 12">
-          <img class="model-thumb" src="a2.webp" alt="3D модель 12" loading="lazy" decoding="async" fetchpriority="low">
-          <div class="play-overlay">▶</div>
-        </a>
+        <iframe title="3D модель 12" allow="autoplay; fullscreen; xr-spatial-tracking" mozallowfullscreen webkitallowfullscreen
+          src="https://sketchfab.com/models/6d44da7b1c89421c820dba806a988640/embed?transparent=1&ui_theme=dark"></iframe>
 
-        <a href="#" class="model-card" data-src="https://sketchfab.com/models/7312b16ac3b242269e0994a03530345f/embed?transparent=1&ui_theme=dark" aria-label="Открыть 3D модель 13">
-          <img class="model-thumb" src="a2.webp" alt="3D модель 13" loading="lazy" decoding="async" fetchpriority="low">
-          <div class="play-overlay">▶</div>
-        </a>
+        <iframe title="3D модель 13" allow="autoplay; fullscreen; xr-spatial-tracking" mozallowfullscreen webkitallowfullscreen
+          src="https://sketchfab.com/models/7312b16ac3b242269e0994a03530345f/embed?transparent=1&ui_theme=dark"></iframe>
 
-        <a href="#" class="model-card" data-src="https://sketchfab.com/models/0c33ff5138b847df80d8f24711ec1733/embed?transparent=1&ui_theme=dark" aria-label="Открыть 3D модель 14">
-          <img class="model-thumb" src="a2.webp" alt="3D модель 14" loading="lazy" decoding="async" fetchpriority="low">
-          <div class="play-overlay">▶</div>
-        </a>
+        <iframe title="3D модель 14" allow="autoplay; fullscreen; xr-spatial-tracking" mozallowfullscreen webkitallowfullscreen
+          src="https://sketchfab.com/models/0c33ff5138b847df80d8f24711ec1733/embed?transparent=1&ui_theme=dark"></iframe>
       </div>
     </section>
 
@@ -179,7 +133,6 @@
       </div>
     </section>
 
-    <!-- Остальные блоки рендеров — как у тебя раньше (оставил все) -->
     <section id="house">
       <h2>Жилой дом</h2>
       <div class="renders-grid">
@@ -303,19 +256,7 @@
     <a class="fab-btn" href="index.html#contact" aria-label="Открыть контакты — Email">✉️ Email</a>
   </div>
 
-  <!-- Модалка для Sketchfab -->
-  <div id="modelModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.86); z-index:9999; align-items:center; justify-content:center;">
-    <div style="position:relative; max-width:92vw; width:min(1000px,92vw);">
-      <button id="closeModel" aria-label="Закрыть" style="position:absolute;top:-44px;right:0;font-size:1.8rem;padding:.2rem .6rem;border:0;background:transparent;color:#fff;cursor:pointer">✕</button>
-      <iframe id="modelFrame" title="3D model" allow="autoplay; fullscreen; xr-spatial-tracking" style="width:100%; height:min(70vh, 720px); border:0; border-radius:12px; background:#000"></iframe>
-      <div style="display:flex;justify-content:space-between;margin-top:10px">
-        <button id="prevModel" style="padding:.5rem .8rem;border-radius:8px;border:1px solid #fff3;background:#fff;color:#111;cursor:pointer">‹ Предыдущая</button>
-        <button id="nextModel" style="padding:.5rem .8rem;border-radius:8px;border:1px solid #fff3;background:#fff;color:#111;cursor:pointer">Следующая ›</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Модалка полноэкранного просмотра изображений -->
+  <!-- Попап полноэкранного просмотра изображений -->
   <div class="popup-overlay" id="imagePopup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.86); z-index:9999; align-items:center; justify-content:center;">
     <span class="close-btn" id="popupClose" style="position:absolute;top:16px;right:20px;font-size:2rem;color:#fff;cursor:pointer">&times;</span>
     <div class="popup-content" id="popupContent" style="position:relative; max-width:92vw; max-height:92vh; display:flex; align-items:center; justify-content:center; touch-action:none;">
@@ -333,47 +274,7 @@
   </div>
 
   <script>
-    // ===== 3D МОДЕЛИ: модалка с ленивой подгрузкой и навигацией =====
-    const modelCards = Array.from(document.querySelectorAll('.model-card'));
-    const modelModal = document.getElementById('modelModal');
-    const modelFrame = document.getElementById('modelFrame');
-    const closeModel = document.getElementById('closeModel');
-    const prevModelBtn = document.getElementById('prevModel');
-    const nextModelBtn = document.getElementById('nextModel');
-    let modelIndex = -1;
-
-    function openModel(i){
-      modelIndex = i;
-      const url = modelCards[modelIndex].getAttribute('data-src');
-      modelFrame.src = url;
-      modelModal.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-    }
-    function closeModelFn(){
-      modelModal.style.display = 'none';
-      document.body.style.overflow = '';
-      modelFrame.src = '';
-      modelIndex = -1;
-    }
-    function nextModel(){ if(modelIndex===-1) return; openModel((modelIndex+1) % modelCards.length); }
-    function prevModel(){ if(modelIndex===-1) return; openModel((modelIndex-1+modelCards.length) % modelCards.length); }
-
-    modelCards.forEach((card, i) => {
-      card.addEventListener('click', (e) => { e.preventDefault(); openModel(i); });
-    });
-    closeModel.addEventListener('click', closeModelFn);
-    modelModal.addEventListener('click', (e)=>{ if(e.target===modelModal) closeModelFn(); });
-    nextModelBtn.addEventListener('click', nextModel);
-    prevModelBtn.addEventListener('click', prevModel);
-    window.addEventListener('keydown', (e)=>{
-      if(modelModal.style.display==='flex'){
-        if(e.key==='Escape') closeModelFn();
-        if(e.key==='ArrowRight') nextModel();
-        if(e.key==='ArrowLeft')  prevModel();
-      }
-    });
-
-    // ===== ИЗОБРАЖЕНИЯ: попап/зум/перелистывание =====
+    // === Попап изображений: зум/перетаскивание/перелистывание ===
     const overlayP = document.getElementById('imagePopup');
     const imgEl = document.getElementById('popupImage');
     const content = document.getElementById('popupContent');
