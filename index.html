@@ -7,110 +7,90 @@
 
   <!-- SEO -->
   <link rel="canonical" href="https://0vchina.github.io/partfolio/" />
-  <meta name="description" content="Инженер-проектировщик Виталий Овчинников. BIM, расчёты, 3D визуализация, усиление зданий, проектирование домов и промышленных объектов." />
-  <meta name="keywords" content="Инженер-проектировщик, BIM, 3D модели, визуализации, Архикад, ЛИРА-САПР, SolidWorks, проектирование зданий, усиление конструкций" />
+  <meta name="description" content="Инженер-проектировщик Виталий Овчинников. BIM, 3D модели, визуализации, расчёты конструкций, усиление зданий, проектирование домов и промышленных объектов." />
 
   <!-- Social -->
   <meta property="og:title" content="Виталий Овчинников | Инженер-конструктор" />
-  <meta property="og:description" content="BIM, расчёты, 3D визуализация и реальные строительные объекты." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://0vchina.github.io/partfolio/" />
-  <meta property="og:image" content="https://0vchina.github.io/partfolio/a2.webp" />
-  <meta name="twitter:card" content="summary_large_image" />
+  <meta property="og:description" content="BIM, 3D модели, визуализации, расчёты конструкций, усиление зданий, проектирование домов и промышленных объектов." />
+  <meta property="og:image" content="a2.webp" />
 
-  <!-- Иконка -->
   <link rel="icon" href="file_0000000030986246a48be624a539648a.webp" type="image/webp" />
 
-  <!-- Шрифты -->
+  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet" />
 
   <style>
     :root { --header-offset: 80px; --accent:#1CAAD9; --panel-bg: rgba(255,255,255,.78); --panel-brd: rgba(0,0,0,.08); --panel-shadow: 0 8px 32px rgba(0,0,0,.18); }
     * { box-sizing: border-box; }
-    body { margin:0; font-family:'Inter',sans-serif; color:#111; background:#f6f7f9; }
-    header { background: url('file_0000000030986246a48be624a539648a.webp') center/cover; color:#000; text-align:center; position:sticky; top:0; z-index:1000; padding:14px 16px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-    header h1 { font-family:'Montserrat',sans-serif; margin:0; font-size:2.3rem; font-weight:800; letter-spacing:.2px; text-shadow:0 1px 2px rgba(255,255,255,.95); }
-    header p { margin:.25rem 0 0; font-size:1.05rem; text-shadow:0 1px 2px rgba(255,255,255,.95); line-height:1.4; }
+    body {
+      margin:0;
+      font-family:'Inter',sans-serif;
+      color:#111;
+      background: url('a2.webp') center center / cover no-repeat fixed;
+      overflow-x:hidden;
+    }
+    header {
+      background: url('file_0000000030986246a48be624a539648a.webp') center/cover;
+      color:#000; text-align:center; position:sticky; top:0; z-index:1000;
+      padding:14px 16px;
+      backdrop-filter: blur(6px);
+    }
+    header h1 { font-family:'Montserrat',sans-serif; margin:0; font-size:1.9rem; font-weight:800; }
+    header p { margin:.25rem 0 0; font-size:1rem; }
     nav a { color:#0d0d0d; margin:0 .7rem; text-decoration:none; font-weight:600; border-bottom:2px solid transparent; padding-bottom:2px; }
     nav a:hover { border-color:var(--accent); }
 
     section { padding: 1.8rem 1.2rem; max-width: 1100px; margin: 1.2rem auto; background: var(--panel-bg); border:1px solid var(--panel-brd); border-radius:14px; box-shadow:var(--panel-shadow); }
     section[id]::before { content:""; display:block; height:var(--header-offset); margin-top:calc(-1 * var(--header-offset)); visibility:hidden; }
-    h2 { font-family:'Montserrat',sans-serif; font-size:1.4rem; line-height:1.3; font-weight:700; letter-spacing:.2px; margin:0 0 .8rem; }
+    h2 { font-family:'Montserrat',sans-serif; font-size:1.4rem; line-height:1.3; font-weight:700; margin:0 0 .8rem; }
     p { line-height:1.65; }
-
-    .experience-badges{display:flex;flex-wrap:wrap;gap:.5rem;margin:.75rem 0 0}
-    .experience-badge{display:inline-block;padding:.35rem .6rem;border:1px solid var(--panel-brd);border-radius:999px;font-size:.9rem;background:#fff8;backdrop-filter:blur(4px)}
-    .experience-list{margin:.8rem 0 0;padding-left:1.1rem}
-    .experience-list li{margin:.35rem 0}
-
-    .cta { display:flex; gap:12px; flex-wrap:wrap; margin-top:1rem; }
-    .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px; text-decoration:none; font-weight:700; border:1px solid var(--panel-brd); background:#fff; }
-    .btn:hover{ transform: translateY(-1px); box-shadow:0 8px 20px rgba(0,0,0,.1); }
 
     footer { text-align:center; background:#0d0d0d; color:#fff; padding: 24px; margin-top: 28px; }
 
-    /* FAB: кнопки связи (только в углу) */
+    /* FAB */
     .contact-fab { position: fixed; right: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 10px; z-index: 1001; }
-    .fab-btn { display:inline-flex; align-items:center; gap:8px; text-decoration:none; background:#fff; border:1px solid var(--panel-brd); box-shadow:0 8px 20px rgba(0,0,0,.15); padding:10px 14px; border-radius:999px; font-weight:700; color:#111; backdrop-filter: blur(6px); }
+    .fab-btn { display:inline-flex; align-items:center; gap:8px; text-decoration:none; background:#fff; border:1px solid var(--panel-brd); box-shadow:0 8px 20px rgba(0,0,0,.15); padding:10px 14px; border-radius:999px; font-weight:700; color:#111; }
     .fab-btn:hover{ transform: translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,.18); }
-
-    @media (max-width:600px){
-      header h1{font-size:1.7rem}
-      header p{font-size:.98rem}
-      nav a{margin:0 .5rem; font-size:.96rem}
-    }
   </style>
 </head>
 <body>
-  <header aria-label="Шапка сайта">
+  <header>
     <h1>Виталий Овчинников</h1>
     <p>Инженер-проектировщик | BIM | Расчёты | 3D визуализация</p>
-    <nav aria-label="Основная навигация">
+    <nav>
       <a href="#about">Обо мне</a>
       <a href="#experience">Опыт</a>
       <a href="projects.html">Проекты</a>
-      <!-- Контактов в шапке нет -->
+      <a href="#contact">Контакты</a>
     </nav>
   </header>
 
   <section id="about">
     <h2>Обо мне</h2>
-    <p>Я инженер-проектировщик. Работаю с ArchiCAD, ЛИРА-САПР + SAPFIR, SolidWorks, Ansys (немного) и другими инструментами. Умею совмещать расчёты с визуализацией и BIM-технологиями.</p>
-    <p>В проектах важно сочетать надёжность конструкций и выразительную архитектуру. Опыт работы прорабом помогает проектировать решения, которые удобно реализовывать на стройке.</p>
-    <div class="cta">
-      <a class="btn" href="projects.html">Посмотреть проекты →</a>
-      <a class="btn" href="#contact">Контакты</a>
-    </div>
+    <p>Я инженер-проектировщик. Работаю с ArchiCAD, ЛИРА-САПР + SAPFIR, SolidWorks и другими инструментами. Умею совмещать расчёты с визуализацией и BIM-технологиями.</p>
+    <p>Опыт работы прорабом помогает проектировать решения, которые удобно реализовывать на стройке.</p>
   </section>
 
   <section id="experience">
     <h2>Опыт строительства</h2>
-    <p>Участвовал в возведении <strong>реальных</strong> объектов как прораб и инженер: организация работ, координация подрядчиков, контроль качества и сроков.</p>
-    <div class="experience-badges">
-      <span class="experience-badge">Прораб / инженер</span>
-      <span class="experience-badge">BIM + расчёты + визуализация</span>
-      <span class="experience-badge">Европейские объекты</span>
-    </div>
-    <ul class="experience-list">
-      <li>Технологичность и последовательность монтажа.</li>
-      <li>Учёт бюджета, сроков и логистики.</li>
-      <li>Коммуникация с заказчиком, технадзором и подрядчиками.</li>
+    <ul>
+      <li>Организация строительных работ.</li>
+      <li>Координация подрядчиков.</li>
+      <li>Контроль качества и сроков.</li>
     </ul>
   </section>
 
   <section id="contact">
     <h2>Контакты</h2>
     <p>Email: <a href="mailto:vitaliy.structengineer@gmail.com">vitaliy.structengineer@gmail.com</a></p>
-    <p>Telegram: <a href="https://t.me/VitaliPro" target="_blank" rel="noopener">@VitaliPro</a></p>
+    <p>Telegram: <a href="https://t.me/VitaliPro" target="_blank">@VitaliPro</a></p>
   </section>
 
   <footer>© 2025 Виталий Овчинников — Сайт инженера</footer>
 
-  <!-- FAB -->
-  <div class="contact-fab" aria-label="Быстрые контакты">
-    <a class="fab-btn" href="#contact" aria-label="Открыть контакты — Telegram">💬 Telegram</a>
-    <a class="fab-btn" href="#contact" aria-label="Открыть контакты — Email">✉️ Email</a>
+  <div class="contact-fab">
+    <a class="fab-btn" href="#contact">💬 Telegram</a>
+    <a class="fab-btn" href="#contact">✉️ Email</a>
   </div>
 </body>
 </html>
