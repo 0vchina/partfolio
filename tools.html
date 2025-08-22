@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Archicad/OBJ → Sketchfab Fix | Исправление .dae/.obj/.mtl и текстур</title>
+<title>Archicad → Sketchfab Fix | Онлайн-инструмент для исправления .dae и текстур</title>
 
 <link rel="icon" href="file_0000000030986246a48be624a539648a.webp" type="image/webp" />
 <link rel="canonical" href="https://0vchina.github.io/partfolio/tools.html" />
 
 <!-- SEO -->
-<meta name="description" content="Офлайн-инструмент для Sketchfab: чинит .dae/.obj/.mtl после экспорта. Переименовывает текстуры (транслит), правит пути в .dae и карты в .mtl, фиксирует mtllib/usemtl, собирает ZIP (DEFLATE 9). Работает прямо в браузере."/>
-<meta name="keywords" content="Archicad, Sketchfab, OBJ, MTL, DAE, Collada, текстуры, кириллица, fix, BIM, textures not loading"/>
+<meta name="description" content="Бесплатный офлайн-инструмент: чинит экспорт Archicad → Sketchfab. Переименовывает текстуры, правит ссылки в .dae, убирает кириллицу. Работает в вашем браузере. ZIP с максимальным сжатием."/>
+<meta name="keywords" content="Archicad, Sketchfab, dae, textures, fix, кириллица, Collada, BIM, textures not loading"/>
 
 <!-- Open Graph -->
-<meta property="og:title" content="Archicad/OBJ → Sketchfab Fix — офлайн-инструмент" />
-<meta property="og:description" content="Исправляет .dae/.obj/.mtl и имена текстур. Транслит, нормализация, правка ссылок. ZIP с максимальным сжатием." />
+<meta property="og:title" content="Archicad → Sketchfab Fix — онлайн-инструмент" />
+<meta property="og:description" content="Исправляет .dae и текстуры после экспорта из Archicad для Sketchfab. Бесплатно, офлайн, прямо в браузере." />
 <meta property="og:image" content="https://0vchina.github.io/partfolio/tool-preview.webp" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://0vchina.github.io/partfolio/tools.html" />
@@ -37,10 +37,7 @@
   @media(min-width:900px){ .grid-2{grid-template-columns:1.1fr .9fr} }
   h2{font-size:1.2rem;margin:.2rem 0 8px}
   p{line-height:1.6;margin:.4rem 0}
-  .drop{
-    border:2px dashed #7ad7f0; border-radius:14px; padding:16px; text-align:center;
-    background:#f8feff; color:#001018; cursor:pointer; user-select:none;
-  }
+  .drop{ border:2px dashed #7ad7f0; border-radius:14px; padding:16px; text-align:center; background:#f8feff; color:#001018; }
   .drop.drag{ background:#e9fbff; border-color:#1CAAD9 }
   .hint{font-size:.95rem;opacity:.85}
   .row{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
@@ -57,7 +54,10 @@
   .credit-badge{display:inline-flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--brd);border-radius:999px;padding:8px 12px;box-shadow:var(--shadow);color:#001018;font-weight:800}
   .credit-badge .pill{background:linear-gradient(90deg,#1CAAD9,#7AD7F0);padding:4px 10px;border-radius:999px}
 
-  details.seo{ background:#fff; border:1px solid var(--brd); border-radius:12px; padding:10px 12px; margin-top:10px; }
+  /* Справка-свёртка */
+  details.seo{
+    background:#fff; border:1px solid var(--brd); border-radius:12px; padding:10px 12px; margin-top:10px;
+  }
   details.seo summary{cursor:pointer; list-style:none; font-weight:800}
   details.seo summary::-webkit-details-marker{display:none}
   details.seo[open]{box-shadow:0 8px 24px rgba(0,0,0,.08)}
@@ -74,17 +74,16 @@
       <a href="calc.html">Расчёты</a>
       <a href="tools.html" style="border-color:var(--accent)">Инструменты</a>
     </nav>
-    <h1>Archicad/OBJ → Sketchfab Fix — бесплатный офлайн-инструмент</h1>
+    <h1>Archicad → Sketchfab Fix — бесплатный онлайн-инструмент</h1>
+
+    <!-- Справка: по умолчанию закрыта -->
     <details class="seo">
       <summary>Справка — что делает инструмент?</summary>
-      <p><strong>Назначение:</strong> исправляет «слетающие» текстуры и кириллицу после экспорта для Sketchfab.</p>
-      <ul>
-        <li><code>.dae</code>: чистит пути в <code>&lt;init_from&gt;</code> до имён и подставляет новые файлы.</li>
-        <li><code>.obj/.mtl</code>: правит <code>mtllib</code> в OBJ; в MTL — <code>map_Kd</code>, <code>map_Ka</code>, <code>map_Ks</code>, <code>bump</code>/<code>map_Bump</code>, <code>disp</code>, <code>map_d</code>.</li>
-        <li>Имена текстур: транслит + формат <code>prefix_1234.ext</code> (цифры сразу после первого <code>_</code>), уникализация при коллизиях.</li>
-      </ul>
-      <p>Работает локально в браузере. Архив — ZIP (DEFLATE 9). RAR браузеры не создают.</p>
-      <p class="hint">Поддержка: .zip (dae/obj/mtl+textures), .dae, .obj, .mtl, .png, .jpg, .jpeg, .webp, .tga, .bmp, .tif, .tiff, .dds</p>
+      <p><strong>Назначение:</strong> исправляет «слетающие» текстуры после экспорта из Archicad в Sketchfab.</p>
+      <p>Инструмент переименовывает текстуры в формат <code>prefix_1234.ext</code> (транслит кириллицы), а в <code>.dae</code>
+        приводит пути в <code>&lt;init_from&gt;</code> к чистым именам и заменяет их на новые.</p>
+      <p>Работает локально в браузере — файлы никуда не отправляются. Архив — ZIP (DEFLATE 9). RAR из браузера создать нельзя.</p>
+      <p class="hint">Поддержка: .zip (dae+textures), .dae, .png, .jpg, .jpeg, .webp, .tga, .bmp, .tif, .tiff, .dds</p>
     </details>
   </div>
 </header>
@@ -94,21 +93,21 @@
     <div>
       <h2>1) Загрузка</h2>
       <div id="drop" class="drop" tabindex="0">
-        <strong>Перетащите сюда</strong> <code>.dae</code>/<code>.obj</code> + <code>.mtl</code> + текстуры <em>или</em> один <strong>.zip</strong><br>
+        <strong>Перетащите сюда</strong> <code>.dae</code> + текстуры <em>или</em> один <strong>.zip</strong><br>
         <span class="hint">Можно также выбрать файлы/папку/ZIP кнопками ниже</span>
       </div>
 
       <div class="row">
-        <button id="btnFiles" class="btn" type="button">Выбрать файлы…</button>
+        <button id="btnFiles" class="btn">Выбрать файлы…</button>
         <input id="inFiles" type="file" multiple class="hidden">
 
-        <button id="btnDir" class="btn" type="button">Выбрать папку…</button>
+        <button id="btnDir" class="btn">Выбрать папку…</button>
         <input id="inDir" type="file" webkitdirectory directory multiple class="hidden">
 
-        <button id="btnZip" class="btn" type="button">Выбрать ZIP…</button>
+        <button id="btnZip" class="btn">Выбрать ZIP…</button>
         <input id="inZip" type="file" accept=".zip" class="hidden">
 
-        <button id="clearBtn" class="btn" type="button">Очистить список</button>
+        <button id="clearBtn" class="btn">Очистить список</button>
       </div>
 
       <div id="filesList" class="files" style="margin-top:10px;display:none"></div>
@@ -116,14 +115,13 @@
 
     <div>
       <h2>2) Обработка</h2>
-      <p class="hint">Автоматически: транслит + формат <code>prefix_1234.ext</code> + правка <code>DAE</code>/<code>OBJ</code>/<code>MTL</code></p>
+      <p class="hint">Всё автоматически: транслит + <code>prefix_1234.ext</code> + правка <code>&lt;init_from&gt;</code></p>
       <div class="row">
-        <button id="runBtn" class="btn primary" type="button" disabled>Запустить фиксацию</button>
-        <button id="zipBtn" class="btn" type="button" disabled>Скачать ZIP (max)</button>
+        <button id="runBtn" class="btn primary" disabled>Запустить фиксацию</button>
+        <button id="zipBtn" class="btn" disabled>Скачать ZIP (max)</button>
       </div>
       <div class="stat" id="stat" style="display:none">
         <div class="pill" id="daeStat">DAE: —</div>
-        <div class="pill" id="objStat">OBJ/MTL: —</div>
         <div class="pill" id="texStat">Текстур переименовано: —</div>
       </div>
     </div>
@@ -144,40 +142,36 @@
   </div>
 </footer>
 
-<!-- JSZip -->
+<!-- JSZip для распаковки/сборки ZIP -->
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 (() => {
-  // ======= Глобальная защита DnD (чтобы браузер не открывал файл) =======
-  ['dragover','drop'].forEach(evt=>{
-    window.addEventListener(evt, e => { e.preventDefault(); }, { passive:false });
-  });
-
   const IMAGE_EXTS = new Set([".png",".jpg",".jpeg",".webp",".tga",".bmp",".tif",".tiff",".dds"]);
-  const TEXT_EXTS  = new Set([".mtl",".obj",".dae"]);
   const $ = sel => document.querySelector(sel);
 
   const logEl = $("#log"), filesListEl = $("#filesList");
   const runBtn = $("#runBtn"), zipBtn = $("#zipBtn");
-  const daeStatEl = $("#daeStat"), objStatEl = $("#objStat"), texStatEl = $("#texStat");
+  const daeStatEl = $("#daeStat"), texStatEl = $("#texStat");
 
   const drop = $("#drop");
   const btnFiles = $("#btnFiles"), inFiles = $("#inFiles");
   const btnDir = $("#btnDir"), inDir = $("#inDir");
   const btnZip = $("#btnZip"), inZip = $("#inZip");
 
-  const fileMap = new Map(); // rel/name -> File
+  const fileMap = new Map(); // rel -> File
   let lastZipBlob = null;
 
-  const addLog = s => { logEl.textContent += (logEl.textContent ? "\\n" : "") + s; logEl.scrollTop = logEl.scrollHeight; };
+  const addLog = s => { logEl.textContent += (logEl.textContent ? "\n" : "") + s; logEl.scrollTop = logEl.scrollHeight; };
   const extOf = n => { const i=n.lastIndexOf("."); return i>=0 ? n.slice(i).toLowerCase() : ""; };
   const baseName = p => p.split(/[\\/]/).pop();
 
+  // Транслит
   function translitBasic(s){
     const t={"А":"A","Б":"B","В":"V","Г":"G","Д":"D","Е":"E","Ё":"E","Ж":"Zh","З":"Z","И":"I","Й":"Y","К":"K","Л":"L","М":"M","Н":"N","О":"O","П":"P","Р":"R","С":"S","Т":"T","У":"U","Ф":"F","Х":"Kh","Ц":"Ts","Ч":"Ch","Ш":"Sh","Щ":"Sch","Ъ":"","Ы":"Y","Ь":"","Э":"E","Ю":"Yu","Я":"Ya","а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"e","ж":"zh","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"kh","ц":"ts","ч":"ch","ш":"sh","щ":"sch","ъ":"","ы":"y","ь":"","э":"e","ю":"yu","я":"ya","’":"","‘":"","ʼ":""};
     return s.replace(/./g, ch => t[ch] ?? ch);
   }
 
+  // Имя текстуры: prefix_1234.ext (цифры сразу после первого "_"), с транслитом
   function normalizeTexName(name){
     const bn = baseName(name);
     const dot = bn.lastIndexOf(".");
@@ -188,74 +182,25 @@
     const prefix = parts[0];
     const tail = parts.slice(1).join("_");
     let digits = "";
-    for(const ch of tail){ if(/\\d/.test(ch)) digits += ch; else break; }
+    for(const ch of tail){ if(/\d/.test(ch)) digits += ch; else break; }
     const result = digits ? `${prefix}_${digits}${ext}` : bn;
     return translitBasic(result);
   }
 
-  function uniquify(name, taken){
-    if(!taken.has(name)){ taken.add(name); return name; }
-    const dot = name.lastIndexOf(".");
-    const stem = dot>=0 ? name.slice(0,dot) : name;
-    const ext  = dot>=0 ? name.slice(dot) : "";
-    let k=1, cand;
-    do { cand = `${stem}-${k}${ext}`; k++; } while(taken.has(cand));
-    taken.add(cand); return cand;
-  }
-
-  function patchDAE(text, texMap){
+  // Переписываем <init_from> → только базовое имя, применяем mapping/нормализацию
+  function rewriteDaeTextByMapping(text, mapping){
     let changed = 0;
-    const out = text.replace(/(<init_from>\\s*)([^<]+?)(\\s*<\\/init_from>)/gi, (full,p1,inner,p3)=>{
-      const raw = inner.trim().replace(/^file:\\/\\//i,"").replace(/^[A-Za-z]:/,"").replace(/^\\/+/, "");
+    const out = text.replace(/(<init_from>\s*)([^<]+?)(\s*<\/init_from>)/gi, (full,p1,inner,p3)=>{
+      // убираем file://, диски Windows, ведущие слеши, папки
+      const raw = inner.trim()
+        .replace(/^file:\/\//i,"")
+        .replace(/^[A-Za-z]:/,"")
+        .replace(/^\/+/,"");
       const key = baseName(raw);
-      const target = texMap.get(key) || normalizeTexName(key);
+      let target = mapping.get(key) || normalizeTexName(key);
       if(target !== key) changed++;
       return `${p1}${target}${p3}`;
     });
-    return {text: out, count: changed};
-  }
-
-  function patchMTL(text, texMap, matNameMap){
-    let changed = 0;
-    const lines = text.split(/\\r?\\n/).map(line=>{
-      const trimmed = line.trim();
-      if(/^newmtl\\s+/i.test(trimmed)){
-        const old = trimmed.replace(/^newmtl\\s+/i,'');
-        const neu = matNameMap.get(old) || translitBasic(old);
-        if(neu !== old){ changed++; return line.replace(/newmtl\\s+.*/i, `newmtl ${neu}`); }
-        return line;
-      }
-      const key = trimmed.split(/\\s+/)[0];
-      if(/^(map_Kd|map_Ka|map_Ks|bump|map_Bump|disp|map_d)$/i.test(key)){
-        const parts = trimmed.split(/\\s+/);
-        let path = parts[parts.length-1];
-        path = path.replace(/^file:\\/\\//i,"").replace(/^[A-Za-z]:/,"").replace(/^\\/+/, "");
-        const base = baseName(path);
-        const target = texMap.get(base) || normalizeTexName(base);
-        if(target !== base){ changed++; return line.replace(base, target); }
-      }
-      return line;
-    });
-    return {text: lines.join("\\n"), count: changed};
-  }
-
-  function patchOBJ(text, mtlNewName, matNameMap){
-    let changed = 0;
-    const out = text.split(/\\r?\\n/).map(line=>{
-      const t = line.trim();
-      if(/^mtllib\\s+/i.test(t)){
-        const neu = translitBasic(mtlNewName);
-        changed += (t.split(/\\s+/)[1] !== neu) ? 1 : 0;
-        return line.replace(/mtllib\\s+.*/i, `mtllib ${neu}`);
-      }
-      if(/^usemtl\\s+/i.test(t)){
-        const old = t.replace(/^usemtl\\s+/i,'');
-        const neu = matNameMap.get(old) || translitBasic(old);
-        changed += (neu !== old) ? 1 : 0;
-        return line.replace(/usemtl\\s+.*/i, `usemtl ${neu}`);
-      }
-      return line;
-    }).join("\\n");
     return {text: out, count: changed};
   }
 
@@ -269,14 +214,13 @@
         const bn = baseName(name);
         const ext = extOf(bn);
         if(ext===".zip") return;
-        if(TEXT_EXTS.has(ext) || IMAGE_EXTS.has(ext)){
+        if(ext===".dae" || IMAGE_EXTS.has(ext)){
           const blob = await entry.async("blob");
           const f = new File([blob], bn, {type: blob.type || "application/octet-stream"});
           fileMap.set(bn, f); count++;
         }
       }));
       addLog(`Загружено из ZIP: ${count} файлов.`);
-      renderFiles();
     }catch(e){
       addLog("Ошибка чтения ZIP: "+e);
     }
@@ -292,25 +236,20 @@
 
   function renderFiles(){
     if(fileMap.size===0){ filesListEl.style.display="none"; filesListEl.textContent=""; runBtn.disabled=true; return; }
-    const lines=[]; let hasAnyModel=false;
-    for(const [rel] of fileMap.entries()){
-      lines.push(`${rel}`);
-      const e = extOf(rel);
-      if(e===".dae" || e===".obj") hasAnyModel=true;
+    const lines=[]; let hasDae=false;
+    for(const [rel,f] of fileMap.entries()){
+      lines.push(`${rel} (${Math.round((f.size||0)/1024)} KB)`);
+      if(extOf(rel)===".dae") hasDae=true;
     }
-    filesListEl.textContent = lines.join("\\n");
+    filesListEl.textContent = lines.join("\n");
     filesListEl.style.display="block";
-    runBtn.disabled = !hasAnyModel;
+    runBtn.disabled = !hasDae;
     zipBtn.disabled = true;
     document.getElementById("stat").style.display="none";
-    daeStatEl.textContent="DAE: —"; objStatEl.textContent="OBJ/MTL: —"; texStatEl.textContent="Текстур переименовано: —";
+    daeStatEl.textContent="DAE: —"; texStatEl.textContent="Текстур переименовано: —";
   }
 
-  // ======= DnD на зоне + клик и клавиатура =======
-  drop.addEventListener("click", ()=> inFiles.click());
-  drop.addEventListener("keydown", e=>{
-    if(e.key==="Enter" || e.key===" "){ e.preventDefault(); inFiles.click(); }
-  });
+  // ——— DnD на зоне (как в рабочей версии)
   drop.addEventListener("dragover", e=>{ e.preventDefault(); drop.classList.add("drag"); });
   drop.addEventListener("dragleave", ()=> drop.classList.remove("drag"));
   drop.addEventListener("drop", e=>{
@@ -318,11 +257,14 @@
     if(e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files);
   });
 
-  // Кнопки выбора
+  // ——— Кнопки выбора
   btnFiles.addEventListener("click", ()=> inFiles.click());
   btnZip  .addEventListener("click", ()=> inZip.click());
   btnDir  .addEventListener("click", ()=>{
-    if (!('webkitdirectory' in inDir)) { alert('Выбор папки не поддерживается этим браузером. Откройте в Chrome/Edge.'); return; }
+    if (!('webkitdirectory' in inDir)) {
+      alert('Выбор папки не поддерживается этим браузером. Откройте в Chrome/Edge.');
+      return;
+    }
     inDir.click();
   });
 
@@ -332,110 +274,81 @@
 
   document.getElementById("clearBtn").addEventListener("click", ()=>{ fileMap.clear(); renderFiles(); logEl.textContent="Список очищен."; });
 
-  // ======= Обработка =======
+  // ——— Обработка
   document.getElementById("runBtn").addEventListener("click", async ()=>{
     logEl.textContent=""; lastZipBlob=null; zipBtn.disabled=true;
 
-    let daeName=null, objName=null, mtlName=null;
-    const textures = [];
-    for(const [rel] of fileMap.entries()){
-      const e = extOf(rel);
-      if(e===".dae") daeName = rel;
-      else if(e===".obj") objName = rel;
-      else if(e===".mtl") mtlName = rel;
-      else if(IMAGE_EXTS.has(e)) textures.push(rel);
-    }
+    // Находим .dae
+    let daePath=null; for(const [rel] of fileMap.entries()){ if(extOf(rel)===".dae"){ daePath=rel; break; } }
+    if(!daePath){ addLog("Не найден .dae."); return; }
+    addLog(`DAE: ${daePath}`);
 
+    // Строим mapping имён текстур с уникализацией
+    const mapping = new Map();
     const taken = new Set();
-    const texMap = new Map();
     let renamedCount = 0;
 
-    for(const rel of textures){
+    for(const [rel,f] of fileMap.entries()){
+      if(extOf(rel)===".dae") continue;
+      if(!IMAGE_EXTS.has(extOf(rel))) continue;
       const oldBase = baseName(rel);
-      const first = normalizeTexName(oldBase);
-      const uniq = uniquify(first, taken);
-      texMap.set(oldBase, uniq);
-      if(uniq !== oldBase){ renamedCount++; addLog(`TEX: ${oldBase} → ${uniq}`); }
-    }
-
-    // DAE
-    let daeFixCount = 0;
-    let outDAE = null;
-    if(daeName){
-      const daeText = await fileMap.get(daeName).text();
-      const {text, count} = patchDAE(daeText, texMap);
-      outDAE = text; daeFixCount = count;
-      addLog(`DAE: обновлено ссылок: ${daeFixCount}`);
-    }
-
-    // OBJ/MTL
-    let objMtlFixes = 0;
-    let outOBJ=null, outMTL=null;
-    let newObjName=null, newMtlName=null;
-
-    if(objName){
-      const objBaseOld = baseName(objName);
-      const mtlBaseOld = mtlName ? baseName(mtlName) : null;
-
-      newObjName = translitBasic(objBaseOld);
-      newMtlName = translitBasic(mtlBaseOld || "materials.mtl");
-
-      // Материалы
-      const matNameMap = new Map();
-      if(mtlName){
-        const mtlText = await fileMap.get(mtlName).text();
-        mtlText.split(/\\r?\\n/).forEach(line=>{
-          const m = line.trim().match(/^newmtl\\s+(.+)$/i);
-          if(m){
-            const old = m[1];
-            const neu = translitBasic(old);
-            if(neu !== old) matNameMap.set(old, neu);
-          }
-        });
-        const patched = patchMTL(mtlText, texMap, matNameMap);
-        outMTL = patched.text; objMtlFixes += patched.count;
-        addLog(`MTL: исправлено ссылок/имен: ${patched.count}`);
+      let cand = normalizeTexName(oldBase);
+      if(taken.has(cand)){
+        let k=1, withIdx=cand;
+        const dot = cand.lastIndexOf(".");
+        const stem = dot>=0?cand.slice(0,dot):cand;
+        const ext  = dot>=0?cand.slice(dot):"";
+        while(taken.has(withIdx)){ withIdx = `${stem}-${k}${ext}`; k++; }
+        cand = withIdx;
       }
-
-      const objText = await fileMap.get(objName).text();
-      const patchedObj = patchOBJ(objText, newMtlName, new Map(matNameMap));
-      outOBJ = patchedObj.text; objMtlFixes += patchedObj.count;
-      addLog(`OBJ: исправлено mtllib/usemtl: ${patchedObj.count}`);
+      taken.add(cand);
+      mapping.set(oldBase, cand);
+      if(cand !== oldBase){
+        renamedCount++;
+        addLog(`TEX: ${oldBase} → ${cand}`);
+      }
     }
+    if(renamedCount===0) addLog("Текстуры не требуют переименования.");
 
-    // ZIP
+    // Читаем/правим .dae
+    const daeText = await fileMap.get(daePath).text();
+    const {text: patchedText, count: daeFixCount} = rewriteDaeTextByMapping(daeText, mapping);
+    addLog(`Обновлено ссылок в .dae: ${daeFixCount}`);
+
+    // Сборка ZIP (max compression)
     const zip = new JSZip();
-    if(outDAE) zip.file("model_fixed.dae", outDAE);
-    if(outMTL) zip.file(newMtlName || "materials.mtl", outMTL);
-    if(outOBJ) zip.file(newObjName || "model.obj", outOBJ);
+    zip.file("model_fixed.dae", patchedText);
 
     for(const [rel,f] of fileMap.entries()){
-      const e = extOf(rel);
-      if(!IMAGE_EXTS.has(e)) continue;
+      if(extOf(rel)===".dae") continue;
+      if(!IMAGE_EXTS.has(extOf(rel))) continue;
       const oldBase = baseName(rel);
-      const newBase = texMap.get(oldBase) || normalizeTexName(oldBase);
+      const newBase = mapping.get(oldBase) || normalizeTexName(oldBase);
       const data = await f.arrayBuffer();
       zip.file(newBase, data);
     }
 
     const report = [
-      "Sketchfab Fix report",
-      daeName ? `dae file: ${daeName} (links fixed: ${daeFixCount})` : "dae file: —",
-      objName ? `obj file: ${objName} → ${newObjName}` : "obj file: —",
-      mtlName ? `mtl file: ${mtlName} → ${newMtlName}` : "mtl file: —",
-      `obj/mtl changes: ${objMtlFixes}`,
-      `textures renamed: ${renamedCount}`
-    ].join("\\n");
+      "Archicad → Sketchfab Fix report",
+      `dae file: ${daePath}`,
+      `links updated in dae: ${daeFixCount}`,
+      `textures renamed: ${renamedCount}`,
+      "",
+      ...[...mapping.entries()].map(([o,n]) => (o===n?`=`:`*`) + ` ${o} -> ${n}`)
+    ].join("\n");
     zip.file("report.txt", report);
 
-    lastZipBlob = await zip.generateAsync({ type:"blob", compression:"DEFLATE", compressionOptions:{level:9} });
+    lastZipBlob = await zip.generateAsync({
+      type:"blob",
+      compression:"DEFLATE",
+      compressionOptions:{level:9}
+    });
     zipBtn.disabled=false;
 
     document.getElementById("stat").style.display="grid";
-    if(daeName) daeStatEl.textContent = `DAE: обновлено ссылок: ${daeFixCount}`;
-    objStatEl.textContent = `OBJ/MTL: правок: ${objMtlFixes}`;
+    daeStatEl.textContent = `DAE: обновлено ссылок: ${daeFixCount}`;
     texStatEl.textContent = `Текстур переименовано: ${renamedCount}`;
-    addLog("Готово. Скачайте ZIP и загрузите в Sketchfab.");
+    addLog("Готово. Можно скачать ZIP.");
   });
 
   document.getElementById("zipBtn").addEventListener("click", ()=>{
