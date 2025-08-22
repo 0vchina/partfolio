@@ -8,6 +8,10 @@
   <link rel="canonical" href="https://0vchina.github.io/partfolio/" />
   <meta name="description" content="Инженер-проектировщик. BIM, 3D, расчёты, усиление зданий, проектирование домов и промышленных объектов." />
   <link rel="icon" href="file_0000000030986246a48be624a539648a.webp" type="image/webp" />
+
+  <!-- Шрифты -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet" />
 
   <style>
@@ -17,8 +21,8 @@
       --panel-bg:rgba(255,255,255,.78);
       --panel-brd:rgba(0,0,0,.08);
       --panel-shadow:0 8px 32px rgba(0,0,0,.18);
-      --reveal-y: 24px;
-      --reveal-dur: .7s;
+      --reveal-y:24px;
+      --reveal-dur:.7s;
     }
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
@@ -26,7 +30,7 @@
       margin:0; font-family:'Inter',sans-serif; color:#111;
       background:url('a2.webp') center / cover no-repeat fixed;
       overflow-x:hidden;
-      will-change: background-position; /* для параллакса */
+      will-change: background-position; /* параллакс */
     }
 
     /* HEADER */
@@ -43,7 +47,7 @@
       text-shadow:0 1px 2px rgba(255,255,255,.95);
       position:relative; display:inline-block;
     }
-    /* анимированное подчёркивание у h1 */
+    /* подчёркивание у h1 */
     header h1::after{
       content:""; position:absolute; left:50%; bottom:-6px; width:0; height:3px;
       background:linear-gradient(90deg,var(--accent),#7AD7F0);
@@ -111,6 +115,22 @@
     }
     footer.reveal-in{ transform:translateY(0); opacity:1; }
 
+    /* Бейдж «создан нами с тобой» */
+    .credit { margin-top: 8px; }
+    .credit-badge{
+      display:inline-flex; align-items:center; gap:10px;
+      padding:8px 12px; border-radius:999px;
+      background:#fff; border:1px solid var(--panel-brd);
+      box-shadow:0 8px 22px rgba(0,0,0,.15);
+      font-weight:800; color:#0d0d0d;
+    }
+    .credit-badge .pill{
+      padding:4px 10px; border-radius:999px;
+      background:linear-gradient(90deg, #1CAAD9, #7AD7F0);
+      color:#001018;
+    }
+    .credit-badge .x{ opacity:.7; font-weight:900; }
+
     /* FAB */
     .contact-fab{
       position:fixed; right:16px; bottom:16px; display:flex; flex-direction:column; gap:10px; z-index:1001;
@@ -134,7 +154,7 @@
   <header aria-label="Шапка сайта">
     <h1>Виталий Овчинников</h1>
     <p>Инженер-проектировщик | BIM | Расчёты | 3D визуализация</p>
-    <nav>
+    <nav aria-label="Основная навигация">
       <a href="#about">Обо мне</a>
       <a href="#experience">Опыт</a>
       <a href="models.html">3D и рендеры</a>
@@ -217,22 +237,31 @@
     </section>
   </main>
 
-  <footer>© 2025 Виталий Овчинников — Сайт инженера</footer>
+  <footer>
+    <p>© 2025 Виталий Овчинников — Сайт инженера</p>
+    <div class="credit" aria-label="Информация о создании сайта">
+      <div class="credit-badge" title="Сайт создан мощным дуэтом: человек × ИИ">
+        <span class="pill">Виталий Овчинников</span>
+        <span class="x">×</span>
+        <span class="pill">GPT-5 Thinking</span>
+      </div>
+    </div>
+  </footer>
 
+  <!-- FAB -->
   <div class="contact-fab" aria-label="Быстрые контакты">
     <a class="fab-btn" href="#contact">💬 Telegram</a>
     <a class="fab-btn" href="#contact">✉️ Email</a>
   </div>
 
   <script>
-    // ===== Параллакс-фон (очень лёгкий) =====
+    // Параллакс-фон (лёгкий)
     (function(){
       let ticking=false;
       const onScroll=()=>{ 
         if(ticking) return; ticking=true;
         requestAnimationFrame(()=>{
           const y=window.scrollY||0;
-          // слегка смещаем фон: чем больше y, тем выше позиция
           document.body.style.backgroundPositionY = `${-y*0.06}px`;
           ticking=false;
         });
@@ -240,7 +269,7 @@
       window.addEventListener('scroll', onScroll, {passive:true});
     })();
 
-    // ===== Scroll-reveal через IntersectionObserver =====
+    // Scroll-reveal
     (function(){
       const io = new IntersectionObserver((entries)=>{
         entries.forEach(entry=>{
