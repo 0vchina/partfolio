@@ -8,11 +8,9 @@
 <link rel="icon" href="file_0000000030986246a48be624a539648a.webp" type="image/webp" />
 <link rel="canonical" href="https://0vchina.github.io/partfolio/tools.html" />
 
-<!-- SEO -->
-<meta name="description" content="Бесплатный офлайн-инструмент: чинит экспорт Archicad → Sketchfab. Переименовывает текстуры, правит ссылки в .dae, убирает кириллицу. Работает в браузере. ZIP с максимальным сжатием."/>
+<meta name="description" content="Офлайн-фикс экспорта Archicad → Sketchfab: транслит имён текстур, правило prefix_1234.ext, правка ссылок в .dae. Работает в браузере. ZIP с максимальным сжатием."/>
 <meta name="keywords" content="Archicad, Sketchfab, dae, текстуры, fix, кириллица, Collada, BIM, textures not loading"/>
 
-<!-- OG -->
 <meta property="og:title" content="Archicad → Sketchfab Fix — офлайн-инструмент" />
 <meta property="og:description" content="Исправляет .dae и имена текстур после экспорта из Archicad для Sketchfab. Без загрузки на сервер." />
 <meta property="og:image" content="https://0vchina.github.io/partfolio/tool-preview.webp" />
@@ -38,8 +36,8 @@
   @media(min-width:900px){ .grid-2{grid-template-columns:1.1fr .9fr} }
   h2{font-size:1.14rem;margin:.2rem 0 8px}
   p{line-height:1.6;margin:.4rem 0}
-  .drop{ border:2px dashed #7ad7f0; border-radius:14px; padding:16px; text-align:center; background:#f8feff; color:#001018; }
-  .drop.drag{ background:#e9fbff; border-color:var(--accent) }
+  .drop{ border:2px dashed #1CAAD9; border-radius:14px; padding:16px; text-align:center; background:#f3fcff; color:#001018; }
+  .drop.drag{ background:#e9f8ff }
   .hint{font-size:.95rem;opacity:.85}
   .row{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
   .btn{ border:1px solid var(--brd); background:#fff; border-radius:10px; padding:10px 14px; font-weight:700; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,.1); }
@@ -58,9 +56,26 @@
   details.help summary{cursor:pointer;font-weight:700;list-style:none}
   details.help summary::-webkit-details-marker{display:none}
   details.help p{margin:.45rem 0}
-  /* SEO-блок как в первом рабочем варианте */
-  .seo{ background:#fff; border:1px solid var(--brd); border-radius:12px; padding:12px; margin-top:8px; }
+  .hidden{position:absolute;left:-9999px}
 </style>
+
+<!-- Глобальная блокировка навигации вкладки при DnD (capture + immediate) -->
+<script>
+(function hardenDnD(){
+  const block = (e)=>{
+    try{
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+    }catch(_){}
+  };
+  ['dragenter','dragover','dragleave','drop'].forEach(ev=>{
+    window.addEventListener(ev, block, true);
+    document.addEventListener(ev, block, true);
+  });
+})();
+</script>
 </head>
 <body>
 <header>
@@ -73,18 +88,13 @@
       <a href="tools.html" style="border-color:var(--accent)">Инструменты</a>
     </nav>
     <h1>Archicad → Sketchfab Fix — офлайн-инструмент</h1>
-
-    <div class="seo">
-      <p><strong>Назначение:</strong> исправить проблему «слетающих» текстур при экспорте из Archicad в Sketchfab.</p>
-      <p>Инструмент автоматически переименовывает текстуры в формат <code>prefix_1234.ext</code>, транслитерирует кириллицу, правит ссылки в <code>.dae</code> до чистых имён. Работает локально в браузере; файлы никуда не отправляются.</p>
-      <details class="help" style="margin-top:8px">
-        <summary>Справка (коротко)</summary>
-        <p>1) Перетащите <code>.dae</code> + текстуры или один <strong>.zip</strong>. Можно выбрать и <strong>папку</strong>.</p>
-        <p>2) Нажмите «Запустить фиксацию», затем «Скачать ZIP» (max сжатие).</p>
-        <p><strong>RAR:</strong> веб-браузер не создаёт RAR. Используем ZIP (DEFLATE level 9).</p>
-      </details>
-      <p class="hint">Поддержка: .zip (dae+textures), .dae, .png, .jpg, .jpeg, .webp, .tga, .bmp, .tif, .tiff, .dds</p>
-    </div>
+    <details class="help">
+      <summary>Справка (коротко)</summary>
+      <p>1) Перетащите <code>.dae</code> + текстуры или один <strong>.zip</strong>. Можно выбрать <strong>папку</strong>.</p>
+      <p>2) «Запустить фиксацию» → «Скачать ZIP (max)».</p>
+      <p><strong>RAR:</strong> браузеры не создают RAR. Используем ZIP (DEFLATE level 9).</p>
+    </details>
+    <p class="hint">Поддержка: .zip (dae+textures), .dae, .png, .jpg, .jpeg, .webp, .tga, .bmp, .tif, .tiff, .dds</p>
   </div>
 </header>
 
@@ -92,25 +102,27 @@
   <section class="grid grid-2">
     <div>
       <h2>1) Загрузка</h2>
-      <div id="drop" class="drop">
-        <strong>Перетащите сюда</strong> <code>.dae</code> + текстуры <em>или</em> один <strong>.zip</strong><br>
-        <span class="hint">Можно также выбрать файлы/папку кнопками ниже</span>
-        <input id="fileInput" type="file" multiple style="display:none">
+      <div id="drop" class="drop" tabindex="0">
+        Перетащите сюда файлы/папку/ZIP<br><span class="hint">или воспользуйтесь кнопками ниже</span>
       </div>
 
       <div class="row">
-        <label class="btn">Выбрать файлы…<input id="picker" type="file" multiple style="display:none"></label>
-        <label class="btn">Выбрать папку…<input id="pickerDir" type="file" webkitdirectory directory multiple style="display:none"></label>
-        <label class="btn">Выбрать ZIP…<input id="pickerZip" type="file" accept=".zip" style="display:none"></label>
+        <button id="btnFiles" class="btn">Выбрать файлы…</button>
+        <input id="inFiles" type="file" multiple class="hidden">
+        <button id="btnDir" class="btn">Выбрать папку…</button>
+        <input id="inDir" type="file" webkitdirectory directory multiple class="hidden">
+        <button id="btnZip" class="btn">Выбрать ZIP…</button>
+        <input id="inZip" type="file" accept=".zip" class="hidden">
         <button id="clearBtn" class="btn">Очистить список</button>
       </div>
 
       <div id="filesList" class="files" style="margin-top:10px;display:none"></div>
+      <p id="supportNote" class="hint"></p>
     </div>
 
     <div>
       <h2>2) Обработка</h2>
-      <p class="hint">Фиксация имён и ссылок — автоматически по лучшим настройкам.</p>
+      <p class="hint">Транслит имён, формат <code>prefix_1234.ext</code>, правка <code>&lt;init_from&gt;</code> в .dae</p>
       <div class="row">
         <button id="runBtn" class="btn primary" disabled>Запустить фиксацию</button>
         <button id="zipBtn" class="btn" disabled>Скачать ZIP (max)</button>
@@ -124,40 +136,43 @@
 
   <section>
     <h2>3) Отчёт</h2>
-    <div id="log" class="log">Здесь появится лог изменений…</div>
+    <div id="log" class="log">Здесь будет лог…</div>
   </section>
 </main>
 
 <footer>
   <div>© 2025 Виталий Овчинников</div>
   <div class="credit">
-    <div class="credit-badge">
-      <span class="pill">Виталий Овчинников</span><span>×</span><span class="pill">GPT-5 Thinking</span>
-    </div>
+    <div class="credit-badge"><span class="pill">Виталий Овчинников</span><span>×</span><span class="pill">GPT-5 Thinking</span></div>
   </div>
 </footer>
 
-<!-- JSZip -->
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 (() => {
   const IMAGE_EXTS = new Set([".png",".jpg",".jpeg",".webp",".tga",".bmp",".tif",".tiff",".dds"]);
-  const $ = sel => document.querySelector(sel);
-  const logEl = $("#log"), filesListEl = $("#filesList"), runBtn = $("#runBtn"), zipBtn = $("#zipBtn");
+  const $ = s => document.querySelector(s);
+
+  const logEl = $("#log"), filesListEl = $("#filesList");
+  const runBtn = $("#runBtn"), zipBtn = $("#zipBtn");
   const daeStatEl = $("#daeStat"), texStatEl = $("#texStat");
-  const fileMap = new Map(); // rel -> File
+  const btnFiles = $("#btnFiles"), inFiles = $("#inFiles");
+  const btnDir = $("#btnDir"), inDir = $("#inDir");
+  const btnZip = $("#btnZip"), inZip = $("#inZip");
+  const drop = $("#drop"), supportNote = $("#supportNote");
+
+  const fileMap = new Map(); // relPath -> File
+  let lastZipBlob = null;
 
   const addLog = s => { logEl.textContent += (logEl.textContent ? "\\n" : "") + s; logEl.scrollTop = logEl.scrollHeight; };
   const extOf = n => { const i=n.lastIndexOf("."); return i>=0 ? n.slice(i).toLowerCase() : ""; };
   const baseName = p => p.split(/[\\/]/).pop();
 
-  // Транслит
   function translitBasic(s){
     const t={"А":"A","Б":"B","В":"V","Г":"G","Д":"D","Е":"E","Ё":"E","Ж":"Zh","З":"Z","И":"I","Й":"Y","К":"K","Л":"L","М":"M","Н":"N","О":"O","П":"P","Р":"R","С":"S","Т":"T","У":"U","Ф":"F","Х":"Kh","Ц":"Ts","Ч":"Ch","Ш":"Sh","Щ":"Sch","Ъ":"","Ы":"Y","Ь":"","Э":"E","Ю":"Yu","Я":"Ya","а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"e","ж":"zh","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"kh","ц":"ts","ч":"ch","ш":"sh","щ":"sch","ъ":"","ы":"y","ь":"","э":"e","ю":"yu","я":"ya","’":"","‘":"","ʼ":""};
     return s.replace(/./g, ch => t[ch] ?? ch);
   }
 
-  // Имя текстуры: prefix_1234.ext (транслит + цифры после первого "_")
   function normalizeTexName(name){
     const bn = baseName(name);
     const dot = bn.lastIndexOf(".");
@@ -168,12 +183,11 @@
     const prefix = parts[0];
     const tail = parts.slice(1).join("_");
     let digits = "";
-    for(const ch of tail){ if(/\\d/.test(ch)) digits += ch; else break; }
+    for(const ch of tail){ if(/\d/.test(ch)) digits += ch; else break; }
     const result = digits ? `${prefix}_${digits}${ext}` : bn;
     return translitBasic(result);
   }
 
-  // Переписываем <init_from> → только базовое имя, по mapping (или нормализация)
   function rewriteDaeTextByMapping(text, mapping){
     let changed = 0;
     const out = text.replace(/(<init_from>\\s*)([^<]+?)(\\s*<\\/init_from>)/gi, (full,p1,inner,p3)=>{
@@ -189,7 +203,6 @@
     return {text: out, count: changed};
   }
 
-  // ZIP: распаковка
   async function addZip(file){
     try{
       const zip = await JSZip.loadAsync(file);
@@ -213,7 +226,7 @@
     }
   }
 
-  function addFiles(list){
+  function addFilesFromFileList(list){
     for(const f of list){
       const rel = f.webkitRelativePath || f.name;
       if(extOf(rel)===".zip"){ addZip(f); } else { fileMap.set(rel, f); }
@@ -222,7 +235,9 @@
   }
 
   function renderFiles(){
-    if(fileMap.size===0){ filesListEl.style.display="none"; filesListEl.textContent=""; runBtn.disabled=true; return; }
+    if(fileMap.size===0){
+      filesListEl.style.display="none"; filesListEl.textContent=""; runBtn.disabled=true; return;
+    }
     const lines=[]; let hasDae=false;
     for(const [rel,f] of fileMap.entries()){
       lines.push(`${rel} (${Math.round((f.size||0)/1024)} KB)`);
@@ -234,35 +249,46 @@
     daeStatEl.textContent="DAE: —"; texStatEl.textContent="Текстур переименовано: —";
   }
 
-  // ——— DnD как в первом рабочем варианте (только зона)
-  const drop = document.getElementById("drop");
-  drop.addEventListener("click", ()=> document.getElementById("fileInput").click());
-  drop.addEventListener("dragover", e=>{ e.preventDefault(); drop.classList.add("drag"); });
-  drop.addEventListener("dragleave", ()=> drop.classList.remove("drag"));
-  drop.addEventListener("drop", e=>{
-    e.preventDefault(); drop.classList.remove("drag");
-    if(e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files);
+  // ==== Локальная зона DnD (после глобальной блокировки)
+  drop.addEventListener('dragover', e=>{ e.preventDefault(); drop.classList.add('drag'); });
+  drop.addEventListener('dragleave', ()=> drop.classList.remove('drag'));
+  drop.addEventListener('drop', e=>{
+    e.preventDefault(); drop.classList.remove('drag');
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+      addFilesFromFileList(e.dataTransfer.files);
+    }
   });
 
-  // ——— Выбор через инпуты (включая webkitdirectory)
-  document.getElementById("fileInput").addEventListener("change", e=> addFiles(e.target.files));
-  document.getElementById("picker").addEventListener("change", e=> addFiles(e.target.files));
-  document.getElementById("pickerDir").addEventListener("change", e=> addFiles(e.target.files));
-  document.getElementById("pickerZip").addEventListener("change", e=> addFiles(e.target.files));
-  document.getElementById("clearBtn").addEventListener("click", ()=>{ fileMap.clear(); renderFiles(); logEl.textContent="Список очищен."; });
+  // Кнопки выбора
+  btnFiles.addEventListener('click', ()=> inFiles.click());
+  btnZip  .addEventListener('click', ()=> inZip.click());
+  btnDir  .addEventListener('click', ()=>{
+    if (!('webkitdirectory' in inDir)) {
+      alert('Выбор папки не поддерживается этим браузером. Открой в Chrome/Edge.');
+      return;
+    }
+    inDir.click();
+  });
 
-  // ——— Обработка
-  let lastZipBlob=null;
+  inFiles.addEventListener('change', e=> addFilesFromFileList(e.target.files));
+  inZip  .addEventListener('change', e=> addFilesFromFileList(e.target.files));
+  inDir  .addEventListener('change', e=> addFilesFromFileList(e.target.files));
 
-  document.getElementById("runBtn").addEventListener("click", async ()=>{
+  document.getElementById('clearBtn').addEventListener('click', ()=>{ fileMap.clear(); renderFiles(); logEl.textContent='Список очищен.'; });
+
+  // Подсказка по поддержке
+  const supportsDir = ('webkitdirectory' in inDir);
+  const supportsItems = !!(DataTransferItem && DataTransferItem.prototype && "webkitGetAsEntry" in DataTransferItem.prototype);
+  supportNote.textContent = `Поддержка: перетаскивание папок — ${supportsItems ? "да" : "ограничено (лучше Chrome/Edge)"}, выбор папки — ${supportsDir ? "да" : "нет (Chrome/Edge)"}`;
+
+  // ==== Обработка
+  document.getElementById('runBtn').addEventListener('click', async ()=>{
     logEl.textContent=""; lastZipBlob=null; zipBtn.disabled=true;
 
-    // .dae
-    let daePath=null; for(const [rel] of fileMap.entries()){ if(extOf(rel)===".dae"){ daePath=rel; break; } }
-    if(!daePath){ addLog("Не найден .dae."); return; }
+    let daePath=null; for (const [rel] of fileMap.entries()){ if (extOf(rel)===".dae"){ daePath=rel; break; } }
+    if(!daePath){ addLog('Не найден .dae.'); return; }
     addLog(`DAE: ${daePath}`);
 
-    // mapping + уникализация
     const mapping = new Map();
     const taken = new Set();
 
@@ -283,12 +309,10 @@
       mapping.set(oldBase, cand);
     }
 
-    // правка .dae
     const daeText = await fileMap.get(daePath).text();
     const {text: patchedText, count: daeFixCount} = rewriteDaeTextByMapping(daeText, mapping);
     addLog(`Обновлено ссылок в .dae: ${daeFixCount}`);
 
-    // сборка ZIP (max)
     const zip = new JSZip();
     zip.file("model_fixed.dae", patchedText);
 
@@ -322,17 +346,17 @@
     });
     zipBtn.disabled=false;
 
-    document.getElementById("stat").style.display="grid";
+    document.getElementById('stat').style.display='grid';
     daeStatEl.textContent = `DAE: обновлено ссылок: ${daeFixCount}`;
     texStatEl.textContent = `Текстур переименовано: ${renamedCount}`;
-    addLog("Готово. Скачайте ZIP и загрузите в Sketchfab.");
+    addLog('Готово. Скачай ZIP и загрузи в Sketchfab.');
   });
 
-  document.getElementById("zipBtn").addEventListener("click", ()=>{
+  document.getElementById('zipBtn').addEventListener('click', ()=>{
     if(!lastZipBlob) return;
-    const a=document.createElement("a");
-    a.href=URL.createObjectURL(lastZipBlob);
-    a.download="sketchfab_fixed.zip";
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(lastZipBlob);
+    a.download = 'sketchfab_fixed.zip';
     document.body.appendChild(a); a.click();
     setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },0);
   });
