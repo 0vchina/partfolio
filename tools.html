@@ -9,8 +9,8 @@
 <link rel="canonical" href="https://0vchina.github.io/partfolio/tools.html" />
 
 <!-- SEO -->
-<meta name="description" content="Бесплатный онлайн-инструмент для исправления экспорта из Archicad в Sketchfab. Автоматически переименовывает текстуры и правит ссылки в .dae, устраняя проблемы с кириллицей и отсутствием текстур. Работает офлайн в вашем браузере."/>
-<meta name="keywords" content="Archicad, Sketchfab, dae, текстуры, fix, исправить dae, загрузка моделей, BIM, 3D, Collada, rus letters, кириллица, textures not loading"/>
+<meta name="description" content="Бесплатный офлайн-инструмент: чинит экспорт Archicad → Sketchfab. Переименовывает текстуры, правит ссылки в .dae, убирает кириллицу. Работает в вашем браузере. ZIP с максимальным сжатием."/>
+<meta name="keywords" content="Archicad, Sketchfab, dae, textures, fix, кириллица, Collada, BIM, textures not loading"/>
 
 <!-- Open Graph -->
 <meta property="og:title" content="Archicad → Sketchfab Fix — онлайн-инструмент" />
@@ -53,9 +53,15 @@
   .credit{margin-top:8px}
   .credit-badge{display:inline-flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--brd);border-radius:999px;padding:8px 12px;box-shadow:var(--shadow);color:#001018;font-weight:800}
   .credit-badge .pill{background:linear-gradient(90deg,#1CAAD9,#7AD7F0);padding:4px 10px;border-radius:999px}
-  .seo{
-    background:#fff; border:1px solid var(--brd); border-radius:12px; padding:12px; margin-bottom:12px;
+
+  /* Справка-свёртка */
+  details.seo{
+    background:#fff; border:1px solid var(--brd); border-radius:12px; padding:10px 12px; margin-top:10px;
   }
+  details.seo summary{cursor:pointer; list-style:none; font-weight:800}
+  details.seo summary::-webkit-details-marker{display:none}
+  details.seo[open]{box-shadow:0 8px 24px rgba(0,0,0,.08)}
+  .hidden{position:absolute;left:-9999px}
 </style>
 </head>
 <body>
@@ -69,11 +75,16 @@
       <a href="tools.html" style="border-color:var(--accent)">Инструменты</a>
     </nav>
     <h1>Archicad → Sketchfab Fix — бесплатный онлайн-инструмент</h1>
-    <div class="seo">
-      <p><strong>Назначение:</strong> исправить проблему слетающих текстур при экспорте из Archicad в Sketchfab.</p>
-      <p>Инструмент автоматически переименовывает текстуры в безопасный формат <code>prefix_1234.png</code>, правит ссылки в <code>.dae</code>, убирает кириллицу и спецсимволы. Работает офлайн прямо в вашем браузере: файлы никуда не отправляются.</p>
-    </div>
-    <p class="hint">Поддержка: .zip (dae+textures), .dae, .png, .jpg, .jpeg, .webp, .tga, .bmp, .tif, .tiff, .dds</p>
+
+    <!-- Справка: по умолчанию закрыта -->
+    <details class="seo">
+      <summary>Справка — что делает инструмент?</summary>
+      <p><strong>Назначение:</strong> исправляет «слетающие» текстуры после экспорта из Archicad в Sketchfab.</p>
+      <p>Инструмент переименовывает текстуры в формат <code>prefix_1234.ext</code> (транслит кириллицы), а в <code>.dae</code>
+        приводит пути в <code>&lt;init_from&gt;</code> к чистым именам и заменяет их на новые.</p>
+      <p>Работает локально в браузере — файлы никуда не отправляются. Архив — ZIP (DEFLATE 9). RAR из браузера создать нельзя.</p>
+      <p class="hint">Поддержка: .zip (dae+textures), .dae, .png, .jpg, .jpeg, .webp, .tga, .bmp, .tif, .tiff, .dds</p>
+    </details>
   </div>
 </header>
 
@@ -81,16 +92,21 @@
   <section class="grid grid-2">
     <div>
       <h2>1) Загрузка</h2>
-      <div id="drop" class="drop">
+      <div id="drop" class="drop" tabindex="0">
         <strong>Перетащите сюда</strong> <code>.dae</code> + текстуры <em>или</em> один <strong>.zip</strong><br>
-        <span class="hint">Можно также выбрать файлы/папки кнопками ниже</span>
-        <input id="fileInput" type="file" multiple style="display:none">
+        <span class="hint">Можно также выбрать файлы/папку/ZIP кнопками ниже</span>
       </div>
 
       <div class="row">
-        <label class="btn">Выбрать файлы…<input id="picker" type="file" multiple style="display:none"></label>
-        <label class="btn">Выбрать папку…<input id="pickerDir" type="file" webkitdirectory directory multiple style="display:none"></label>
-        <label class="btn">Выбрать ZIP…<input id="pickerZip" type="file" accept=".zip" style="display:none"></label>
+        <button id="btnFiles" class="btn">Выбрать файлы…</button>
+        <input id="inFiles" type="file" multiple class="hidden">
+
+        <button id="btnDir" class="btn">Выбрать папку…</button>
+        <input id="inDir" type="file" webkitdirectory directory multiple class="hidden">
+
+        <button id="btnZip" class="btn">Выбрать ZIP…</button>
+        <input id="inZip" type="file" accept=".zip" class="hidden">
+
         <button id="clearBtn" class="btn">Очистить список</button>
       </div>
 
@@ -98,14 +114,11 @@
     </div>
 
     <div>
-      <h2>2) Параметры</h2>
-      <label><input type="checkbox" id="dryRun"> Репетиция (без изменений)</label><br>
-      <label><input type="checkbox" id="translit" checked> Транслит кириллицы в именах</label><br>
-      <label><input type="checkbox" id="onlyDigits" checked> В имени текстуры оставлять только цифры после префикса</label>
-      <p class="hint">Формат: <code>prefix_1234.ext</code> (префикс — до первого <code>_</code>, затем подряд идущие цифры).</p>
+      <h2>2) Обработка</h2>
+      <p class="hint">Всё автоматически: транслит + <code>prefix_1234.ext</code> + правка <code>&lt;init_from&gt;</code></p>
       <div class="row">
         <button id="runBtn" class="btn primary" disabled>Запустить фиксацию</button>
-        <button id="zipBtn" class="btn" disabled>Скачать ZIP</button>
+        <button id="zipBtn" class="btn" disabled>Скачать ZIP (max)</button>
       </div>
       <div class="stat" id="stat" style="display:none">
         <div class="pill" id="daeStat">DAE: —</div>
@@ -134,71 +147,61 @@
 <script>
 (() => {
   const IMAGE_EXTS = new Set([".png",".jpg",".jpeg",".webp",".tga",".bmp",".tif",".tiff",".dds"]);
-  const ZIP_EXT = ".zip";
   const $ = sel => document.querySelector(sel);
-  const logEl = $("#log"), filesListEl = $("#filesList"), runBtn = $("#runBtn"), zipBtn = $("#zipBtn");
-  const dryRunEl = $("#dryRun"), translitEl = $("#translit"), onlyDigitsEl = $("#onlyDigits");
+
+  const logEl = $("#log"), filesListEl = $("#filesList");
+  const runBtn = $("#runBtn"), zipBtn = $("#zipBtn");
   const daeStatEl = $("#daeStat"), texStatEl = $("#texStat");
+
+  const drop = $("#drop");
+  const btnFiles = $("#btnFiles"), inFiles = $("#inFiles");
+  const btnDir = $("#btnDir"), inDir = $("#inDir");
+  const btnZip = $("#btnZip"), inZip = $("#inZip");
+
   const fileMap = new Map(); // rel -> File
+  let lastZipBlob = null;
 
-  function addLog(s){ logEl.textContent += (logEl.textContent ? "\n" : "") + s; logEl.scrollTop = logEl.scrollHeight; }
-  const extOf = (n)=>{ const i=n.lastIndexOf("."); return i>=0 ? n.slice(i).toLowerCase() : ""; };
-  const baseName = (p)=> p.split(/[\\/]/).pop();
+  const addLog = s => { logEl.textContent += (logEl.textContent ? "\n" : "") + s; logEl.scrollTop = logEl.scrollHeight; };
+  const extOf = n => { const i=n.lastIndexOf("."); return i>=0 ? n.slice(i).toLowerCase() : ""; };
+  const baseName = p => p.split(/[\\/]/).pop();
 
+  // Транслит
   function translitBasic(s){
     const t={"А":"A","Б":"B","В":"V","Г":"G","Д":"D","Е":"E","Ё":"E","Ж":"Zh","З":"Z","И":"I","Й":"Y","К":"K","Л":"L","М":"M","Н":"N","О":"O","П":"P","Р":"R","С":"S","Т":"T","У":"U","Ф":"F","Х":"Kh","Ц":"Ts","Ч":"Ch","Ш":"Sh","Щ":"Sch","Ъ":"","Ы":"Y","Ь":"","Э":"E","Ю":"Yu","Я":"Ya","а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"e","ж":"zh","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"kh","ц":"ts","ч":"ch","ш":"sh","щ":"sch","ъ":"","ы":"y","ь":"","э":"e","ю":"yu","я":"ya","’":"","‘":"","ʼ":""};
     return s.replace(/./g, ch => t[ch] ?? ch);
   }
 
-  function normalizeTexName(name, {translit=true, onlyDigits=true}={}){
+  // Имя текстуры: prefix_1234.ext (цифры сразу после первого "_"), с транслитом
+  function normalizeTexName(name){
     const bn = baseName(name);
     const dot = bn.lastIndexOf(".");
     const stem = dot>=0 ? bn.slice(0,dot) : bn;
     const ext = dot>=0 ? bn.slice(dot) : "";
     const parts = stem.split("_");
-    if(parts.length<2) return translit ? translitBasic(bn) : bn;
-    const prefix = parts[0], tail = parts.slice(1).join("_");
-    let digits=""; for(const ch of tail){ if(/\d/.test(ch)) digits+=ch; else break; }
-    if(digits && onlyDigits){
-      const nn = `${prefix}_${digits}${ext}`;
-      return translit ? translitBasic(nn) : nn;
-    }
-    return translit ? translitBasic(bn) : bn;
+    if(parts.length < 2) return translitBasic(bn);
+    const prefix = parts[0];
+    const tail = parts.slice(1).join("_");
+    let digits = "";
+    for(const ch of tail){ if(/\d/.test(ch)) digits += ch; else break; }
+    const result = digits ? `${prefix}_${digits}${ext}` : bn;
+    return translitBasic(result);
   }
 
-  function rewriteDaeText(text){
+  // Переписываем <init_from> → только базовое имя, применяем mapping/нормализацию
+  function rewriteDaeTextByMapping(text, mapping){
     let changed = 0;
-    const pattern = /(<init_from>\s*texture_)([^<]+?)(<\/init_from>)/gi;
-    const out = text.replace(pattern, (_, p1, ref, p3) => {
-      const clean = ref.trim();
-      const m = /^([^<>\s]+)$/.exec(clean);
-      if(!m) return p1+ref+p3;
-      const b = baseName(m[1]);
-      const dot = b.lastIndexOf(".");
-      const stem = dot>=0 ? b.slice(0,dot) : b;
-      const ext = dot>=0 ? b.slice(dot) : "";
-      let digits=""; for(const ch of stem){ if(/\d/.test(ch)) digits+=ch; else break; }
-      if(digits){ changed++; return p1+digits+ext+p3; }
-      return p1+ref+p3;
+    const out = text.replace(/(<init_from>\s*)([^<]+?)(\s*<\/init_from>)/gi, (full,p1,inner,p3)=>{
+      // убираем file://, диски Windows, ведущие слеши, папки
+      const raw = inner.trim()
+        .replace(/^file:\/\//i,"")
+        .replace(/^[A-Za-z]:/,"")
+        .replace(/^\/+/,"");
+      const key = baseName(raw);
+      let target = mapping.get(key) || normalizeTexName(key);
+      if(target !== key) changed++;
+      return `${p1}${target}${p3}`;
     });
     return {text: out, count: changed};
-  }
-
-  function patchDaeByMapping(text, mapping){
-    return text.replace(/(<init_from>\s*)([^<]+?)(\s*<\/init_from>)/gi, (full,p1,inner,p3)=>{
-      const key = baseName(inner.trim());
-      const repl = mapping.get(key);
-      return (repl && repl!==key) ? `${p1}${repl}${p3}` : full;
-    });
-  }
-
-  function renderFiles(){
-    if(fileMap.size===0){ filesListEl.style.display="none"; filesListEl.textContent=""; runBtn.disabled=true; return; }
-    const lines=[]; let hasDae=false;
-    for(const [rel,f] of fileMap.entries()){ lines.push(`${rel} (${Math.round((f.size||0)/1024)} KB)`); if(extOf(rel)===".dae") hasDae=true; }
-    filesListEl.textContent = lines.join("\n"); filesListEl.style.display="block";
-    runBtn.disabled=!hasDae; zipBtn.disabled=true; document.getElementById("stat").style.display="none";
-    daeStatEl.textContent="DAE: —"; texStatEl.textContent="Текстур переименовано: —";
   }
 
   async function addZip(file){
@@ -210,7 +213,7 @@
         if(entry.dir) return;
         const bn = baseName(name);
         const ext = extOf(bn);
-        if(ext=== ".zip") return;
+        if(ext===".zip") return;
         if(ext===".dae" || IMAGE_EXTS.has(ext)){
           const blob = await entry.async("blob");
           const f = new File([blob], bn, {type: blob.type || "application/octet-stream"});
@@ -223,72 +226,127 @@
     }
   }
 
-  function addFiles(list){ for(const f of list){ const rel=f.webkitRelativePath||f.name; if(extOf(rel)===".zip"){ addZip(f); } else { fileMap.set(rel, f); } } renderFiles(); }
+  function addFiles(list){
+    for(const f of list){
+      const rel = f.webkitRelativePath || f.name;
+      if(extOf(rel)===".zip"){ addZip(f); } else { fileMap.set(rel, f); }
+    }
+    renderFiles();
+  }
 
-  // ——— UI и DnD (как в первом рабочем варианте)
-  const drop = document.getElementById("drop");
-  drop.addEventListener("click", ()=> document.getElementById("fileInput").click());
-  drop.addEventListener("dragover", e=>{e.preventDefault(); drop.classList.add("drag");});
+  function renderFiles(){
+    if(fileMap.size===0){ filesListEl.style.display="none"; filesListEl.textContent=""; runBtn.disabled=true; return; }
+    const lines=[]; let hasDae=false;
+    for(const [rel,f] of fileMap.entries()){
+      lines.push(`${rel} (${Math.round((f.size||0)/1024)} KB)`);
+      if(extOf(rel)===".dae") hasDae=true;
+    }
+    filesListEl.textContent = lines.join("\n");
+    filesListEl.style.display="block";
+    runBtn.disabled = !hasDae;
+    zipBtn.disabled = true;
+    document.getElementById("stat").style.display="none";
+    daeStatEl.textContent="DAE: —"; texStatEl.textContent="Текстур переименовано: —";
+  }
+
+  // ——— DnD на зоне (как в рабочей версии)
+  drop.addEventListener("dragover", e=>{ e.preventDefault(); drop.classList.add("drag"); });
   drop.addEventListener("dragleave", ()=> drop.classList.remove("drag"));
-  drop.addEventListener("drop", e=>{ e.preventDefault(); drop.classList.remove("drag"); if(e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files); });
+  drop.addEventListener("drop", e=>{
+    e.preventDefault(); drop.classList.remove("drag");
+    if(e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files);
+  });
 
-  document.getElementById("fileInput").addEventListener("change", e=> addFiles(e.target.files));
-  document.getElementById("picker").addEventListener("change", e=> addFiles(e.target.files));
-  document.getElementById("pickerDir").addEventListener("change", e=> addFiles(e.target.files));
-  document.getElementById("pickerZip").addEventListener("change", e=> addFiles(e.target.files));
+  // ——— Кнопки выбора
+  btnFiles.addEventListener("click", ()=> inFiles.click());
+  btnZip  .addEventListener("click", ()=> inZip.click());
+  btnDir  .addEventListener("click", ()=>{
+    if (!('webkitdirectory' in inDir)) {
+      alert('Выбор папки не поддерживается этим браузером. Откройте в Chrome/Edge.');
+      return;
+    }
+    inDir.click();
+  });
+
+  inFiles.addEventListener("change", e=> addFiles(e.target.files));
+  inZip  .addEventListener("change", e=> addFiles(e.target.files));
+  inDir  .addEventListener("change", e=> addFiles(e.target.files));
+
   document.getElementById("clearBtn").addEventListener("click", ()=>{ fileMap.clear(); renderFiles(); logEl.textContent="Список очищен."; });
 
-  let lastZipBlob=null;
-
+  // ——— Обработка
   document.getElementById("runBtn").addEventListener("click", async ()=>{
     logEl.textContent=""; lastZipBlob=null; zipBtn.disabled=true;
+
+    // Находим .dae
     let daePath=null; for(const [rel] of fileMap.entries()){ if(extOf(rel)===".dae"){ daePath=rel; break; } }
     if(!daePath){ addLog("Не найден .dae."); return; }
+    addLog(`DAE: ${daePath}`);
 
-    const dry = dryRunEl.checked, wantTranslit = translitEl.checked, wantOnlyDigits = onlyDigitsEl.checked;
-    addLog(`DAE: ${daePath}`); addLog(`Режим: ${dry? "dry-run":"изменение файлов"}`);
+    // Строим mapping имён текстур с уникализацией
+    const mapping = new Map();
+    const taken = new Set();
+    let renamedCount = 0;
 
-    const daeText = await fileMap.get(daePath).text();
-    const {text:newDaeText, count:daeFixCount} = rewriteDaeText(daeText);
-    addLog(`Исправлено ссылок в .dae (texture_*): ${daeFixCount}`);
-
-    const mapping = new Map(); let renamedCount=0;
     for(const [rel,f] of fileMap.entries()){
       if(extOf(rel)===".dae") continue;
       if(!IMAGE_EXTS.has(extOf(rel))) continue;
       const oldBase = baseName(rel);
-      const newBase = normalizeTexName(oldBase,{translit:wantTranslit,onlyDigits:wantOnlyDigits});
-      mapping.set(oldBase,newBase);
-      if(newBase!==oldBase){ renamedCount++; addLog(`TEX: ${oldBase}  →  ${newBase}`); }
+      let cand = normalizeTexName(oldBase);
+      if(taken.has(cand)){
+        let k=1, withIdx=cand;
+        const dot = cand.lastIndexOf(".");
+        const stem = dot>=0?cand.slice(0,dot):cand;
+        const ext  = dot>=0?cand.slice(dot):"";
+        while(taken.has(withIdx)){ withIdx = `${stem}-${k}${ext}`; k++; }
+        cand = withIdx;
+      }
+      taken.add(cand);
+      mapping.set(oldBase, cand);
+      if(cand !== oldBase){
+        renamedCount++;
+        addLog(`TEX: ${oldBase} → ${cand}`);
+      }
     }
     if(renamedCount===0) addLog("Текстуры не требуют переименования.");
 
-    const patchedText = patchDaeByMapping(newDaeText, mapping);
+    // Читаем/правим .dae
+    const daeText = await fileMap.get(daePath).text();
+    const {text: patchedText, count: daeFixCount} = rewriteDaeTextByMapping(daeText, mapping);
+    addLog(`Обновлено ссылок в .dae: ${daeFixCount}`);
 
+    // Сборка ZIP (max compression)
     const zip = new JSZip();
-    zip.file("model_fixed.dae", dry ? daeText : patchedText);
+    zip.file("model_fixed.dae", patchedText);
+
     for(const [rel,f] of fileMap.entries()){
       if(extOf(rel)===".dae") continue;
       if(!IMAGE_EXTS.has(extOf(rel))) continue;
       const oldBase = baseName(rel);
-      const newBase = mapping.get(oldBase)||oldBase;
+      const newBase = mapping.get(oldBase) || normalizeTexName(oldBase);
       const data = await f.arrayBuffer();
-      zip.file(dry ? oldBase : newBase, data);
+      zip.file(newBase, data);
     }
+
     const report = [
       "Archicad → Sketchfab Fix report",
       `dae file: ${daePath}`,
-      `links fixed in dae (texture_*): ${daeFixCount}`,
+      `links updated in dae: ${daeFixCount}`,
       `textures renamed: ${renamedCount}`,
-      "", ...[...mapping.entries()].map(([o,n]) => (o===n?`=`:`*`) + ` ${o} -> ${n}`)
+      "",
+      ...[...mapping.entries()].map(([o,n]) => (o===n?`=`:`*`) + ` ${o} -> ${n}`)
     ].join("\n");
     zip.file("report.txt", report);
 
-    lastZipBlob = await zip.generateAsync({type:"blob"});
+    lastZipBlob = await zip.generateAsync({
+      type:"blob",
+      compression:"DEFLATE",
+      compressionOptions:{level:9}
+    });
     zipBtn.disabled=false;
 
     document.getElementById("stat").style.display="grid";
-    daeStatEl.textContent = `DAE: исправлено ссылок: ${daeFixCount}`;
+    daeStatEl.textContent = `DAE: обновлено ссылок: ${daeFixCount}`;
     texStatEl.textContent = `Текстур переименовано: ${renamedCount}`;
     addLog("Готово. Можно скачать ZIP.");
   });
