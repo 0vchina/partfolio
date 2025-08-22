@@ -47,7 +47,6 @@
       text-shadow:0 1px 2px rgba(255,255,255,.95);
       position:relative; display:inline-block;
     }
-    /* подчёркивание у h1 */
     header h1::after{
       content:""; position:absolute; left:50%; bottom:-6px; width:0; height:3px;
       background:linear-gradient(90deg,var(--accent),#7AD7F0);
@@ -56,14 +55,9 @@
     }
     @keyframes underline{ to{ width:62%; } }
 
-    header p{
-      margin:.25rem 0 0; font-size:1.05rem;
-      text-shadow:0 1px 2px rgba(255,255,255,.95);
-    }
-    nav a{
-      color:#0d0d0d; margin:0 .7rem; text-decoration:none; font-weight:600;
-      border-bottom:2px solid transparent; padding-bottom:2px; transition:border-color .2s, color .2s;
-    }
+    header p{ margin:.25rem 0 0; font-size:1.05rem; text-shadow:0 1px 2px rgba(255,255,255,.95); }
+    nav a{ color:#0d0d0d; margin:0 .7rem; text-decoration:none; font-weight:600;
+      border-bottom:2px solid transparent; padding-bottom:2px; transition:border-color .2s, color .2s; }
     nav a:hover{ border-color:var(--accent); color:#000; }
 
     /* SECTIONS */
@@ -115,7 +109,6 @@
     }
     footer.reveal-in{ transform:translateY(0); opacity:1; }
 
-    /* Бейдж «создан нами с тобой» */
     .credit { margin-top: 8px; }
     .credit-badge{
       display:inline-flex; align-items:center; gap:10px;
@@ -131,7 +124,6 @@
     }
     .credit-badge .x{ opacity:.7; font-weight:900; }
 
-    /* FAB */
     .contact-fab{
       position:fixed; right:16px; bottom:16px; display:flex; flex-direction:column; gap:10px; z-index:1001;
     }
@@ -147,6 +139,33 @@
       header h1{font-size:1.7rem}
       header p{font-size:.98rem}
       nav a{margin:0 .5rem; font-size:.96rem}
+    }
+
+    /* Google Form embed */
+    .gform-embed {
+      border: 1px solid var(--panel-brd);
+      border-radius: 14px;
+      background: var(--panel-bg);
+      box-shadow: var(--panel-shadow);
+      overflow: hidden;
+    }
+    .gform-embed iframe {
+      width: 100%;
+      height: 760px;
+      border: 0;
+      display: block;
+      background: #fff;
+    }
+    @media (max-width: 900px){
+      .gform-embed iframe { height: 900px; }
+    }
+    @media (max-width: 600px){
+      .gform-embed iframe { height: 980px; }
+    }
+    .form-note{
+      font-size: .95rem;
+      opacity: .85;
+      margin-top: .75rem;
     }
   </style>
 </head>
@@ -176,86 +195,37 @@
       </div>
     </section>
 
-    <section id="services">
-      <h2>Чем помогу</h2>
-      <ul class="experience-list">
-        <li>Проектирование частных домов и небольших общественных зданий.</li>
-        <li>Расчёты несущих конструкций (бетон, сталь, кирпич, дерево).</li>
-        <li>Усиление балок и плит (в т.ч. углеволокно).</li>
-        <li>BIM-модели, рабочая документация, визуализации.</li>
-      </ul>
-    </section>
-
-    <section id="stack">
-      <h2>Инструменты и ПО</h2>
-      <div class="experience-badges">
-        <span class="experience-badge">ArchiCAD</span>
-        <span class="experience-badge">ЛИРА-САПР + SAPFIR</span>
-        <span class="experience-badge">SolidWorks</span>
-        <span class="experience-badge">Ansys (база)</span>
-        <span class="experience-badge">Sketchfab</span>
-        <span class="experience-badge">BIM / IFC</span>
-      </div>
-    </section>
-
     <section id="experience">
       <h2>Опыт строительства</h2>
       <p>Участвовал в возведении реальных объектов как прораб и инженер: организация работ, координация подрядчиков, контроль качества и сроков.</p>
-      <div class="experience-badges">
-        <span class="experience-badge">Прораб / инженер</span>
-        <span class="experience-badge">BIM + расчёты + визуализация</span>
-        <span class="experience-badge">Европейские объекты</span>
-      </div>
-      <ul class="experience-list">
-        <li>Технологичность и последовательность монтажа.</li>
-        <li>Учёт бюджета, сроков и логистики.</li>
-        <li>Коммуникация с заказчиком, технадзором и подрядчиками.</li>
-      </ul>
-    </section>
-
-    <section id="process">
-      <h2>Подход к работе</h2>
-      <p>Этапность: быстрый концепт → расчёт ключевых узлов → деталировка. На каждом этапе — визуализация, чтобы заказчик видел, как решение выглядит и монтируется.</p>
-    </section>
-
-    <section id="geo">
-      <h2>Где и с кем работал</h2>
-      <p>Европейские объекты: Германия (супермаркет, школа, пожарная часть, клиника), частные дома по технологии Viebrockhaus. Опыт прораба — плюс к реализуемости решений.</p>
-    </section>
-
-    <section id="faq">
-      <h2>FAQ</h2>
-      <p><strong>Сроки?</strong> Зависит от объёма. Предпочитаю этапность: концепт → расчёт → деталировка.</p>
-      <p><strong>Выдача моделей?</strong> BIM/IFC, PDF-комплекты, при необходимости — исходники.</p>
-      <p><strong>Удалённо?</strong> Да. Почта/Telegram, созвоны, отметки в BIM.</p>
     </section>
 
     <section id="contact">
-  <h2>Контакты</h2>
-  <p>Можно написать напрямую:</p>
-  <p>
-    Email: <a href="mailto:vitaliy.structengineer@gmail.com">vitaliy.structengineer@gmail.com</a><br>
-    Telegram: <a href="https://t.me/VitaliPro" target="_blank" rel="noopener">@VitaliPro</a>
-  </p>
+      <h2>Контакты</h2>
+      <p>Можно написать напрямую:</p>
+      <p>
+        Email: <a href="mailto:vitaliy.structengineer@gmail.com">vitaliy.structengineer@gmail.com</a><br>
+        Telegram: <a href="https://t.me/VitaliPro" target="_blank" rel="noopener">@VitaliPro</a>
+      </p>
 
-  <h3 style="margin-top:1.2rem">Форма обратной связи</h3>
-  <div class="gform-embed">
-    <iframe
-      src="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform?embedded=true"
-      loading="lazy"
-      title="Форма обратной связи">
-      Загрузка…
-    </iframe>
-  </div>
+      <h3 style="margin-top:1.2rem">Форма обратной связи</h3>
+      <div class="gform-embed">
+        <iframe
+          src="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform?embedded=true"
+          loading="lazy"
+          title="Форма обратной связи">
+          Загрузка…
+        </iframe>
+      </div>
 
-  <p class="form-note">
-    Отправляя форму, вы соглашаетесь на обработку данных, необходимых для обратной связи.
-    Если удобнее — пишите сразу в Telegram, там отвечаю быстрее.
-    <br>
-    <a href="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform"
-       target="_blank" rel="noopener">Открыть форму в новом окне</a>
-  </p>
-</section>
+      <p class="form-note">
+        Отправляя форму, вы соглашаетесь на обработку данных, необходимых для обратной связи.
+        Если удобнее — пишите сразу в Telegram, там отвечаю быстрее.
+        <br>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform"
+           target="_blank" rel="noopener">Открыть форму в новом окне</a>
+      </p>
+    </section>
   </main>
 
   <footer>
