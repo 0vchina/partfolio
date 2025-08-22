@@ -20,9 +20,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
 <style>
   :root{ --accent:#1CAAD9; --panel:#ffffffc8; --brd:#00000014; --shadow:0 10px 28px rgba(0,0,0,.16); }
   *{box-sizing:border-box}
+  html,body{height:100%}
   body{ margin:0; font-family:Inter,system-ui,Segoe UI,Arial,sans-serif; color:#0d0d0d; background:#0c1216 url('a2.webp') center/cover fixed no-repeat; }
   header{position:sticky;top:0;z-index:10;background:#ffffffb8;backdrop-filter:blur(6px);border-bottom:1px solid var(--brd)}
   .wrap{max-width:1100px;margin:0 auto;padding:12px 14px}
@@ -35,7 +37,7 @@
   @media(min-width:900px){ .grid-2{grid-template-columns:1.1fr .9fr} }
   h2{font-size:1.1rem;margin:.2rem 0 8px}
   p{line-height:1.6;margin:.4rem 0}
-  .drop{ border:2px dashed #7ad7f0; border-radius:14px; padding:16px; text-align:center; background:#f8feff; color:#001018; }
+  .drop{ border:2px dashed #7ad7f0; border-radius:14px; padding:16px; text-align:center; background:#f8feff; color:#001018; outline:none; }
   .drop.drag{ background:#e9fbff; border-color:#1CAAD9 }
   .hint{font-size:.95rem;opacity:.85}
   .row{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
@@ -61,6 +63,29 @@
   }
   .visually-hidden{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 </style>
+
+<!-- КРИТИЧЕСКОЕ: ГЛОБАЛЬНЫЙ ЗАХВАТ DND (чтобы вкладка не открывала файл) -->
+<script>
+(function hardenDnD(){
+  const block = (e)=>{
+    try{
+      e.preventDefault();
+      e.stopPropagation();
+      if(typeof e.stopImmediatePropagation==="function") e.stopImmediatePropagation();
+      if(e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+    }catch(_){}
+  };
+  // в CAPTURE-режиме и максимально рано
+  window.addEventListener('dragenter', block, true);
+  window.addEventListener('dragover',  block, true);
+  window.addEventListener('dragleave', block, true);
+  window.addEventListener('drop',      block, true);
+  document.addEventListener('dragenter', block, true);
+  document.addEventListener('dragover',  block, true);
+  document.addEventListener('dragleave', block, true);
+  document.addEventListener('drop',      block, true);
+})();
+</script>
 </head>
 <body>
 <header>
@@ -75,10 +100,9 @@
     <h1>Archicad → Sketchfab Fix — офлайн (ZIP level 9)</h1>
     <details class="help">
       <summary>Справка (коротко)</summary>
-      <p>1) Перетащите <code>.dae</code> + текстуры или один <strong>.zip</strong> (можно перетаскивать целую папку).</p>
+      <p>1) Перетащите <code>.dae</code> + текстуры или один <strong>.zip</strong> (можно перетащить всю папку).</p>
       <p>2) Нажмите «Запустить фиксацию», затем «Скачать ZIP».</p>
-      <p>Инструмент: транслит кириллицы, имена по схеме <code>prefix_1234.ext</code>, правка всех <code>&lt;init_from&gt;</code> до чистых имён (без путей). Работа полностью офлайн.</p>
-      <p><strong>RAR:</strong> браузер не создаёт RAR. Используем ZIP c максимальным сжатием.</p>
+      <p>Инструмент: транслит кириллицы, имена по схеме <code>prefix_1234.ext</code>, правка всех <code>&lt;init_from&gt;</code> до чистых имён (без путей). Оффлайн.</p>
     </details>
   </div>
 </header>
@@ -94,11 +118,11 @@
 
       <div class="row" style="margin-top:10px">
         <button id="btnFiles" class="btn">Выбрать файлы…</button>
-        <input id="inFiles" type="file" multiple class="visually-hidden">
+        <input id="inFiles" type="file" multiple class="visually-hidden" />
         <button id="btnDir" class="btn">Выбрать папку…</button>
-        <input id="inDir" type="file" webkitdirectory directory multiple class="visually-hidden">
+        <input id="inDir" type="file" webkitdirectory directory multiple class="visually-hidden" />
         <button id="btnZip" class="btn">Выбрать ZIP…</button>
-        <input id="inZip" type="file" accept=".zip" class="visually-hidden">
+        <input id="inZip" type="file" accept=".zip" class="visually-hidden" />
         <button id="clearBtn" class="btn">Очистить список</button>
       </div>
 
@@ -137,31 +161,29 @@
 <script>
 (() => {
   const IMAGE_EXTS = new Set([".png",".jpg",".jpeg",".webp",".tga",".bmp",".tif",".tiff",".dds"]);
-  const ZIP_EXT = ".zip";
   const $ = s => document.querySelector(s);
 
   const logEl = $("#log"), filesListEl = $("#filesList");
   const runBtn = $("#runBtn"), zipBtn = $("#zipBtn");
   const daeStatEl = $("#daeStat"), texStatEl = $("#texStat");
-  const fileMap = new Map(); // relPath -> File
-
   const btnFiles = $("#btnFiles"), inFiles = $("#inFiles");
   const btnDir = $("#btnDir"), inDir = $("#inDir");
   const btnZip = $("#btnZip"), inZip = $("#inZip");
   const drop = $("#drop"), supportNote = $("#supportNote");
 
-  // ------- Helpers
+  const fileMap = new Map(); // relPath -> File
+  let lastZipBlob = null;
+
+  // ===== Helpers
   const addLog = s => { logEl.textContent += (logEl.textContent ? "\\n" : "") + s; logEl.scrollTop = logEl.scrollHeight; };
   const extOf = n => { const i=n.lastIndexOf("."); return i>=0 ? n.slice(i).toLowerCase() : ""; };
   const baseName = p => p.split(/[\\/]/).pop();
 
-  // Транслит
   function translitBasic(s){
     const t={"А":"A","Б":"B","В":"V","Г":"G","Д":"D","Е":"E","Ё":"E","Ж":"Zh","З":"Z","И":"I","Й":"Y","К":"K","Л":"L","М":"M","Н":"N","О":"O","П":"P","Р":"R","С":"S","Т":"T","У":"U","Ф":"F","Х":"Kh","Ц":"Ts","Ч":"Ch","Ш":"Sh","Щ":"Sch","Ъ":"","Ы":"Y","Ь":"","Э":"E","Ю":"Yu","Я":"Ya","а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"e","ж":"zh","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"kh","ц":"ts","ч":"ch","ш":"sh","щ":"sch","ъ":"","ы":"y","ь":"","э":"e","ю":"yu","я":"ya","’":"","‘":"","ʼ":""};
     return s.replace(/./g, ch => t[ch] ?? ch);
   }
 
-  // Имя текстуры
   function normalizeTexName(name){
     const bn = baseName(name);
     const dot = bn.lastIndexOf(".");
@@ -172,12 +194,11 @@
     const prefix = parts[0];
     const tail = parts.slice(1).join("_");
     let digits = "";
-    for(const ch of tail){ if(/\\d/.test(ch)) digits += ch; else break; }
+    for(const ch of tail){ if(/\d/.test(ch)) digits += ch; else break; }
     const result = digits ? `${prefix}_${digits}${ext}` : bn;
     return translitBasic(result);
   }
 
-  // Правка <init_from> — только имена, без путей
   function rewriteDaeTextByMapping(text, mapping){
     let changed = 0;
     const out = text.replace(/(<init_from>\\s*)([^<]+?)(\\s*<\\/init_from>)/gi, (full,p1,inner,p3)=>{
@@ -193,30 +214,18 @@
     return {text: out, count: changed};
   }
 
-  function renderFiles(){
-    if(fileMap.size===0){ filesListEl.style.display="none"; filesListEl.textContent=""; runBtn.disabled=true; return; }
-    const lines=[]; let hasDae=false;
-    for(const [rel,f] of fileMap.entries()){
-      lines.push(`${rel} (${Math.round((f.size||0)/1024)} KB)`);
-      if(extOf(rel)===".dae") hasDae=true;
-    }
-    filesListEl.textContent = lines.join("\\n");
-    filesListEl.style.display="block";
-    runBtn.disabled=!hasDae; zipBtn.disabled=true; $("#stat").style.display="none";
-    daeStatEl.textContent="DAE: —"; texStatEl.textContent="Текстур переименовано: —";
-  }
-
-  // ---------- ZIP
+  // ===== ZIP
   async function addZip(file){
     try{
       const zip = await JSZip.loadAsync(file);
       let count=0;
-      await Promise.all(Object.keys(zip.files).map(async (name)=>{
+      const names = Object.keys(zip.files);
+      await Promise.all(names.map(async (name)=>{
         const entry = zip.files[name];
         if(entry.dir) return;
         const bn = baseName(name);
         const ext = extOf(bn);
-        if(ext=== ".zip") return;
+        if(ext===".zip") return;
         if(ext===".dae" || IMAGE_EXTS.has(ext)){
           const blob = await entry.async("blob");
           const f = new File([blob], bn, {type: blob.type || "application/octet-stream"});
@@ -229,7 +238,7 @@
     }
   }
 
-  // ---------- Рекурсивное чтение папок (drag&drop)
+  // ===== Traverse directory entries
   async function traverseEntry(entry, path=""){
     return new Promise((resolve, reject)=>{
       if(entry.isFile){
@@ -244,12 +253,9 @@
         const readBatch = () => {
           reader.readEntries(async results=>{
             if(!results.length){
-              const tasks=[];
-              for(const e of entries){ tasks.push(traverseEntry(e, path ? (path + "/" + entry.name) : entry.name)); }
-              Promise.all(tasks).then(()=>resolve()).catch(reject);
-            } else {
-              entries.push(...results); readBatch();
-            }
+              const tasks = entries.map(e => traverseEntry(e, path ? (path + "/" + entry.name) : entry.name));
+              Promise.all(tasks).then(resolve).catch(reject);
+            } else { entries.push(...results); readBatch(); }
           }, reject);
         };
         readBatch();
@@ -258,7 +264,7 @@
   }
 
   async function collectFromDataTransfer(dt){
-    // webkitGetAsEntry
+    // webkitGetAsEntry — лучший путь для папок
     if(dt.items && dt.items.length && dt.items[0].webkitGetAsEntry){
       const tasks=[];
       for(const it of dt.items){
@@ -268,7 +274,7 @@
       }
       if(tasks.length){ await Promise.all(tasks); return true; }
     }
-    // fallback — просто файлы
+    // Фолбэк — просто файлы
     if(dt.files && dt.files.length){
       for(const f of dt.files){ fileMap.set(f.webkitRelativePath || f.name, f); }
       return true;
@@ -284,26 +290,34 @@
     renderFiles();
   }
 
-  // ---------- Глобальные обработчики DnD (важно!)
-  ["dragover","drop"].forEach(evt=>{
-    document.addEventListener(evt, e=>{
-      e.preventDefault(); e.stopPropagation();
-      if(evt==="dragover"){ drop.classList.add("drag"); }
-      if(evt==="drop"){ drop.classList.remove("drag"); }
-    }, {passive:false});
-  });
+  function renderFiles(){
+    if(fileMap.size===0){
+      filesListEl.style.display="none"; filesListEl.textContent=""; runBtn.disabled=true; return;
+    }
+    const lines=[]; let hasDae=false;
+    for(const [rel,f] of fileMap.entries()){
+      lines.push(`${rel} (${Math.round((f.size||0)/1024)} KB)`);
+      if(extOf(rel)===".dae") hasDae=true;
+    }
+    filesListEl.textContent = lines.join("\\n");
+    filesListEl.style.display="block";
+    runBtn.disabled=!hasDae; zipBtn.disabled=true; document.getElementById("stat").style.display="none";
+    daeStatEl.textContent="DAE: —"; texStatEl.textContent="Текстур переименовано: —";
+  }
 
-  // Зона
-  drop.addEventListener("dragenter", ()=> drop.classList.add("drag"));
-  drop.addEventListener("dragleave", ()=> drop.classList.remove("drag"));
+  // ===== Local drop-zone (после глобального блокирования вкладки)
+  drop.addEventListener("dragenter", e=>{ e.preventDefault(); e.stopPropagation(); drop.classList.add("drag"); });
+  drop.addEventListener("dragover",  e=>{ e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect='copy'; drop.classList.add("drag"); });
+  drop.addEventListener("dragleave", e=>{ e.preventDefault(); e.stopPropagation(); drop.classList.remove("drag"); });
   drop.addEventListener("drop", async e=>{
+    e.preventDefault(); e.stopPropagation(); drop.classList.remove("drag");
     if(e.dataTransfer){
       const ok = await collectFromDataTransfer(e.dataTransfer);
       if(ok) renderFiles(); else addLog("Не удалось получить файлы из drop.");
     }
   });
 
-  // Кнопки выбора
+  // ===== Buttons
   btnFiles.addEventListener("click", ()=> inFiles.click());
   btnZip.addEventListener("click", ()=> inZip.click());
   btnDir.addEventListener("click", ()=>{
@@ -317,18 +331,15 @@
   inFiles.addEventListener("change", e=> addFilesFromFileList(e.target.files));
   inZip  .addEventListener("change", e=> addFilesFromFileList(e.target.files));
   inDir  .addEventListener("change", e=> addFilesFromFileList(e.target.files));
-
-  $("#clearBtn").addEventListener("click", ()=>{ fileMap.clear(); renderFiles(); logEl.textContent="Список очищен."; });
+  document.getElementById("clearBtn").addEventListener("click", ()=>{ fileMap.clear(); renderFiles(); logEl.textContent="Список очищен."; });
 
   // Подсказка по поддержке
   const supportsDir = ("webkitdirectory" in inDir);
-  const supportsItems = !!DataTransferItem.prototype && "webkitGetAsEntry" in DataTransferItem.prototype;
-  supportNote.textContent = `Поддержка: перетаскивание папок — ${supportsItems ? "да" : "нет (используйте Chrome/Edge)"}, выбор папки — ${supportsDir ? "да" : "нет (Chrome/Edge)"}`;
+  const supportsItems = !!(DataTransferItem && DataTransferItem.prototype && "webkitGetAsEntry" in DataTransferItem.prototype);
+  supportNote.textContent = `Поддержка: перетаскивание папок — ${supportsItems ? "да" : "нет (лучше Chrome/Edge)"}, выбор папки — ${supportsDir ? "да" : "нет (Chrome/Edge)"}`;
 
-  // ---------- Обработка
-  let lastZipBlob=null;
-
-  $("#runBtn").addEventListener("click", async ()=>{
+  // ===== Обработка
+  document.getElementById("runBtn").addEventListener("click", async ()=>{
     logEl.textContent=""; lastZipBlob=null; zipBtn.disabled=true;
 
     let daePath=null; for(const [rel] of fileMap.entries()){ if(extOf(rel)===".dae"){ daePath=rel; break; } }
@@ -392,13 +403,13 @@
     });
     zipBtn.disabled=false;
 
-    $("#stat").style.display="grid";
+    document.getElementById("stat").style.display="grid";
     daeStatEl.textContent = `DAE: обновлено ссылок: ${daeFixCount}`;
     texStatEl.textContent = `Текстур переименовано: ${renamedCount}`;
     addLog("Готово. Скачайте ZIP и загрузите в Sketchfab.");
   });
 
-  $("#zipBtn").addEventListener("click", ()=>{
+  document.getElementById("zipBtn").addEventListener("click", ()=>{
     if(!lastZipBlob) return;
     const a=document.createElement("a");
     a.href=URL.createObjectURL(lastZipBlob);
