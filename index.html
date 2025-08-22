@@ -55,9 +55,14 @@
     }
     @keyframes underline{ to{ width:62%; } }
 
-    header p{ margin:.25rem 0 0; font-size:1.05rem; text-shadow:0 1px 2px rgba(255,255,255,.95); }
-    nav a{ color:#0d0d0d; margin:0 .7rem; text-decoration:none; font-weight:600;
-      border-bottom:2px solid transparent; padding-bottom:2px; transition:border-color .2s, color .2s; }
+    header p{
+      margin:.25rem 0 0; font-size:1.05rem;
+      text-shadow:0 1px 2px rgba(255,255,255,.95);
+    }
+    nav a{
+      color:#0d0d0d; margin:0 .7rem; text-decoration:none; font-weight:600;
+      border-bottom:2px solid transparent; padding-bottom:2px; transition:border-color .2s, color .2s;
+    }
     nav a:hover{ border-color:var(--accent); color:#000; }
 
     /* SECTIONS */
@@ -109,6 +114,7 @@
     }
     footer.reveal-in{ transform:translateY(0); opacity:1; }
 
+    /* Бейдж «создан нами с тобой» */
     .credit { margin-top: 8px; }
     .credit-badge{
       display:inline-flex; align-items:center; gap:10px;
@@ -124,6 +130,7 @@
     }
     .credit-badge .x{ opacity:.7; font-weight:900; }
 
+    /* FAB */
     .contact-fab{
       position:fixed; right:16px; bottom:16px; display:flex; flex-direction:column; gap:10px; z-index:1001;
     }
@@ -141,32 +148,66 @@
       nav a{margin:0 .5rem; font-size:.96rem}
     }
 
-    /* Google Form embed */
-    .gform-embed {
+    /* ===== Модалка для формы ===== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      backdrop-filter: blur(6px);
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-content {
+      background: var(--panel-bg);
       border: 1px solid var(--panel-brd);
       border-radius: 14px;
-      background: var(--panel-bg);
       box-shadow: var(--panel-shadow);
+      max-width: 880px;
+      width: 92%;
+      max-height: 92vh;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: zoomIn .35s ease;
     }
-    .gform-embed iframe {
-      width: 100%;
-      height: 760px;
-      border: 0;
-      display: block;
+    @keyframes zoomIn {
+      from { transform: scale(.85); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 14px; background: #fff; border-bottom: 1px solid var(--panel-brd);
+    }
+    .modal-title { font-weight: 700; }
+    .modal-actions { display:flex; gap:10px; }
+    .modal-actions a{
+      text-decoration:none; font-weight:700; border:1px solid var(--panel-brd);
+      padding:6px 10px; border-radius:8px; background:#fff; color:#111;
+    }
+    .modal-close{
+      background:#fff; border:1px solid var(--panel-brd); border-radius:8px;
+      padding:6px 10px; cursor:pointer; font-weight:700;
+    }
+    .modal-body { background:#fff; }
+    .modal-iframe{
+      width: 100%; height: 76vh; border: 0; display: block;
       background: #fff;
     }
-    @media (max-width: 900px){
-      .gform-embed iframe { height: 900px; }
+    @media (max-width: 600px){ .modal-iframe{ height: 82vh; } }
+
+    /* Кнопка открытия формы в блоке контактов */
+    .open-form-btn{
+      display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px;
+      text-decoration:none; font-weight:700; border:1px solid var(--panel-brd); background:#fff;
+      transition: transform .18s ease, box-shadow .2s ease;
+      cursor:pointer;
     }
-    @media (max-width: 600px){
-      .gform-embed iframe { height: 980px; }
-    }
-    .form-note{
-      font-size: .95rem;
-      opacity: .85;
-      margin-top: .75rem;
-    }
+    .open-form-btn:hover{ transform:translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,.14); }
+    .form-note{ font-size:.95rem; opacity:.85; margin-top:.75rem; }
   </style>
 </head>
 <body>
@@ -195,9 +236,58 @@
       </div>
     </section>
 
+    <section id="services">
+      <h2>Чем помогу</h2>
+      <ul class="experience-list">
+        <li>Проектирование частных домов и небольших общественных зданий.</li>
+        <li>Расчёты несущих конструкций (бетон, сталь, кирпич, дерево).</li>
+        <li>Усиление балок и плит (в т.ч. углеволокно).</li>
+        <li>BIM-модели, рабочая документация, визуализации.</li>
+      </ul>
+    </section>
+
+    <section id="stack">
+      <h2>Инструменты и ПО</h2>
+      <div class="experience-badges">
+        <span class="experience-badge">ArchiCAD</span>
+        <span class="experience-badge">ЛИРА-САПР + SAPFIR</span>
+        <span class="experience-badge">SolidWorks</span>
+        <span class="experience-badge">Ansys (база)</span>
+        <span class="experience-badge">Sketchfab</span>
+        <span class="experience-badge">BIM / IFC</span>
+      </div>
+    </section>
+
     <section id="experience">
       <h2>Опыт строительства</h2>
       <p>Участвовал в возведении реальных объектов как прораб и инженер: организация работ, координация подрядчиков, контроль качества и сроков.</p>
+      <div class="experience-badges">
+        <span class="experience-badge">Прораб / инженер</span>
+        <span class="experience-badge">BIM + расчёты + визуализация</span>
+        <span class="experience-badge">Европейские объекты</span>
+      </div>
+      <ul class="experience-list">
+        <li>Технологичность и последовательность монтажа.</li>
+        <li>Учёт бюджета, сроков и логистики.</li>
+        <li>Коммуникация с заказчиком, технадзором и подрядчиками.</li>
+      </ul>
+    </section>
+
+    <section id="process">
+      <h2>Подход к работе</h2>
+      <p>Этапность: быстрый концепт → расчёт ключевых узлов → деталировка. На каждом этапе — визуализация, чтобы заказчик видел, как решение выглядит и монтируется.</p>
+    </section>
+
+    <section id="geo">
+      <h2>Где и с кем работал</h2>
+      <p>Европейские объекты: Германия (супермаркет, школа, пожарная часть, клиника), частные дома по технологии Viebrockhaus. Опыт прораба — плюс к реализуемости решений.</p>
+    </section>
+
+    <section id="faq">
+      <h2>FAQ</h2>
+      <p><strong>Сроки?</strong> Зависит от объёма. Предпочитаю этапность: концепт → расчёт → деталировка.</p>
+      <p><strong>Выдача моделей?</strong> BIM/IFC, PDF-комплекты, при необходимости — исходники.</p>
+      <p><strong>Удалённо?</strong> Да. Почта/Telegram, созвоны, отметки в BIM.</p>
     </section>
 
     <section id="contact">
@@ -208,22 +298,12 @@
         Telegram: <a href="https://t.me/VitaliPro" target="_blank" rel="noopener">@VitaliPro</a>
       </p>
 
-      <h3 style="margin-top:1.2rem">Форма обратной связи</h3>
-      <div class="gform-embed">
-        <iframe
-          src="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform?embedded=true"
-          loading="lazy"
-          title="Форма обратной связи">
-          Загрузка…
-        </iframe>
-      </div>
-
+      <button class="open-form-btn" id="openFormBtn" type="button">📝 Обратная связь</button>
       <p class="form-note">
-        Отправляя форму, вы соглашаетесь на обработку данных, необходимых для обратной связи.
-        Если удобнее — пишите сразу в Telegram, там отвечаю быстрее.
-        <br>
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform"
-           target="_blank" rel="noopener">Открыть форму в новом окне</a>
+        Если модалка не открывается или хочется заполнить отдельно —
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform" target="_blank" rel="noopener">
+          открыть форму в новом окне
+        </a>.
       </p>
     </section>
   </main>
@@ -243,6 +323,27 @@
   <div class="contact-fab" aria-label="Быстрые контакты">
     <a class="fab-btn" href="#contact">💬 Telegram</a>
     <a class="fab-btn" href="#contact">✉️ Email</a>
+  </div>
+
+  <!-- ===== Модалка формы ===== -->
+  <div class="modal-overlay" id="formModal" aria-hidden="true" aria-labelledby="formTitle" role="dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" id="formTitle">Форма обратной связи</div>
+        <div class="modal-actions">
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform"
+             target="_blank" rel="noopener">Открыть в новом окне</a>
+          <button class="modal-close" id="closeFormBtn" type="button" aria-label="Закрыть форму">✕</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <iframe
+          class="modal-iframe"
+          src="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform?embedded=true"
+          title="Форма обратной связи">
+        </iframe>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -268,6 +369,32 @@
         });
       },{threshold:.12});
       document.querySelectorAll('section, footer').forEach(el=>io.observe(el));
+    })();
+
+    // ===== Модалка формы
+    (function(){
+      const modal = document.getElementById('formModal');
+      const openBtn = document.getElementById('openFormBtn');
+      const closeBtn = document.getElementById('closeFormBtn');
+
+      function openModal(){
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden','false');
+        document.body.style.overflow='hidden';
+        // фокус на кнопку закрытия
+        closeBtn.focus({preventScroll:true});
+      }
+      function closeModal(){
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden','true');
+        document.body.style.overflow='';
+        openBtn.focus({preventScroll:true});
+      }
+
+      openBtn.addEventListener('click', openModal);
+      closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
+      window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModal(); });
     })();
   </script>
 </body>
