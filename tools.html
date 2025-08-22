@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Archicad → Sketchfab Fix | Онлайн-инструмент для исправления .dae и текстур</title>
+
+<link rel="icon" href="file_0000000030986246a48be624a539648a.webp" type="image/webp" />
+<link rel="canonical" href="https://0vchina.github.io/partfolio/tools.html" />
+
+<!-- SEO -->
+<meta name="description" content="Бесплатный онлайн-инструмент для исправления экспорта из Archicad в Sketchfab. Автоматически переименовывает текстуры и правит ссылки в .dae, устраняя проблемы с кириллицей и отсутствием текстур. Работает офлайн в вашем браузере."/>
+<meta name="keywords" content="Archicad, Sketchfab, dae, текстуры, fix, исправить dae, загрузка моделей, BIM, 3D, Collada, rus letters, кириллица, textures not loading"/>
+
+<!-- Open Graph -->
+<meta property="og:title" content="Archicad → Sketchfab Fix — онлайн-инструмент" />
+<meta property="og:description" content="Исправляет .dae и текстуры после экспорта из Archicad для Sketchfab. Бесплатно, офлайн, прямо в браузере." />
+<meta property="og:image" content="https://0vchina.github.io/partfolio/tool-preview.webp" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://0vchina.github.io/partfolio/tools.html" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{ --accent:#1CAAD9; --panel:#ffffffc8; --brd:#00000014; --shadow:0 10px 28px rgba(0,0,0,.16); }
+  *{box-sizing:border-box}
+  body{ margin:0; font-family:Inter,system-ui,Segoe UI,Arial,sans-serif; color:#0d0d0d; background:#0c1216 url('a2.webp') center/cover fixed no-repeat; }
+  header{position:sticky;top:0;z-index:10;background:#ffffffb8;backdrop-filter:blur(6px);border-bottom:1px solid var(--brd)}
+  .wrap{max-width:1100px;margin:0 auto;padding:12px 14px}
+  nav a{margin-right:12px;color:#0d0d0d;text-decoration:none;font-weight:700;border-bottom:2px solid transparent;padding-bottom:2px}
+  nav a:hover{border-color:var(--accent)}
+  h1{margin:.2rem 0;font-size:1.6rem;font-weight:800}
+  main{max-width:1100px;margin:18px auto;padding:0 14px}
+  section{ background:var(--panel); border:1px solid var(--brd); border-radius:14px; box-shadow:var(--shadow); padding:16px; margin:14px 0; }
+  .grid{display:grid; gap:14px}
+  @media(min-width:900px){ .grid-2{grid-template-columns:1.1fr .9fr} }
+  h2{font-size:1.2rem;margin:.2rem 0 8px}
+  p{line-height:1.6;margin:.4rem 0}
+  .drop{ border:2px dashed #7ad7f0; border-radius:14px; padding:16px; text-align:center; background:#f8feff; color:#001018; }
+  .drop.drag{ background:#e9fbff; border-color:#1CAAD9 }
+  .hint{font-size:.95rem;opacity:.85}
+  .row{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+  .btn{ border:1px solid var(--brd); background:#fff; border-radius:10px; padding:10px 14px; font-weight:700; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,.1); }
+  .btn.primary{ background:linear-gradient(90deg,#1CAAD9,#7AD7F0); color:#001018; }
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .files, .log{font-family:ui-monospace,Consolas,monospace;font-size:.92rem;border-radius:10px}
+  .files{background:#fff;border:1px solid var(--brd);padding:10px;max-height:240px;overflow:auto}
+  .log{background:#0b141a;color:#d6f0ff;padding:12px;max-height:360px;overflow:auto;border:1px solid #0f2833}
+  .stat{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:10px}
+  .pill{background:#fff;border:1px solid var(--brd);border-radius:999px;padding:6px 10px;font-weight:700}
+  footer{color:#fff;opacity:.85;text-align:center;padding:24px}
+  .credit{margin-top:8px}
+  .credit-badge{display:inline-flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--brd);border-radius:999px;padding:8px 12px;box-shadow:var(--shadow);color:#001018;font-weight:800}
+  .credit-badge .pill{background:linear-gradient(90deg,#1CAAD9,#7AD7F0);padding:4px 10px;border-radius:999px}
+  .seo{
+    background:#fff; border:1px solid var(--brd); border-radius:12px; padding:12px; margin-bottom:12px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <nav>
+      <a href="index.html">Главная</a>
+      <a href="models.html">3D и рендеры</a>
+      <a href="real.html">Реальные объекты</a>
+      <a href="calc.html">Расчёты</a>
+      <a href="tools.html" style="border-color:var(--accent)">Инструменты</a>
+    </nav>
+    <h1>Archicad → Sketchfab Fix — бесплатный онлайн-инструмент</h1>
+    <div class="seo">
+      <p><strong>Назначение:</strong> исправить проблему слетающих текстур при экспорте из Archicad в Sketchfab.</p>
+      <p>Инструмент автоматически переименовывает текстуры в безопасный формат <code>prefix_1234.png</code>, правит ссылки в <code>.dae</code>, убирает кириллицу и спецсимволы. Работает офлайн прямо в вашем браузере: файлы никуда не отправляются.</p>
+    </div>
+    <p class="hint">Поддержка: .zip (dae+textures), .dae, .png, .jpg, .jpeg, .webp, .tga, .bmp, .tif, .tiff, .dds</p>
+  </div>
+</header>
+
+<main>
+  <section class="grid grid-2">
+    <div>
+      <h2>1) Загрузка</h2>
+      <div id="drop" class="drop">
+        <strong>Перетащите сюда</strong> <code>.dae</code> + текстуры <em>или</em> один <strong>.zip</strong><br>
+        <span class="hint">Можно также выбрать файлы/папки кнопками ниже</span>
+        <input id="fileInput" type="file" multiple style="display:none">
+      </div>
+
+      <div class="row">
+        <label class="btn">Выбрать файлы…<input id="picker" type="file" multiple style="display:none"></label>
+        <label class="btn">Выбрать папку…<input id="pickerDir" type="file" webkitdirectory directory multiple style="display:none"></label>
+        <label class="btn">Выбрать ZIP…<input id="pickerZip" type="file" accept=".zip" style="display:none"></label>
+        <button id="clearBtn" class="btn">Очистить список</button>
+      </div>
+
+      <div id="filesList" class="files" style="margin-top:10px;display:none"></div>
+    </div>
+
+    <div>
+      <h2>2) Параметры</h2>
+      <label><input type="checkbox" id="dryRun"> Репетиция (без изменений)</label><br>
+      <label><input type="checkbox" id="translit" checked> Транслит кириллицы в именах</label><br>
+      <label><input type="checkbox" id="onlyDigits" checked> В имени текстуры оставлять только цифры после префикса</label>
+      <p class="hint">Формат: <code>prefix_1234.ext</code> (префикс — до первого <code>_</code>, затем подряд идущие цифры).</p>
+      <div class="row">
+        <button id="runBtn" class="btn primary" disabled>Запустить фиксацию</button>
+        <button id="zipBtn" class="btn" disabled>Скачать ZIP</button>
+      </div>
+      <div class="stat" id="stat" style="display:none">
+        <div class="pill" id="daeStat">DAE: —</div>
+        <div class="pill" id="texStat">Текстур переименовано: —</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>3) Отчёт</h2>
+    <div id="log" class="log">Здесь появится лог изменений…</div>
+  </section>
+</main>
+
+<footer>
+  <div>© 2025 Виталий Овчинников</div>
+  <div class="credit">
+    <div class="credit-badge">
+      <span class="pill">Виталий Овчинников</span><span>×</span><span class="pill">GPT-5 Thinking</span>
+    </div>
+  </div>
+</footer>
+
+<!-- JSZip для распаковки/сборки ZIP -->
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script>
+(() => {
+  const IMAGE_EXTS = new Set([".png",".jpg",".jpeg",".webp",".tga",".bmp",".tif",".tiff",".dds"]);
+  const ZIP_EXT = ".zip";
+  const $ = sel => document.querySelector(sel);
+  const logEl = $("#log"), filesListEl = $("#filesList"), runBtn = $("#runBtn"), zipBtn = $("#zipBtn");
+  const dryRunEl = $("#dryRun"), translitEl = $("#translit"), onlyDigitsEl = $("#onlyDigits");
+  const daeStatEl = $("#daeStat"), texStatEl = $("#texStat");
+  const fileMap = new Map(); // rel -> File
+
+  function addLog(s){ logEl.textContent += (logEl.textContent ? "\n" : "") + s; logEl.scrollTop = logEl.scrollHeight; }
+  const extOf = (n)=>{ const i=n.lastIndexOf("."); return i>=0 ? n.slice(i).toLowerCase() : ""; };
+  const baseName = (p)=> p.split(/[\\/]/).pop();
+
+  function translitBasic(s){
+    const t={"А":"A","Б":"B","В":"V","Г":"G","Д":"D","Е":"E","Ё":"E","Ж":"Zh","З":"Z","И":"I","Й":"Y","К":"K","Л":"L","М":"M","Н":"N","О":"O","П":"P","Р":"R","С":"S","Т":"T","У":"U","Ф":"F","Х":"Kh","Ц":"Ts","Ч":"Ch","Ш":"Sh","Щ":"Sch","Ъ":"","Ы":"Y","Ь":"","Э":"E","Ю":"Yu","Я":"Ya","а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"e","ж":"zh","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"kh","ц":"ts","ч":"ch","ш":"sh","щ":"sch","ъ":"","ы":"y","ь":"","э":"e","ю":"yu","я":"ya","’":"","‘":"","ʼ":""};
+    return s.replace(/./g, ch => t[ch] ?? ch);
+  }
+
+  function normalizeTexName(name, {translit=true, onlyDigits=true}={}){
+    const bn = baseName(name);
+    const dot = bn.lastIndexOf(".");
+    const stem = dot>=0 ? bn.slice(0,dot) : bn;
+    const ext = dot>=0 ? bn.slice(dot) : "";
+    const parts = stem.split("_");
+    if(parts.length<2) return translit ? translitBasic(bn) : bn;
+    const prefix = parts[0], tail = parts.slice(1).join("_");
+    let digits=""; for(const ch of tail){ if(/\d/.test(ch)) digits+=ch; else break; }
+    if(digits && onlyDigits){
+      const nn = `${prefix}_${digits}${ext}`;
+      return translit ? translitBasic(nn) : nn;
+    }
+    return translit ? translitBasic(bn) : bn;
+  }
+
+  function rewriteDaeText(text){
+    let changed = 0;
+    const pattern = /(<init_from>\s*texture_)([^<]+?)(<\/init_from>)/gi;
+    const out = text.replace(pattern, (_, p1, ref, p3) => {
+      const clean = ref.trim();
+      const m = /^([^<>\s]+)$/.exec(clean);
+      if(!m) return p1+ref+p3;
+      const b = baseName(m[1]);
+      const dot = b.lastIndexOf(".");
+      const stem = dot>=0 ? b.slice(0,dot) : b;
+      const ext = dot>=0 ? b.slice(dot) : "";
+      let digits=""; for(const ch of stem){ if(/\d/.test(ch)) digits+=ch; else break; }
+      if(digits){ changed++; return p1+digits+ext+p3; }
+      return p1+ref+p3;
+    });
+    return {text: out, count: changed};
+  }
+
+  function patchDaeByMapping(text, mapping){
+    return text.replace(/(<init_from>\s*)([^<]+?)(\s*<\/init_from>)/gi, (full,p1,inner,p3)=>{
+      const key = baseName(inner.trim());
+      const repl = mapping.get(key);
+      return (repl && repl!==key) ? `${p1}${repl}${p3}` : full;
+    });
+  }
+
+  function renderFiles(){
+    if(fileMap.size===0){ filesListEl.style.display="none"; filesListEl.textContent=""; runBtn.disabled=true; return; }
+    const lines=[]; let hasDae=false;
+    for(const [rel,f] of fileMap.entries()){ lines.push(`${rel} (${Math.round((f.size||0)/1024)} KB)`); if(extOf(rel)===".dae") hasDae=true; }
+    filesListEl.textContent = lines.join("\n"); filesListEl.style.display="block";
+    runBtn.disabled=!hasDae; zipBtn.disabled=true; document.getElementById("stat").style.display="none";
+    daeStatEl.textContent="DAE: —"; texStatEl.textContent="Текстур переименовано: —";
+  }
+
+  async function addZip(file){
+    try{
+      const zip = await JSZip.loadAsync(file);
+      let count=0;
+      await Promise.all(Object.keys(zip.files).map(async (name)=>{
+        const entry = zip.files[name];
+        if(entry.dir) return;
+        const bn = baseName(name);
+        const ext = extOf(bn);
+        if(ext=== ".zip") return;
+        if(ext===".dae" || IMAGE_EXTS.has(ext)){
+          const blob = await entry.async("blob");
+          const f = new File([blob], bn, {type: blob.type || "application/octet-stream"});
+          fileMap.set(bn, f); count++;
+        }
+      }));
+      addLog(`Загружено из ZIP: ${count} файлов.`);
+    }catch(e){
+      addLog("Ошибка чтения ZIP: "+e);
+    }
+  }
+
+  function addFiles(list){ for(const f of list){ const rel=f.webkitRelativePath||f.name; if(extOf(rel)===".zip"){ addZip(f); } else { fileMap.set(rel, f); } } renderFiles(); }
+
+  // ——— UI и DnD
+  const drop = document.getElementById("drop");
+  drop.addEventListener("click", ()=> document.getElementById("fileInput").click());
+  drop.addEventListener("dragover", e=>{e.preventDefault(); drop.classList.add("drag");});
+  drop.addEventListener("dragleave", ()=> drop.classList.remove("drag"));
+  drop.addEventListener("drop", e=>{ e.preventDefault(); drop.classList.remove("drag"); if(e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files); });
+
+  document.getElementById("fileInput").addEventListener("change", e=> addFiles(e.target.files));
+  document.getElementById("picker").addEventListener("change", e=> addFiles(e.target.files));
+  document.getElementById("pickerDir").addEventListener("change", e=> addFiles(e.target.files));
+  document.getElementById("pickerZip").addEventListener("change", e=> addFiles(e.target.files));
+  document.getElementById("clearBtn").addEventListener("click", ()=>{ fileMap.clear(); renderFiles(); logEl.textContent="Список очищен."; });
+
+  let lastZipBlob=null;
+
+  document.getElementById("runBtn").addEventListener("click", async ()=>{
+    logEl.textContent=""; lastZipBlob=null; zipBtn.disabled=true;
+    let daePath=null; for(const [rel] of fileMap.entries()){ if(extOf(rel)===".dae"){ daePath=rel; break; } }
+    if(!daePath){ addLog("Не найден .dae."); return; }
+
+    const dry = dryRunEl.checked, wantTranslit = translitEl.checked, wantOnlyDigits = onlyDigitsEl.checked;
+    addLog(`DAE: ${daePath}`); addLog(`Режим: ${dry? "dry-run":"изменение файлов"}`);
+
+    const daeText = await fileMap.get(daePath).text();
+    const {text:newDaeText, count:daeFixCount} = rewriteDaeText(daeText);
+    addLog(`Исправлено ссылок в .dae (texture_*): ${daeFixCount}`);
+
+    const mapping = new Map(); let renamedCount=0;
+    for(const [rel,f] of fileMap.entries()){
+      if(extOf(rel)===".dae") continue;
+      if(!IMAGE_EXTS.has(extOf(rel))) continue;
+      const oldBase = baseName(rel);
+      const newBase = normalizeTexName(oldBase,{translit:wantTranslit,onlyDigits:wantOnlyDigits});
+      mapping.set(oldBase,newBase);
+      if(newBase!==oldBase){ renamedCount++; addLog(`TEX: ${oldBase}  →  ${newBase}`); }
+    }
+    if(renamedCount===0) addLog("Текстуры не требуют переименования.");
+
+    const patchedText = patchDaeByMapping(newDaeText, mapping);
+
+    const zip = new JSZip();
+    zip.file("model_fixed.dae", dry ? daeText : patchedText);
+    for(const [rel,f] of fileMap.entries()){
+      if(extOf(rel)===".dae") continue;
+      if(!IMAGE_EXTS.has(extOf(rel))) continue;
+      const oldBase = baseName(rel);
+      const newBase = mapping.get(oldBase)||oldBase;
+      const data = await f.arrayBuffer();
+      zip.file(dry ? oldBase : newBase, data);
+    }
+    const report = [
+      "Archicad → Sketchfab Fix report",
+      `dae file: ${daePath}`,
+      `links fixed in dae (texture_*): ${daeFixCount}`,
+      `textures renamed: ${renamedCount}`,
+      "", ...[...mapping.entries()].map(([o,n]) => (o===n?`=`:`*`) + ` ${o} -> ${n}`)
+    ].join("\n");
+    zip.file("report.txt", report);
+
+    lastZipBlob = await zip.generateAsync({type:"blob"});
+    zipBtn.disabled=false;
+
+    document.getElementById("stat").style.display="grid";
+    daeStatEl.textContent = `DAE: исправлено ссылок: ${daeFixCount}`;
+    texStatEl.textContent = `Текстур переименовано: ${renamedCount}`;
+    addLog("Готово. Можно скачать ZIP.");
+  });
+
+  document.getElementById("zipBtn").addEventListener("click", ()=>{
+    if(!lastZipBlob) return;
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(lastZipBlob);
+    a.download="sketchfab_fixed.zip";
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },0);
+  });
+})();
+</script>
+</body>
+</html>
