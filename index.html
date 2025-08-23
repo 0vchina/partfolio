@@ -214,15 +214,15 @@
       width:min(60vw, 820px); /* спокойная ширина на ПК */
       background:transparent;
       border:0; box-shadow:none;
-      /* плавное «затухание» краёв модели */
-      -webkit-mask-image: radial-gradient(120% 110% at 50% 50%, #000 66%, rgba(0,0,0,0) 100%);
-              mask-image: radial-gradient(120% 110% at 50% 50%, #000 66%, rgba(0,0,0,0) 100%);
+      /* Сильная растушёвка краёв: к границе полностью прозрачно */
+      -webkit-mask-image: radial-gradient(130% 120% at 50% 50%, #000 48%, rgba(0,0,0,0) 72%);
+              mask-image: radial-gradient(130% 120% at 50% 50%, #000 48%, rgba(0,0,0,0) 72%);
     }
     .model-frame{
       width:100%;
       aspect-ratio:16/9;       /* мобильные/планшеты */
-      border-radius:10px;
-      overflow:hidden;
+      border-radius:0;         /* без видимого прямоугольника */
+      overflow:visible;
     }
     .model-frame iframe{
       width:100%; height:100%;
@@ -232,11 +232,15 @@
     /* тонкий «скелетон», без анимации */
     .model-skeleton{
       position:absolute; inset:0; pointer-events:none;
-      background:rgba(0,0,0,.03);
+      background:rgba(0,0,0,.02);
     }
-    /* на широких экранах панорамное соотношение */
+    /* ещё мягче на широких экранах */
     @media (min-width:1024px){
       .model-frame{ aspect-ratio:21/9; }
+      .model-wrap{
+        -webkit-mask-image: radial-gradient(140% 125% at 50% 50%, #000 44%, rgba(0,0,0,0) 70%);
+                mask-image: radial-gradient(140% 125% at 50% 50%, #000 44%, rgba(0,0,0,0) 70%);
+      }
     }
   </style>
 </head>
@@ -260,7 +264,7 @@
       <h2>Обо мне</h2>
       <p>Я инженер-проектировщик. Работаю с ArchiCAD, ЛИРА-САПР + SAPFIR, SolidWorks, Ansys (база) и др. Совмещаю расчёты с визуализацией и BIM.</p>
 
-      <!-- Мягкий прозрачный блок 3D -->
+      <!-- Мягкий прозрачный блок 3D (с автоспином) -->
       <div class="model-wrap" aria-label="3D модель">
         <div class="model-frame">
           <iframe
@@ -274,7 +278,7 @@
             execution-while-out-of-viewport
             execution-while-not-rendered
             web-share
-            src="https://sketchfab.com/models/60eb4e7c22af4072b6b6cc531cbb1cb9/embed?transparent=1&ui_theme=dark&ui_controls=0&ui_infos=0&ui_annotations=0&autostart=1">
+            src="https://sketchfab.com/models/60eb4e7c22af4072b6b6cc531cbb1cb9/embed?transparent=1&ui_theme=dark&ui_controls=0&ui_infos=0&ui_annotations=0&autostart=1&autospin=1">
           </iframe>
         </div>
         <div class="model-skeleton" aria-hidden="true"></div>
@@ -381,14 +385,14 @@
       <div class="modal-header">
         <div class="modal-title" id="formTitle">Форма обратной связи</div>
         <div class="modal-actions">
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJрCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform" target="_blank" rel="noopener">Открыть в новом окне</a>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform" target="_blank" rel="noopener">Открыть в новом окне</a>
           <button class="modal-close" id="closeFormBtn" type="button" aria-label="Закрыть форму">✕</button>
         </div>
       </div>
       <div class="modal-body">
         <iframe
           class="modal-iframe"
-          src="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform?embedded=true"
+          src="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7з-A/viewform?embedded=true"
           title="Форма обратной связи">
         </iframe>
       </div>
