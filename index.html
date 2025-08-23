@@ -207,48 +207,37 @@
     .open-form-btn:hover{ transform:translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,.14); }
     .form-note{ font-size:.95rem; opacity:.85; margin-top:.75rem; }
 
-    /* ====== УЛУЧШЕННЫЙ БЛОК 3D-МОДЕЛИ ====== */
-    .model-card{
-      position: relative;
-      margin: 8px auto 0;
-      width: min(92vw, 760px);
-      border: 0; background: transparent; box-shadow: none;
+    /* ——— Мягкий, ненавязчивый блок 3D ——— */
+    .model-wrap{
+      position:relative;
+      margin:8px auto 0;
+      width:min(60vw, 820px); /* спокойная ширина на ПК */
+      background:transparent;
+      border:0; box-shadow:none;
+      /* плавное «затухание» краёв модели */
       -webkit-mask-image: radial-gradient(120% 110% at 50% 50%, #000 66%, rgba(0,0,0,0) 100%);
               mask-image: radial-gradient(120% 110% at 50% 50%, #000 66%, rgba(0,0,0,0) 100%);
     }
     .model-frame{
-      width:100%; aspect-ratio: 16 / 9;
-      border-radius: 10px; overflow: hidden; background: transparent;
+      width:100%;
+      aspect-ratio:16/9;       /* мобильные/планшеты */
+      border-radius:10px;
+      overflow:hidden;
     }
-    .model-frame iframe{ width:100%; height:100%; border:0; display:block; background:transparent; }
-    .model-frame iframe{ width:100%; height:100%; border:0; display:block; }
-
-    /* скелетон-плейсхолдер */
-    .model-skeleton{ position:absolute; inset:0; pointer-events:none; background: rgba(0,0,0,.03); }
-    @keyframes shimmer{ 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
-    /* подпись и действия */
-    .model-caption{
-      position:absolute; left:0; bottom:0; width:100%;
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding:10px 12px; color:#fff;
-      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.55));
+    .model-frame iframe{
+      width:100%; height:100%;
+      border:0; display:block;
+      background:transparent;  /* важно для прозрачного фона */
     }
-    .model-label{ font-weight:800; text-shadow:0 1px 2px rgba(0,0,0,.45); letter-spacing:.2px; }
-    .model-actions{ display:flex; gap:8px; flex-wrap:wrap; }
-    .btn-ghost{
-      display:inline-flex; align-items:center; gap:6px; font-weight:700;
-      padding:6px 10px; border-radius:8px; border:1px solid var(--panel-brd);
-      background:#fff; color:#111; text-decoration:none;
-      transition: transform .15s ease, box-shadow .2s ease;
+    /* тонкий «скелетон», без анимации */
+    .model-skeleton{
+      position:absolute; inset:0; pointer-events:none;
+      background:rgba(0,0,0,.03);
     }
-    .btn-ghost:hover{ transform:translateY(-1px); box-shadow:0 10px 22px rgba(0,0,0,.18); }
-
-    @media (max-width: 540px){
-      .model-label{ font-size:.95rem; }
-      .btn-ghost{ padding:6px 8px; font-size:.92rem; }
+    /* на широких экранах панорамное соотношение */
+    @media (min-width:1024px){
+      .model-frame{ aspect-ratio:21/9; }
     }
-  @media (min-width: 1024px){ .model-card{ width: min(64vw, 820px); } .model-frame{ aspect-ratio: 21 / 9; } }
   </style>
 </head>
 <body>
@@ -271,30 +260,24 @@
       <h2>Обо мне</h2>
       <p>Я инженер-проектировщик. Работаю с ArchiCAD, ЛИРА-САПР + SAPFIR, SolidWorks, Ansys (база) и др. Совмещаю расчёты с визуализацией и BIM.</p>
 
-      <!-- УЛУЧШЁННЫЙ КАРТОЧНЫЙ БЛОК ДЛЯ 3D-МОДЕЛИ -->
-      <div class="model-card" id="heroModel" aria-label="3D модель встраиваемая карточка">
+      <!-- Мягкий прозрачный блок 3D -->
+      <div class="model-wrap" aria-label="3D модель">
         <div class="model-frame">
           <iframe
-            id="sketchfabEmbed"
-            title="REC1 — before (Sketchfab)"
+            title="REC1 — before"
             loading="lazy"
             allowfullscreen
-            mozallowfullscreen="true" webkitallowfullscreen="true"
+            mozallowfullscreen="true"
+            webkitallowfullscreen="true"
             allow="autoplay; fullscreen; xr-spatial-tracking"
             xr-spatial-tracking
             execution-while-out-of-viewport
             execution-while-not-rendered
             web-share
-            src=\"https://sketchfab.com/models/60eb4e7c22af4072b6b6cc531cbb1cb9/embed?transparent=1&ui_theme=dark&ui_infos=0&ui_controls=0&ui_annotations=0\">
+            src="https://sketchfab.com/models/60eb4e7c22af4072b6b6cc531cbb1cb9/embed?transparent=1&ui_theme=dark&ui_controls=0&ui_infos=0&ui_annotations=0&autostart=1">
           </iframe>
         </div>
         <div class="model-skeleton" aria-hidden="true"></div>
-        
-          <div class="model-actions">
-            <a class="btn-ghost" href="https://sketchfab.com/3d-models/rec1-before-60eb4e7c22af4072b6b6cc531cbb1cb9" target="_blank" rel="noopener">↗ Открыть на Sketchfab</a>
-            <button class="btn-ghost" type="button" data-fs="#heroModel">⤢ На весь экран</button>
-          </div>
-        </div>
       </div>
 
       <p>Опыт работы прорабом помогает проектировать решения, которые удобно реализовывать на стройке.</p>
@@ -398,7 +381,7 @@
       <div class="modal-header">
         <div class="modal-title" id="formTitle">Форма обратной связи</div>
         <div class="modal-actions">
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform" target="_blank" rel="noopener">Открыть в новом окне</a>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJрCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform" target="_blank" rel="noopener">Открыть в новом окне</a>
           <button class="modal-close" id="closeFormBtn" type="button" aria-label="Закрыть форму">✕</button>
         </div>
       </div>
@@ -416,11 +399,11 @@
     // Параллакс-фон (лёгкий)
     (function(){
       let ticking=false;
-      const onScroll=()=>{ 
+      const onScroll=()=>{
         if(ticking) return; ticking=true;
         requestAnimationFrame(()=>{
           const y=window.scrollY||0;
-          document.body.style.backgroundPositionY = `${-y*0.06}px`;
+          document.body.style.backgroundPositionY = `${-y*0.06}px`; // фикс: шаблонная строка
           ticking=false;
         });
       };
@@ -462,33 +445,16 @@
       window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModal(); });
     })();
 
-    // ===== Улучшение UX для 3D-карточки (скелетон + полноэкранный режим)
+    // Скелетон для 3D — скрыть после загрузки
     (function(){
-      const card = document.getElementById('heroModel');
-      if(!card) return;
-      const iframe = card.querySelector('iframe');
-      const skeleton = card.querySelector('.model-skeleton');
-
-      function hideSkeleton(){ if(skeleton) skeleton.style.display='none'; }
-      // Спрятать плейсхолдер после загрузки iframe
-      if (iframe) {
-        iframe.addEventListener('load', hideSkeleton, { once: true });
-        // подстраховка на случай, если событие не сработает
-        setTimeout(hideSkeleton, 6000);
-      }
-
-      // Полноэкранный режим
-      const fsBtn = card.querySelector('[data-fs]');
-      if(fsBtn){
-        fsBtn.addEventListener('click', ()=>{
-          const targetSel = fsBtn.getAttribute('data-fs');
-          const el = document.querySelector(targetSel) || card;
-          if (!document.fullscreenElement) {
-            el.requestFullscreen && el.requestFullscreen();
-          } else {
-            document.exitFullscreen && document.exitFullscreen();
-          }
-        });
+      const wrap = document.querySelector('.model-wrap');
+      if(!wrap) return;
+      const iframe = wrap.querySelector('iframe');
+      const skeleton = wrap.querySelector('.model-skeleton');
+      const hide = ()=>{ if(skeleton) skeleton.style.display='none'; };
+      if(iframe){
+        iframe.addEventListener('load', hide, {once:true});
+        setTimeout(hide, 6000); // подстраховка
       }
     })();
   </script>
