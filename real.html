@@ -59,11 +59,13 @@
     .mode-desktop details[open] .chev{ transform:rotate(90deg); }
     .mode-desktop h2{font-family:'Montserrat',sans-serif; font-size:1.2rem; font-weight:700; margin:0;}
     .mode-desktop .meta{ font-size:.9rem; opacity:.7; margin-left:10px; }
-    .mode-desktop .preview-row{display:grid; grid-template-columns:repeat(2,minmax(280px,1fr)); gap:1rem; padding:0 1.2rem 1rem;}
-    .mode-desktop .preview-row .render-thumb{height:var(--thumb-h)}
+
+    /* Единая сетка под summary: первые 2 видны всегда, остальные (.extra-card) скрыты до открытия */
+    .mode-desktop .renders-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; padding:0 1.2rem 1rem; }
+    .mode-desktop details.panel:not([open]) .extra-card{ display:none; }
+
     .mode-desktop .panel-body{ padding:0 1.2rem 1rem; }
     .mode-desktop .panel-body p{ line-height:1.7; margin:.4rem 0 1rem; }
-    .mode-desktop .renders-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; }
 
     /* Shared gallery card */
     .render-thumb{ width:100%; height:var(--thumb-h); border-radius:12px; overflow:hidden; background:#f3f3f3; border:1px solid var(--panel-brd); cursor:zoom-in; box-shadow:0 4px 12px rgba(0,0,0,.2); transition: transform .22s ease, box-shadow .22s ease; }
@@ -76,14 +78,6 @@
     .contact-fab{ position:fixed; right:16px; bottom:16px; display:flex; flex-direction:column; gap:10px; z-index:1001; }
     .fab-btn{ display:inline-flex; align-items:center; gap:8px; text-decoration:none; background:#fff; border:1px solid var(--panel-brd); box-shadow:0 10px 24px rgba(0,0,0,.16); padding:10px 14px; border-radius:999px; font-weight:700; color:#111; backdrop-filter:blur(6px); transition: transform .18s ease, box-shadow .22s ease; }
     .fab-btn:hover{ transform:translateY(-2px) scale(1.02); box-shadow:0 14px 30px rgba(0,0,0,.2); }
-
-    /* Popup */
-    .popup-overlay{ display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.9); align-items:center; justify-content:center; touch-action:none; opacity:0; transition:opacity .22s ease; }
-    .popup-overlay.open{ display:flex; opacity:1; }
-    .popup-content{ position:relative; max-width:92vw; max-height:92vh; display:flex; align-items:center; justify-content:center; }
-    .popup-img{ max-width:92vw; max-height:92vh; object-fit:contain; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.4); transform-origin:center; user-select:none; -webkit-user-drag:none; cursor:grab; transition: transform .06s linear; }
-    .popup-img.grabbing{ cursor:grabbing; }
-    .popup-close{ position:absolute; top:16px; right:20px; font-size:2rem; line-height:1; color:#fff; background:transparent; border:none; cursor:pointer; }
 
     /* === MOBILE (исходник) === */
     .mode-mobile section{
@@ -143,24 +137,24 @@
       </div>
       <span class="chev">▶</span>
     </summary>
-    <div class="preview-row">
-      <div class="render-thumb"><img src="завод1.webp" alt="Завод — превью 1" loading="lazy"></div>
-      <div class="render-thumb"><img src="завод2.webp" alt="Завод — превью 2" loading="lazy"></div>
+    <div class="renders-grid">
+      <!-- Первые 2 — сразу видны и грузятся -->
+      <div class="render-thumb"><img src="завод1.webp" alt="Завод — 1" loading="eager"></div>
+      <div class="render-thumb"><img src="завод2.webp" alt="Завод — 2" loading="eager"></div>
+      <!-- Остальные — рядом, но скрыты до открытия; подгружаются on toggle -->
+      <div class="render-thumb extra-card"><img class="extra" data-src="завод3.webp" alt="Завод — 3" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="завод4.webp" alt="Завод — 4" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="завод5.webp" alt="Завод — 5" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="завод6.webp" alt="Завод — 6" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="завод7.webp" alt="Завод — 7" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="завод8.webp" alt="Завод — 8" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="завод9.webp" alt="Завод — 9" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="завод10.webp" alt="Завод — 10" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="завод11.webp" alt="Завод — 11" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="завод12.webp" alt="Завод — 12" loading="lazy"></div>
     </div>
     <div class="panel-body">
       <p>Огромное интересное здание, (сломали преднапряженную плиту, крановщик чуть сам на себя не положил плиту, один человек упал в яму, опирание всех плит длиной 8м - 5см, первый ряд блоков почемуто по проекту из газосиликата?.</p>
-      <div class="renders-grid">
-        <div class="render-thumb"><img class="extra" data-src="завод3.webp" alt="Завод — 3" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="завод4.webp" alt="Завод — 4" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="завод5.webp" alt="Завод — 5" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="завод6.webp" alt="Завод — 6" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="завод7.webp" alt="Завод — 7" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="завод8.webp" alt="Завод — 8" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="завод9.webp" alt="Завод — 9" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="завод10.webp" alt="Завод — 10" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="завод11.webp" alt="Завод — 11" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="завод12.webp" alt="Завод — 12" loading="lazy"></div>
-      </div>
       <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=50.79545922413949,4.291853492492235" target="_blank" rel="noopener">Бельгия</a></p>
     </div>
   </details>
@@ -174,17 +168,15 @@
       </div>
       <span class="chev">▶</span>
     </summary>
-    <div class="preview-row">
-      <div class="render-thumb"><img src="11111.webp" alt="Супермаркет — превью 1" loading="lazy"></div>
-      <div class="render-thumb"><img src="22222.webp" alt="Супермаркет — превью 2" loading="lazy"></div>
+    <div class="renders-grid">
+      <div class="render-thumb"><img src="11111.webp" alt="Супермаркет — 1" loading="eager"></div>
+      <div class="render-thumb"><img src="22222.webp" alt="Супермаркет — 2" loading="eager"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="33333.webp" alt="Супермаркет — 3" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="44444.webp" alt="Супермаркет — 4" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="55555.webp" alt="Супермаркет — 5" loading="lazy"></div>
     </div>
     <div class="panel-body">
       <p>Здание супермаркета с акцентом на энергоэффективность и быстрый монтаж. Проект выполнялся по немецким нормам качества.</p>
-      <div class="renders-grid">
-        <div class="render-thumb"><img class="extra" data-src="33333.webp" alt="Супермаркет — 3" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="44444.webp" alt="Супермаркет — 4" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="55555.webp" alt="Супермаркет — 5" loading="lazy"></div>
-      </div>
       <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=51.47207375941072,6.956863035249297" target="_blank" rel="noopener">Germany</a></p>
     </div>
   </details>
@@ -198,13 +190,12 @@
       </div>
       <span class="chev">▶</span>
     </summary>
-    <div class="preview-row">
-      <div class="render-thumb"><img src="111111.webp" alt="Пожарная часть — превью 1" loading="lazy"></div>
-      <div class="render-thumb"><img src="222222.webp" alt="Пожарная часть — превью 2" loading="lazy"></div>
+    <div class="renders-grid">
+      <div class="render-thumb"><img src="111111.webp" alt="Пожарная часть — 1" loading="eager"></div>
+      <div class="render-thumb"><img src="222222.webp" alt="Пожарная часть — 2" loading="eager"></div>
     </div>
     <div class="panel-body">
       <p>Функциональное здание пожарной службы с просторными боксами для техники и административной частью.</p>
-      <div class="renders-grid"></div>
       <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=51.37914501942016,7.508993444647588" target="_blank" rel="noopener">Germany</a></p>
     </div>
   </details>
@@ -218,15 +209,13 @@
       </div>
       <span class="chev">▶</span>
     </summary>
-    <div class="preview-row">
-      <div class="render-thumb"><img src="112.webp" alt="Школа — превью 1" loading="lazy"></div>
-      <div class="render-thumb"><img src="113.webp" alt="Школа — превью 2" loading="lazy"></div>
+    <div class="renders-grid">
+      <div class="render-thumb"><img src="112.webp" alt="Школа — 1" loading="eager"></div>
+      <div class="render-thumb"><img src="113.webp" alt="Школа — 2" loading="eager"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="114.webp" alt="Школа — 3" loading="lazy"></div>
     </div>
     <div class="panel-body">
       <p>Образовательное учреждение с современными материалами и решениями для комфортной и безопасной среды учащихся. Утепление и облицовка фасада клинкером. Монтажные работы.</p>
-      <div class="renders-grid">
-        <div class="render-thumb"><img class="extra" data-src="114.webp" alt="Школа — 3" loading="lazy"></div>
-      </div>
       <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=50.905589556277164,7.534640352935026" target="_blank" rel="noopener">Germany</a></p>
     </div>
   </details>
@@ -240,16 +229,14 @@
       </div>
       <span class="chev">▶</span>
     </summary>
-    <div class="preview-row">
-      <div class="render-thumb"><img src="gl1.webp" alt="Клиника — превью 1" loading="lazy"></div>
-      <div class="render-thumb"><img src="gl2.webp" alt="Клиника — превью 2" loading="lazy"></div>
+    <div class="renders-grid">
+      <div class="render-thumb"><img src="gl1.webp" alt="Клиника — 1" loading="eager"></div>
+      <div class="render-thumb"><img src="gl2.webp" alt="Клиника — 2" loading="eager"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="gl3.webp" alt="Клиника — 3" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="gl4.webp" alt="Клиника — 4" loading="lazy"></div>
     </div>
     <div class="panel-body">
       <p>Медицинское учреждение за большим забором для реабилитации. Фасады и планировка напоминают тюрьму. Облицовка фасада клинкером, монтажные работы.</p>
-      <div class="renders-grid">
-        <div class="render-thumb"><img class="extra" data-src="gl3.webp" alt="Клиника — 3" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="gl4.webp" alt="Клиника — 4" loading="lazy"></div>
-      </div>
       <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=49.15349373699453,11.71859724105959" target="_blank" rel="noopener">Germany</a></p>
     </div>
   </details>
@@ -263,27 +250,25 @@
       </div>
       <span class="chev">▶</span>
     </summary>
-    <div class="preview-row">
-      <div class="render-thumb"><img src="warka1.webp" alt="Магазин — превью 1" loading="lazy"></div>
-      <div class="render-thumb"><img src="warka2.webp" alt="Магазин — превью 2" loading="lazy"></div>
+    <div class="renders-grid">
+      <div class="render-thumb"><img src="warka1.webp" alt="Магазин — 1" loading="eager"></div>
+      <div class="render-thumb"><img src="warka2.webp" alt="Магазин — 2" loading="eager"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="warka3.webp" alt="Магазин — 3" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="warka4.webp" alt="Магазин — 4" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="warka5.webp" alt="Магазин — 5" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="warka6.webp" alt="Магазин — 6" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="warka7.webp" alt="Магазин — 7" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="warka8.webp" alt="Магазин — 8" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="warka9.webp" alt="Магазин — 9" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="warka10.webp" alt="Магазин — 10" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="warka11.webp" alt="Магазин — 11" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="warka12.webp" alt="Магазин — 12" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="warka13.webp" alt="Магазин — 13" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="warka14.webp" alt="Магазин — 14" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="warka15.webp" alt="Магазин — 15" loading="lazy"></div>
     </div>
     <div class="panel-body">
       <p>Возведение каркаса здания по магазин в городе Варка. Монолитные, монтажные и кладочные работы.</p>
-      <div class="renders-grid">
-        <div class="render-thumb"><img class="extra" data-src="warka3.webp" alt="Магазин — 3" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="warka4.webp" alt="Магазин — 4" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="warka5.webp" alt="Магазин — 5" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="warka6.webp" alt="Магазин — 6" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="warka7.webp" alt="Магазин — 7" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="warka8.webp" alt="Магазин — 8" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="warka9.webp" alt="Магазин — 9" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="warka10.webp" alt="Магазин — 10" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="warka11.webp" alt="Магазин — 11" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="warka12.webp" alt="Магазин — 12" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="warka13.webp" alt="Магазин — 13" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="warka14.webp" alt="Магазин — 14" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="warka15.webp" alt="Магазин — 15" loading="lazy"></div>
-      </div>
       <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=51.793000743541555,21.18610838099074" target="_blank" rel="noopener">Poland</a></p>
     </div>
   </details>
@@ -297,24 +282,22 @@
       </div>
       <span class="chev">▶</span>
     </summary>
-    <div class="preview-row">
-      <div class="render-thumb"><img src="d9.webp" alt="Дома — превью 1" loading="lazy"></div>
-      <div class="render-thumb"><img src="d11.webp" alt="Дома — превью 2" loading="lazy"></div>
+    <div class="renders-grid">
+      <div class="render-thumb"><img src="d9.webp" alt="Дома — 1" loading="eager"></div>
+      <div class="render-thumb"><img src="d11.webp" alt="Дома — 2" loading="eager"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="d2.webp" alt="Дом — 3" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="d3.webp" alt="Дом — 4" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="d4.webp" alt="Дом — 5" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="d5.webp" alt="Дом — 6" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="d6.webp" alt="Дом — 7" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="d7.webp" alt="Дом — 8" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="d8.webp" alt="Дом — 9" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="d1.webp" alt="Дом — 10" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="d10.webp" alt="Дом — 11" loading="lazy"></div>
+      <div class="render-thumb extra-card"><img class="extra" data-src="d12.webp" alt="Дом — 12" loading="lazy"></div>
     </div>
     <div class="panel-body">
       <p>Индивидуальные жилые дома: лаконичная архитектура, энергоэффективные решения и высокий комфорт проживания.</p>
-      <div class="renders-grid">
-        <div class="render-thumb"><img class="extra" data-src="d2.webp" alt="Дом — 3" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="d3.webp" alt="Дом — 4" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="d4.webp" alt="Дом — 5" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="d5.webp" alt="Дом — 6" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="d6.webp" alt="Дом — 7" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="d7.webp" alt="Дом — 8" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="d8.webp" alt="Дом — 9" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="d1.webp" alt="Дом — 10" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="d10.webp" alt="Дом — 11" loading="lazy"></div>
-        <div class="render-thumb"><img class="extra" data-src="d12.webp" alt="Дом — 12" loading="lazy"></div>
-      </div>
     </div>
   </details>
 </main>
@@ -325,18 +308,18 @@
     <h2>Завод по производству пива в Бельгии</h2>
     <p>Огромное интересное здание, (сломали преднапряженную плиту, крановщик чуть сам на себя не положил плиту, один человек упал в яму, опирание всех плит длиной 8м - 5см, первый ряд блоков почемуто по проекту из газосиликата?.</p>
     <div class="renders-grid">
-      <div class="render-thumb"><img data-src="завод1.webp" alt="Завод BE — завод1" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="завод2.webp" alt="Завод BE — завод2" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="завод3.webp" alt="Завод BE — завод3" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="завод4.webp" alt="Завод BE — завод4" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="завод5.webp" alt="Завод BE — завод5" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="завод6.webp" alt="Завод BE — завод6" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="завод7.webp" alt="Завод BE — завод7" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="завод8.webp" alt="Завод BE — завод8" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="завод9.webp" alt="Завод BE — завод9" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="завод10.webp" alt="Завод BE — завод10" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="завод11.webp" alt="Завод BE — завод11" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="завод12.webp" alt="Завод BE — завод12" loading="lazy"></div>
+      <div class="render-thumb"><img src="завод1.webp" alt="Завод BE — завод1" loading="lazy"></div>
+      <div class="render-thumb"><img src="завод2.webp" alt="Завод BE — завод2" loading="lazy"></div>
+      <div class="render-thumb"><img src="завод3.webp" alt="Завод BE — завод3" loading="lazy"></div>
+      <div class="render-thumb"><img src="завод4.webp" alt="Завод BE — завод4" loading="lazy"></div>
+      <div class="render-thumb"><img src="завод5.webp" alt="Завод BE — завод5" loading="lazy"></div>
+      <div class="render-thumb"><img src="завод6.webp" alt="Завод BE — завод6" loading="lazy"></div>
+      <div class="render-thumb"><img src="завод7.webp" alt="Завод BE — завод7" loading="lazy"></div>
+      <div class="render-thumb"><img src="завод8.webp" alt="Завод BE — завод8" loading="lazy"></div>
+      <div class="render-thumb"><img src="завод9.webp" alt="Завод BE — завод9" loading="lazy"></div>
+      <div class="render-thumb"><img src="завод10.webp" alt="Завод BE — завод10" loading="lazy"></div>
+      <div class="render-thumb"><img src="завод11.webp" alt="Завод BE — завод11" loading="lazy"></div>
+      <div class="render-thumb"><img src="завод12.webp" alt="Завод BE — завод12" loading="lazy"></div>
     </div>
     <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=50.79545922413949, 4.291853492492235" target="_blank" rel="noopener">Бельгия</a></p>
   </section>
@@ -345,11 +328,11 @@
     <h2>Супермаркет в Германии</h2>
     <p>Здание супермаркета с акцентом на энергоэффективность и быстрый монтаж. Проект выполнялся по немецким нормам качества.</p>
     <div class="renders-grid">
-      <div class="render-thumb"><img data-src="11111.webp" alt="Супермаркет DE — 11111" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="22222.webp" alt="Супермаркет DE — 22222" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="33333.webp" alt="Супермаркет DE — 33333" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="44444.webp" alt="Супермаркет DE — 44444" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="55555.webp" alt="Супермаркет DE — 55555" loading="lazy"></div>
+      <div class="render-thumb"><img src="11111.webp" alt="Супермаркет DE — 11111" loading="lazy"></div>
+      <div class="render-thumb"><img src="22222.webp" alt="Супермаркет DE — 22222" loading="lazy"></div>
+      <div class="render-thumb"><img src="33333.webp" alt="Супермаркет DE — 33333" loading="lazy"></div>
+      <div class="render-thumb"><img src="44444.webp" alt="Супермаркет DE — 44444" loading="lazy"></div>
+      <div class="render-thumb"><img src="55555.webp" alt="Супермаркет DE — 55555" loading="lazy"></div>
     </div>
     <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=51.47207375941072,6.956863035249297" target="_blank" rel="noopener">Germany</a></p>
   </section>
@@ -358,8 +341,8 @@
     <h2>Пожарная часть в Германии</h2>
     <p>Функциональное здание пожарной службы с просторными боксами для техники и административной частью.</p>
     <div class="renders-grid">
-      <div class="render-thumb"><img data-src="111111.webp" alt="Пожарная часть DE — 111111" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="222222.webp" alt="Пожарная часть DE — 222222" loading="lazy"></div>
+      <div class="render-thumb"><img src="111111.webp" alt="Пожарная часть DE — 111111" loading="lazy"></div>
+      <div class="render-thumb"><img src="222222.webp" alt="Пожарная часть DE — 222222" loading="lazy"></div>
     </div>
     <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=51.37914501942016,7.508993444647588" target="_blank" rel="noopener">Germany</a></p>
   </section>
@@ -368,9 +351,9 @@
     <h2>Школа в Германии</h2>
     <p>Образовательное учреждение с современными материалами и решениями для комфортной и безопасной среды учащихся. Утепление и облицовка фасада клинкером. Монтажные работы.</p>
     <div class="renders-grid">
-      <div class="render-thumb"><img data-src="112.webp" alt="Школа DE — вид 1" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="113.webp" alt="Школа DE — вид 2" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="114.webp" alt="Школа DE — вид 3" loading="lazy"></div>
+      <div class="render-thumb"><img src="112.webp" alt="Школа DE — вид 1" loading="lazy"></div>
+      <div class="render-thumb"><img src="113.webp" alt="Школа DE — вид 2" loading="lazy"></div>
+      <div class="render-thumb"><img src="114.webp" alt="Школа DE — вид 3" loading="lazy"></div>
     </div>
     <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=50.905589556277164,7.534640352935026" target="_blank" rel="noopener">Germany</a></p>
   </section>
@@ -379,10 +362,10 @@
     <h2>Клиника в Германии</h2>
     <p>Медицинское учреждение за большим забором для реабилитации. Фасады и планировка напоминают тюрьму. Облицовка фасада клинкером, монтажные работы.</p>
     <div class="renders-grid">
-      <div class="render-thumb"><img data-src="gl1.webp" alt="Клиника DE — gl1" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="gl2.webp" alt="Клиника DE — gl2" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="gl3.webp" alt="Клиника DE — gl3" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="gl4.webp" alt="Клиника DE — gl4" loading="lazy"></div>
+      <div class="render-thumb"><img src="gl1.webp" alt="Клиника DE — gl1" loading="lazy"></div>
+      <div class="render-thumb"><img src="gl2.webp" alt="Клиника DE — gl2" loading="lazy"></div>
+      <div class="render-thumb"><img src="gl3.webp" alt="Клиника DE — gl3" loading="lazy"></div>
+      <div class="render-thumb"><img src="gl4.webp" alt="Клиника DE — gl4" loading="lazy"></div>
     </div>
     <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=49.15349373699453,11.71859724105959" target="_blank" rel="noopener">Germany</a></p>
   </section>
@@ -391,21 +374,21 @@
     <h2>Магазин в Польше</h2>
     <p>Возведение каркаса здания по магазин в городе Варка. Монолитные, монтажные и кладочные работы.</p>
     <div class="renders-grid">
-      <div class="render-thumb"><img data-src="warka1.webp" alt="Магазин PL — warka1" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="warka2.webp" alt="Магазин PL — warka2" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="warka3.webp" alt="Магазин PL — warka3" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="warka4.webp" alt="Магазин PL — warka4" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="warka5.webp" alt="Магазин PL — warka5" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="warka6.webp" alt="Магазин PL — warka6" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="warka7.webp" alt="Магазин PL — warka7" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="warka8.webp" alt="Магазин PL — warka8" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="warka9.webp" alt="Магазин PL — warka9" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="warka10.webp" alt="Магазин PL — warka10" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="warka11.webp" alt="Магазин PL — warka11" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="warka12.webp" alt="Магазин PL — warka12" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="warka13.webp" alt="Магазин PL — warka13" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="warka14.webp" alt="Магазин PL — warka14" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="warka15.webp" alt="Магазин PL — warka15" loading="lazy"></div>
+      <div class="render-thumb"><img src="warka1.webp" alt="Магазин PL — warka1" loading="lazy"></div>
+      <div class="render-thumb"><img src="warka2.webp" alt="Магазин PL — warka2" loading="lazy"></div>
+      <div class="render-thumb"><img src="warka3.webp" alt="Магазин PL — warka3" loading="lazy"></div>
+      <div class="render-thumb"><img src="warka4.webp" alt="Магазин PL — warka4" loading="lazy"></div>
+      <div class="render-thumb"><img src="warka5.webp" alt="Магазин PL — warka5" loading="lazy"></div>
+      <div class="render-thumb"><img src="warka6.webp" alt="Магазин PL — warka6" loading="lazy"></div>
+      <div class="render-thumb"><img src="warka7.webp" alt="Магазин PL — warka7" loading="lazy"></div>
+      <div class="render-thumb"><img src="warka8.webp" alt="Магазин PL — warka8" loading="lazy"></div>
+      <div class="render-thumb"><img src="warka9.webp" alt="Магазин PL — warka9" loading="lazy"></div>
+      <div class="render-thumb"><img src="warka10.webp" alt="Магазин PL — warka10" loading="lazy"></div>
+      <div class="render-thumb"><img src="warka11.webp" alt="Магазин PL — warka11" loading="lazy"></div>
+      <div class="render-thumb"><img src="warka12.webp" alt="Магазин PL — warka12" loading="lazy"></div>
+      <div class="render-thumb"><img src="warka13.webp" alt="Магазин PL — warka13" loading="lazy"></div>
+      <div class="render-thumb"><img src="warka14.webp" alt="Магазин PL — warka14" loading="lazy"></div>
+      <div class="render-thumb"><img src="warka15.webp" alt="Магазин PL — warka15" loading="lazy"></div>
     </div>
     <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=51.793000743541555, 21.18610838099074" target="_blank" rel="noopener">Poland</a></p>
   </section>
@@ -414,18 +397,18 @@
     <h2>Частные дома в Германии по технологии Viebrockhaus</h2>
     <p>Индивидуальные жилые дома: лаконичная архитектура, энергоэффективные решения и высокий комфорт проживания.</p>
     <div class="renders-grid">
-      <div class="render-thumb"><img data-src="d9.webp" alt="Viebrockhaus — d9" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="d11.webp" alt="Viebrockhaus — d11" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="d2.webp" alt="Viebrockhaus — d2" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="d3.webp" alt="Viebrockhaus — d3" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="d4.webp" alt="Viebrockhaus — d4" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="d5.webp" alt="Viebrockhaus — d5" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="d6.webp" alt="Viebrockhaus — d6" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="d7.webp" alt="Viebrockhaus — d7" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="d8.webp" alt="Viebrockhaus — d8" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="d1.webp" alt="Viebrockhaus — d1" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="d10.webp" alt="Viebrockhaus — d10" loading="lazy"></div>
-      <div class="render-thumb"><img data-src="d12.webp" alt="Viebrockhaus — d12" loading="lazy"></div>
+      <div class="render-thumb"><img src="d9.webp" alt="Viebrockhaus — d9" loading="lazy"></div>
+      <div class="render-thumb"><img src="d11.webp" alt="Viebrockhaus — d11" loading="lazy"></div>
+      <div class="render-thumb"><img src="d2.webp" alt="Viebrockhaus — d2" loading="lazy"></div>
+      <div class="render-thumb"><img src="d3.webp" alt="Viebrockhaus — d3" loading="lazy"></div>
+      <div class="render-thumb"><img src="d4.webp" alt="Viebrockhaus — d4" loading="lazy"></div>
+      <div class="render-thumb"><img src="d5.webp" alt="Viebrockhaus — d5" loading="lazy"></div>
+      <div class="render-thumb"><img src="d6.webp" alt="Viebrockhaus — d6" loading="lazy"></div>
+      <div class="render-thumb"><img src="d7.webp" alt="Viebrockhaus — d7" loading="lazy"></div>
+      <div class="render-thumb"><img src="d8.webp" alt="Viebрокхаус — d8" loading="lazy"></div>
+      <div class="render-thumb"><img src="d1.webp" alt="Viebrockhaus — d1" loading="lazy"></div>
+      <div class="render-thumb"><img src="d10.webp" alt="Viebrockhaus — d10" loading="lazy"></div>
+      <div class="render-thumb"><img src="d12.webp" alt="Viebrockhaus — d12" loading="lazy"></div>
     </div>
   </section>
 </main>
@@ -446,17 +429,6 @@
 </div>
 
 <script>
-  // Hydrate mobile images only when on mobile (to avoid desktop preloading)
-  function hydrateMobileImages(){
-    if(window.matchMedia('(max-width: 768px)').matches){
-      document.querySelectorAll('.mode-mobile img[data-src]').forEach(img=>{
-        if(!img.getAttribute('src')) img.setAttribute('src', img.getAttribute('data-src'));
-      });
-    }
-  }
-  hydrateMobileImages();
-  window.addEventListener('resize', hydrateMobileImages);
-
   // Scroll-reveal for both modes
   (function(){
     const io = new IntersectionObserver((entries)=>{
@@ -472,7 +444,6 @@
     function unloadExtras(panel){ panel.querySelectorAll('img.extra').forEach(img=>{ img.removeAttribute('src'); }); }
     panels.forEach(p=>{
       p.addEventListener('toggle', ()=>{
-        if(window.matchMedia('(max-width: 768px)').matches) return; // no accordion on mobile
         if(p.open){ panels.forEach(o=>{ if(o!==p && o.open) o.open=false; }); loadExtras(p); }
         else { unloadExtras(p); }
       });
