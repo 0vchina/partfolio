@@ -7,29 +7,26 @@
 
   <link rel="canonical" href="https://0vchina.github.io/partfolio/real.html" />
   <meta name="description" content="Реальные объекты: супермаркет, пожарная часть, школа, клиника и частные дома." />
+
+  <!-- Google Analytics (один раз) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-LW6E096HYD"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag(){ dataLayer.push(arguments); }
     gtag('js', new Date());
     gtag('config', 'G-LW6E096HYD');
   </script>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LW6E096HYD"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-LW6E096HYD');
-  </script>
+
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet" />
 
   <style>
     :root{
       --header-offset:80px; --accent:#1CAAD9;
       --panel-bg:rgba(255,255,255,.78); --panel-brd:rgba(0,0,0,.08); --panel-shadow:0 8px 32px rgba(0,0,0,.18);
-      --reveal-y:24px; --reveal-dur:.7s;
+      --reveal-y:24px; --reveal-dur:.7s; --thumb-h:200px;
     }
     *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
     body{
       margin:0; font-family:'Inter',sans-serif; color:#111;
       background:url('a2.webp') center/cover no-repeat fixed; overflow-x:hidden;
@@ -55,41 +52,42 @@
     nav a{margin-right:14px; text-decoration:none; font-weight:600; color:#0d0d0d; border-bottom:2px solid transparent; padding-bottom:2px}
     nav a:hover{border-color:var(--accent)}
 
-    /* Sections */
-    section{
-      padding:1.6rem 1.2rem; margin:1.2rem auto; background:var(--panel-bg);
+    /* Accordion panels (details/summary) */
+    details.panel{
+      padding:0; margin:1.2rem auto; background:var(--panel-bg);
       border:1px solid var(--panel-brd); border-radius:14px; box-shadow:var(--panel-shadow); max-width:1100px;
       transform:translateY(var(--reveal-y)); opacity:0; transition:transform var(--reveal-dur) ease, opacity var(--reveal-dur) ease, box-shadow .25s ease;
+      overflow:hidden;
     }
-    section[id]::before{content:""; display:block; height:var(--header-offset); margin-top:calc(-1*var(--header-offset)); visibility:hidden}
-    section.reveal-in{ transform:translateY(0); opacity:1; }
+    details.panel.reveal-in{ transform:translateY(0); opacity:1; }
+    details.panel > summary{
+      list-style:none; cursor:pointer; padding:1rem 1.2rem; display:flex; align-items:center; gap:.7rem; outline:none; user-select:none;
+    }
+    details.panel > summary::-webkit-details-marker{ display:none; }
+    .chev{ transition:transform .25s ease; }
+    details[open] .chev{ transform:rotate(90deg); }
 
     h2{
-      font-family:'Montserrat',sans-serif; font-size:1.4rem; font-weight:700; margin:0 0 .6rem;
+      font-family:'Montserrat',sans-serif; font-size:1.1rem; font-weight:700; margin:0;
       position:relative; display:inline-block;
     }
-    h2::after{
-      content:""; position:absolute; left:0; bottom:-6px; height:2px; width:56px;
-      background:linear-gradient(90deg,var(--accent),transparent); border-radius:8px;
-      transform-origin:left; transform:scaleX(.2); opacity:.6; transition:transform .6s ease .05s;
-    }
-    section.reveal-in h2::after{ transform:scaleX(1); }
+    .sumline{ flex:1; display:flex; align-items:center; gap:10px }
+    .meta{ font-size:.9rem; opacity:.7 }
 
-    p{ line-height:1.7; margin:.4rem 0 1rem; }
+    .panel-body{ padding:0 1.2rem 1rem; }
+    .panel-body p{ line-height:1.7; margin:.4rem 0 1rem; }
 
     /* Galleries */
-    .renders-grid{ display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem; scrollbar-width:thin; }
+    .renders-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; }
     .render-thumb{
-      flex-shrink:0; width:280px; height:180px; border-radius:12px; overflow:hidden;
+      width:100%; height:var(--thumb-h); border-radius:12px; overflow:hidden;
       background:#f3f3f3; border:1px solid var(--panel-brd); cursor:zoom-in;
       box-shadow:0 4px 12px rgba(0,0,0,.2); transition: transform .22s ease, box-shadow .22s ease;
     }
     .render-thumb:hover{ transform:translateY(-2px) scale(1.02); box-shadow:0 12px 26px rgba(0,0,0,.22); }
     .render-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
-    @media(min-width:900px){
-      .renders-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; overflow-x:visible; padding-bottom:0; }
-      .render-thumb{ width:100%; height:200px; }
-    }
+
+    .addr{ margin-top:1rem; font-weight:600 }
 
     footer{ text-align:center; color:#fff; padding:24px; margin:18px auto 24px; background:rgba(0,0,0,.65); border-radius:12px; max-width:1100px; }
 
@@ -111,6 +109,10 @@
       transform-origin:center; user-select:none; -webkit-user-drag:none; cursor:grab; transition: transform .06s linear; }
     .popup-img.grabbing{ cursor:grabbing; }
     .popup-close{ position:absolute; top:16px; right:20px; font-size:2rem; line-height:1; color:#fff; background:transparent; border:none; cursor:pointer; }
+
+    /* Lazy extras hidden until панель открыта */
+    .extra{ display:none }
+    details[open] .extra{ display:block }
   </style>
 </head>
 <body>
@@ -118,7 +120,6 @@
     <div class="wrap">
       <h1>Реальные объекты</h1>
       <nav>
-        <a href="index.html">Главная</a>
         <a href="#zavod-be">Завод</a>
         <a href="#supermarket-de">Супермаркет</a>
         <a href="#firestation-de">Пожарная часть</a>
@@ -131,118 +132,152 @@
   </header>
 
   <main>
+    <!-- ШАБЛОН ПАНЕЛЕЙ: показываем первые 3 картинки, остальные лениво подгружаются при открытии -->
 
-    <section id="zavod-be">
-      <h2>Завод по производству пива в Бельгии</h2>
-      <p>Огромное интересное здание, (сломали преднапряженную плиту, крановщик чуть сам на себя не положил плиту, один человек упал в яму, опирание всех плит длиной 8м - 5см, первый ряд блоков почемуто по проекту из газосиликата? .</p>
-      <div class="renders-grid">
-        <div class="render-thumb"><img src="завод1.webp" alt="Завод BE — завод1" loading="lazy"></div>
-        <div class="render-thumb"><img src="завод2.webp" alt="Завод BE — завод2" loading="lazy"></div>
-        <div class="render-thumb"><img src="завод3.webp" alt="Завод BE — завод3" loading="lazy"></div>
-        <div class="render-thumb"><img src="завод4.webp" alt="Завод BE — завод4" loading="lazy"></div>
-        <div class="render-thumb"><img src="завод5.webp" alt="Завод BE — завод5" loading="lazy"></div>
-        <div class="render-thumb"><img src="завод6.webp" alt="Завод BE — завод6" loading="lazy"></div>
-        <div class="render-thumb"><img src="завод7.webp" alt="Завод BE — завод7" loading="lazy"></div>
-        <div class="render-thumb"><img src="завод8.webp" alt="Завод BE — завод8" loading="lazy"></div>
-        <div class="render-thumb"><img src="завод9.webp" alt="Завод BE — завод9" loading="lazy"></div>
-        <div class="render-thumb"><img src="завод10.webp" alt="Завод BE — завод10" loading="lazy"></div>
-        <div class="render-thumb"><img src="завод11.webp" alt="Завод BE — завод11" loading="lazy"></div>
-        <div class="render-thumb"><img src="завод12.webp" alt="Завод BE — завод12" loading="lazy"></div>
+    <details class="panel" id="zavod-be">
+      <summary>
+        <span class="chev">▶</span>
+        <span class="sumline"><h2>Завод по производству пива в Бельгии</h2><span class="meta">12 фото</span></span>
+      </summary>
+      <div class="panel-body">
+        <p>Огромное интересное здание, (сломали преднапряженную плиту, крановщик чуть сам на себя не положил плиту, один человек упал в яму, опирание всех плит длиной 8м - 5см, первый ряд блоков почемуто по проекту из газосиликата?.</p>
+        <div class="renders-grid" data-visible="3">
+          <div class="render-thumb"><img src="завод1.webp" alt="Завод BE — завод1" loading="lazy"></div>
+          <div class="render-thumb"><img src="завод2.webp" alt="Завод BE — завод2" loading="lazy"></div>
+          <div class="render-thumb"><img src="завод3.webp" alt="Завод BE — завод3" loading="lazy"></div>
+          <!-- Остальные заготовлены как extra (без src до открытия) -->
+          <div class="render-thumb"><img class="extra" data-src="завод4.webp" alt="Завод BE — завод4" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="завод5.webp" alt="Завод BE — завод5" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="завод6.webp" alt="Завод BE — завод6" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="завод7.webp" alt="Завод BE — завод7" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="завод8.webp" alt="Завод BE — завод8" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="завод9.webp" alt="Завод BE — завод9" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="завод10.webp" alt="Завод BE — завод10" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="завод11.webp" alt="Завод BE — завод11" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="завод12.webp" alt="Завод BE — завод12" loading="lazy"></div>
+        </div>
+        <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=50.79545922413949,4.291853492492235" target="_blank" rel="noopener">Бельгия</a></p>
       </div>
-      <p style="margin-top:1rem;font-weight:600">📍 Адрес: <a href="https://www.google.com/maps?q=50.79545922413949, 4.291853492492235" target="_blank" rel="noopener">Бельгия</a></p>
-    </section>
+    </details>
 
-
-    
-    <section id="supermarket-de">
-      <h2>Супермаркет в Германии</h2>
-      <p>Здание супермаркета с акцентом на энергоэффективность и быстрый монтаж. Проект выполнялся по немецким нормам качества.</p>
-      <div class="renders-grid">
-        <div class="render-thumb"><img src="11111.webp" alt="Супермаркет DE — 11111" loading="lazy"></div>
-        <div class="render-thumb"><img src="22222.webp" alt="Супермаркет DE — 22222" loading="lazy"></div>
-        <div class="render-thumb"><img src="33333.webp" alt="Супермаркет DE — 33333" loading="lazy"></div>
-        <div class="render-thumb"><img src="44444.webp" alt="Супермаркет DE — 44444" loading="lazy"></div>
-        <div class="render-thumb"><img src="55555.webp" alt="Супермаркет DE — 55555" loading="lazy"></div>
+    <details class="panel" id="supermarket-de">
+      <summary>
+        <span class="chev">▶</span>
+        <span class="sumline"><h2>Супермаркет в Германии</h2><span class="meta">5 фото</span></span>
+      </summary>
+      <div class="panel-body">
+        <p>Здание супермаркета с акцентом на энергоэффективность и быстрый монтаж. Проект выполнялся по немецким нормам качества.</p>
+        <div class="renders-grid" data-visible="3">
+          <div class="render-thumb"><img src="11111.webp" alt="Супермаркет DE — 11111" loading="lazy"></div>
+          <div class="render-thumb"><img src="22222.webp" alt="Супермаркет DE — 22222" loading="lazy"></div>
+          <div class="render-thumb"><img src="33333.webp" alt="Супермаркет DE — 33333" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="44444.webp" alt="Супермаркет DE — 44444" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="55555.webp" alt="Супермаркет DE — 55555" loading="lazy"></div>
+        </div>
+        <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=51.47207375941072,6.956863035249297" target="_blank" rel="noopener">Germany</a></p>
       </div>
-      <p style="margin-top:1rem;font-weight:600">📍 Адрес: <a href="https://www.google.com/maps?q=51.47207375941072,6.956863035249297" target="_blank" rel="noopener">Germany</a></p>
-    </section>
+    </details>
 
-    <section id="firestation-de">
-      <h2>Пожарная часть в Германии</h2>
-      <p>Функциональное здание пожарной службы с просторными боксами для техники и административной частью.</p>
-      <div class="renders-grid">
-        <div class="render-thumb"><img src="111111.webp" alt="Пожарная часть DE — 111111" loading="lazy"></div>
-        <div class="render-thumb"><img src="222222.webp" alt="Пожарная часть DE — 222222" loading="lazy"></div>
+    <details class="panel" id="firestation-de">
+      <summary>
+        <span class="chev">▶</span>
+        <span class="sumline"><h2>Пожарная часть в Германии</h2><span class="meta">2 фото</span></span>
+      </summary>
+      <div class="panel-body">
+        <p>Функциональное здание пожарной службы с просторными боксами для техники и административной частью.</p>
+        <div class="renders-grid" data-visible="2">
+          <div class="render-thumb"><img src="111111.webp" alt="Пожарная часть DE — 111111" loading="lazy"></div>
+          <div class="render-thumb"><img src="222222.webp" alt="Пожарная часть DE — 222222" loading="lazy"></div>
+        </div>
+        <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=51.37914501942016,7.508993444647588" target="_blank" rel="noopener">Germany</a></p>
       </div>
-      <p style="margin-top:1rem;font-weight:600">📍 Адрес: <a href="https://www.google.com/maps?q=51.37914501942016,7.508993444647588" target="_blank" rel="noopener">Germany</a></p>
-    </section>
+    </details>
 
-    <section id="school-de">
-      <h2>Школа в Германии</h2>
-      <p>Образовательное учреждение с современными материалами и решениями для комфортной и безопасной среды учащихся. Утепление и облицовка фасада клинкером. Монтажные работы.</p>
-      <div class="renders-grid">
-        <div class="render-thumb"><img src="112.webp" alt="Школа DE — вид 1" loading="lazy"></div>
-        <div class="render-thumb"><img src="113.webp" alt="Школа DE — вид 2" loading="lazy"></div>
-        <div class="render-thumb"><img src="114.webp" alt="Школа DE — вид 3" loading="lazy"></div>
+    <details class="panel" id="school-de">
+      <summary>
+        <span class="chev">▶</span>
+        <span class="sumline"><h2>Школа в Германии</h2><span class="meta">3 фото</span></span>
+      </summary>
+      <div class="panel-body">
+        <p>Образовательное учреждение с современными материалами и решениями для комфортной и безопасной среды учащихся. Утепление и облицовка фасада клинкером. Монтажные работы.</p>
+        <div class="renders-grid" data-visible="3">
+          <div class="render-thumb"><img src="112.webp" alt="Школа DE — вид 1" loading="lazy"></div>
+          <div class="render-thumb"><img src="113.webp" alt="Школа DE — вид 2" loading="lazy"></div>
+          <div class="render-thumb"><img src="114.webp" alt="Школа DE — вид 3" loading="lazy"></div>
+        </div>
+        <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=50.905589556277164,7.534640352935026" target="_blank" rel="noopener">Germany</a></p>
       </div>
-      <p style="margin-top:1rem;font-weight:600">📍 Адрес: <a href="https://www.google.com/maps?q=50.905589556277164,7.534640352935026" target="_blank" rel="noopener">Germany</a></p>
-    </section>
+    </details>
 
-    <section id="clinic-de">
-      <h2>Клиника в Германии</h2>
-      <p>Медицинское учреждение за большим забором для реабилитации. Фасады и планировка напоминают тюрьму. Облицовка фасада клинкером, монтажные работы.</p>
-      <div class="renders-grid">
-        <div class="render-thumb"><img src="gl1.webp" alt="Клиника DE — gl1" loading="lazy"></div>
-        <div class="render-thumb"><img src="gl2.webp" alt="Клиника DE — gl2" loading="lazy"></div>
-        <div class="render-thumb"><img src="gl3.webp" alt="Клиника DE — gl3" loading="lazy"></div>
-        <div class="render-thumb"><img src="gl4.webp" alt="Клиника DE — gl4" loading="lazy"></div>
+    <details class="panel" id="clinic-de">
+      <summary>
+        <span class="chev">▶</span>
+        <span class="sumline"><h2>Клиника в Германии</h2><span class="meta">4 фото</span></span>
+      </summary>
+      <div class="panel-body">
+        <p>Медицинское учреждение за большим забором для реабилитации. Фасады и планировка напоминают тюрьму. Облицовка фасада клинкером, монтажные работы.</p>
+        <div class="renders-grid" data-visible="3">
+          <div class="render-thumb"><img src="gl1.webp" alt="Клиника DE — gl1" loading="lazy"></div>
+          <div class="render-thumb"><img src="gl2.webp" alt="Клиника DE — gl2" loading="lazy"></div>
+          <div class="render-thumb"><img src="gl3.webp" alt="Клиника DE — gl3" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="gl4.webp" alt="Клиника DE — gl4" loading="lazy"></div>
+        </div>
+        <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=49.15349373699453,11.71859724105959" target="_blank" rel="noopener">Germany</a></p>
       </div>
-      <p style="margin-top:1rem;font-weight:600">📍 Адрес: <a href="https://www.google.com/maps?q=49.15349373699453,11.71859724105959" target="_blank" rel="noopener">Germany</a></p>
-    </section>
+    </details>
 
-    <section id="store-pl">
-      <h2>Магазин в Польше</h2>
-      <p>Возведение каркаса здания по магазин в городе Варка. Монолитные, монтажные и кладочные работы.</p>
-      <div class="renders-grid">
-        <div class="render-thumb"><img src="warka1.webp" alt="Магазин PL — warka1" loading="lazy"></div>
-        <div class="render-thumb"><img src="warka2.webp" alt="Магазин PL — warka2" loading="lazy"></div>
-        <div class="render-thumb"><img src="warka3.webp" alt="Магазин PL — warka3" loading="lazy"></div>
-        <div class="render-thumb"><img src="warka4.webp" alt="Магазин PL — warka4" loading="lazy"></div>
-        <div class="render-thumb"><img src="warka5.webp" alt="Магазин PL — warka5" loading="lazy"></div>
-        <div class="render-thumb"><img src="warka6.webp" alt="Магазин PL — warka6" loading="lazy"></div>
-        <div class="render-thumb"><img src="warka7.webp" alt="Магазин PL — warka7" loading="lazy"></div>
-        <div class="render-thumb"><img src="warka8.webp" alt="Магазин PL — warka8" loading="lazy"></div>
-        <div class="render-thumb"><img src="warka9.webp" alt="Магазин PL — warka9" loading="lazy"></div>
-        <div class="render-thumb"><img src="warka10.webp" alt="Магазин PL — warka10" loading="lazy"></div>
-        <div class="render-thumb"><img src="warka11.webp" alt="Магазин PL — warka11" loading="lazy"></div>
-        <div class="render-thumb"><img src="warka12.webp" alt="Магазин PL — warka12" loading="lazy"></div>
-        <div class="render-thumb"><img src="warka13.webp" alt="Магазин PL — warka13" loading="lazy"></div>
-        <div class="render-thumb"><img src="warka14.webp" alt="Магазин PL — warka14" loading="lazy"></div>
-        <div class="render-thumb"><img src="warka15.webp" alt="Магазин PL — warka15" loading="lazy"></div>
+    <details class="panel" id="store-pl">
+      <summary>
+        <span class="chev">▶</span>
+        <span class="sumline"><h2>Магазин в Польше</h2><span class="meta">15 фото</span></span>
+      </summary>
+      <div class="panel-body">
+        <p>Возведение каркаса здания по магазин в городе Варка. Монолитные, монтажные и кладочные работы.</p>
+        <div class="renders-grid" data-visible="3">
+          <div class="render-thumb"><img src="warka1.webp" alt="Магазин PL — warka1" loading="lazy"></div>
+          <div class="render-thumb"><img src="warka2.webp" alt="Магазин PL — warka2" loading="lazy"></div>
+          <div class="render-thumb"><img src="warka3.webp" alt="Магазин PL — warka3" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="warka4.webp" alt="Магазин PL — warka4" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="warka5.webp" alt="Магазин PL — warka5" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="warka6.webp" alt="Магазин PL — warka6" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="warka7.webp" alt="Магазин PL — warka7" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="warka8.webp" alt="Магазин PL — warka8" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="warka9.webp" alt="Магазин PL — warka9" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="warka10.webp" alt="Магазин PL — warka10" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="warka11.webp" alt="Магазин PL — warka11" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="warka12.webp" alt="Магазин PL — warka12" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="warka13.webp" alt="Магазин PL — warka13" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="warka14.webp" alt="Магазин PL — warka14" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="warka15.webp" alt="Магазин PL — warka15" loading="lazy"></div>
+        </div>
+        <p class="addr">📍 Адрес: <a href="https://www.google.com/maps?q=51.793000743541555,21.18610838099074" target="_blank" rel="noopener">Poland</a></p>
       </div>
-      <p style="margin-top:1rem;font-weight:600">📍 Адрес: <a href="https://www.google.com/maps?q=51.793000743541555, 21.18610838099074" target="_blank" rel="noopener">Poland</a></p>
-    </section>
+    </details>
 
-
-    
-    <section id="houses-de">
-      <h2>Частные дома в Германии по технологии Viebrockhaus</h2>
-      <p>Индивидуальные жилые дома: лаконичная архитектура, энергоэффективные решения и высокий комфорт проживания.</p>
-      <div class="renders-grid">
-        <div class="render-thumb"><img src="d9.webp" alt="Viebrockhaus — d9" loading="lazy"></div>
-        <div class="render-thumb"><img src="d11.webp" alt="Viebrockhaus — d11" loading="lazy"></div>
-        <div class="render-thumb"><img src="d2.webp" alt="Viebrockhaus — d2" loading="lazy"></div>
-        <div class="render-thumb"><img src="d3.webp" alt="Viebrockhaus — d3" loading="lazy"></div>
-        <div class="render-thumb"><img src="d4.webp" alt="Viebrockhaus — d4" loading="lazy"></div>
-        <div class="render-thumb"><img src="d5.webp" alt="Viebrockhaus — d5" loading="lazy"></div>
-        <div class="render-thumb"><img src="d6.webp" alt="Viebrockhaus — d6" loading="lazy"></div>
-        <div class="render-thumb"><img src="d7.webp" alt="Viebrockhaus — d7" loading="lazy"></div>
-        <div class="render-thumb"><img src="d8.webp" alt="Viebrockhaus — d8" loading="lazy"></div>
-        <div class="render-thumb"><img src="d1.webp" alt="Viebrockhaus — d1" loading="lazy"></div>
-        <div class="render-thumb"><img src="d10.webp" alt="Viebrockhaus — d10" loading="lazy"></div>
-        <div class="render-thumb"><img src="d12.webp" alt="Viebrockhaus — d12" loading="lazy"></div>
+    <details class="panel" id="houses-de">
+      <summary>
+        <span class="chev">▶</span>
+        <span class="sumline"><h2>Частные дома в Германии по технологии Viebrockhaus</h2><span class="meta">12 фото</span></span>
+      </summary>
+      <div class="panel-body">
+        <p>Индивидуальные жилые дома: лаконичная архитектура, энергоэффективные решения и высокий комфорт проживания.</p>
+        <div class="renders-grid" data-visible="3">
+          <div class="render-thumb"><img src="d9.webp" alt="Viebrockhaus — d9" loading="lazy"></div>
+          <div class="render-thumb"><img src="d11.webp" alt="Viebrockhaus — d11" loading="lazy"></div>
+          <div class="render-thumb"><img src="d2.webp" alt="Viebrockhaus — d2" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="d3.webp" alt="Viebrockhaus — d3" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="d4.webp" alt="Viebrockhaus — d4" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="d5.webp" alt="Viebrockhaus — d5" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="d6.webp" alt="Viebrockhaus — d6" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="d7.webp" alt="Viebrockhaus — d7" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="d8.webp" alt="Viebrockhaus — d8" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="d1.webp" alt="Viebrockhaus — d1" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="d10.webp" alt="Viebrockhaus — d10" loading="lazy"></div>
+          <div class="render-thumb"><img class="extra" data-src="d12.webp" alt="Viebrockhaus — d12" loading="lazy"></div>
+        </div>
       </div>
-    </section>
+    </details>
+
   </main>
 
   <footer>© 2025 Виталий Овчинников — Реальные объекты</footer>
@@ -266,7 +301,41 @@
       const io = new IntersectionObserver((entries)=>{
         entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('reveal-in'); io.unobserve(e.target);} });
       },{threshold:.12});
-      document.querySelectorAll('section').forEach(el=>io.observe(el));
+      document.querySelectorAll('details.panel').forEach(el=>io.observe(el));
+    })();
+
+    // Аккордеон: открывается только одна панель; при открытии подгружаем extra-изображения, при закрытии выгружаем
+    (function(){
+      const panels = Array.from(document.querySelectorAll('details.panel'));
+
+      function loadExtras(panel){
+        panel.querySelectorAll('img.extra').forEach(img=>{
+          if(!img.getAttribute('src')){
+            const src = img.getAttribute('data-src');
+            if(src) img.setAttribute('src', src);
+          }
+        });
+      }
+      function unloadExtras(panel){
+        panel.querySelectorAll('img.extra').forEach(img=>{
+          // Отключаем загрузку и освобождаем память
+          img.removeAttribute('src');
+        });
+      }
+
+      panels.forEach(p=>{
+        p.addEventListener('toggle', ()=>{
+          if(p.open){
+            // Закрыть другие
+            panels.forEach(other=>{ if(other!==p && other.open) other.open=false; });
+            // Подгрузить изображения
+            loadExtras(p);
+          } else {
+            // Свернули — выгрузить
+            unloadExtras(p);
+          }
+        });
+      });
     })();
 
     // Popup with gestures (pinch on mobile, wheel+drag on desktop)
@@ -277,7 +346,9 @@
 
     document.querySelectorAll('.render-thumb img').forEach(img=>{
       img.addEventListener('click',()=>{
-        imgEl.src = img.src;
+        const src = img.getAttribute('src') || img.getAttribute('data-src');
+        if(!src) return; // На всякий случай
+        imgEl.src = src;
         resetTransform();
         overlay.classList.add('open');
         overlay.style.display='flex';
@@ -297,7 +368,7 @@
     function applyTransform(){ imgEl.style.transform=`translate(${pos.x}px,${pos.y}px) scale(${scale})`; imgEl.classList.toggle('grabbing', isPanning); }
     function resetTransform(){ scale=1; pos={x:0,y:0}; isPanning=false; applyTransform(); }
 
-    // Desktop
+    // Desktop zoom & pan
     content.addEventListener('wheel', e=>{
       e.preventDefault();
       const rect=imgEl.getBoundingClientRect();
