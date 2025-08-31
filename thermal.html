@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Калькулятор теплотехнического расчёта — РБ (v2.1, авто-Rsi)</title>
+<title>Калькулятор теплотехнического расчёта — РБ (v2.2, авто-Rsi)</title>
 <meta name="description" content="Пошаговый теплотехнический расчёт по РБ: авто-Rsi по типу конструкции, понятный вывод, PDF.">
 <style>
   :root{
@@ -25,29 +25,15 @@
   .btn.secondary{background:#fff;color:var(--acc)}
   .toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:6px}
 
-  /* СЛОИ: адаптив */
-  .layers-head,.layer{display:grid;grid-template-columns: minmax(140px,1.6fr) minmax(100px,0.8fr) minmax(120px,0.9fr) minmax(180px,1.1fr) 40px;gap:8px;align-items:center}
-  .layers-head{font-size:12px;color:var(--muted);margin-top:8px}
-  @media (max-width:900px){
-    .layers-head{grid-template-columns:1.5fr 0.8fr 0.9fr 1.1fr 40px}
-  }
-  @media (max-width:680px){
-    .layers-head{display:none}
-    .layer{grid-template-columns:1fr 1fr; grid-template-areas:
-      "name name" "d lam" "preset del"; gap:6px}
-    .layer .name{grid-area:name}
-    .layer .d{grid-area:d}
-    .layer .lam{grid-area:lam}
-    .layer .preset{grid-area:preset}
-    .layer .del{grid-area:del; justify-self:end}
-  }
-
+  /* Утилиты */
   .note{font-size:12px;color:var(--muted)}
   .pill{display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;border-radius:999px;padding:4px 10px;font-size:12px;margin:0 6px 6px 0}
   .pill .num{font-weight:650}
   .ok{background:var(--okbg);border:1px solid var(--okb);padding:10px;border-radius:12px}
   .bad{background:var(--badbg);border:1px solid var(--badb);padding:10px;border-radius:12px}
   .warn{background:var(--warnbg);border:1px solid var(--warnb);padding:10px;border-radius:12px}
+  .scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .truncate{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
   .tabs{display:flex;gap:8px;margin:10px 0}
   .tab{border:1px solid var(--b2);padding:6px 10px;border-radius:999px;background:#fff;font-size:13px}
@@ -55,19 +41,70 @@
   .calc-line{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0}
   .eq{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:6px 10px}
 
+  /* СЛОИ — адаптив и без переполнений */
+  .layers-head,.layer{
+    display:grid;
+    grid-template-columns:minmax(130px,1.6fr) minmax(92px,0.8fr) minmax(110px,0.9fr) minmax(160px,1.1fr) 40px;
+    gap:8px;align-items:center
+  }
+  .layers-head{font-size:12px;color:var(--muted);margin-top:8px}
+  .layer input,.layer select{min-width:0} /* ключ к тому, чтобы fr-колонки ужимались */
+  .layer .name{width:100%}
+  .layer .preset{width:100%}
+  @media (max-width:900px){
+    .layers-head{grid-template-columns:1.5fr 0.8fr 0.9fr 1.1fr 40px}
+  }
+  @media (max-width:680px){
+    .layers-head{display:none}
+    .layer{
+      grid-template-columns:1fr 1fr;
+      grid-template-areas:"name name" "d lam" "preset del";
+      gap:6px
+    }
+    .layer .name{grid-area:name}
+    .layer .d{grid-area:d}
+    .layer .lam{grid-area:lam}
+    .layer .preset{grid-area:preset}
+    .layer .del{grid-area:del;justify-self:end}
+  }
+
+  /* Таблица «Подробно» — резиновая, не вылезает */
+  .detail-table{border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;min-width:520px}
+  .drow{display:grid;grid-template-columns:46px 1fr 90px 120px 130px;gap:8px;padding:8px 10px;border-bottom:1px solid #eef2f7}
+  .drow.head{background:#f8fafc;font-weight:600}
+  .cell{min-width:0} .cell.name.truncate{max-width:100%}
+
+  @media (max-width:760px){
+    .drow{grid-template-columns:42px 1fr 78px 108px 108px}
+  }
+  /* На очень узких — строки раскладываются в 2-рядный компакт */
+  @media (max-width:540px){
+    .detail-table{min-width:0}
+    .drow{
+      grid-template-columns:44px 1fr 1fr;
+      grid-template-areas:
+        "num name name"
+        "num d lam ri";
+    }
+    .cell.num{grid-area:num}
+    .cell.name{grid-area:name}
+    .cell.d{grid-area:d}
+    .cell.lam{grid-area:lam}
+    .cell.ri{grid-area:ri}
+    .drow head{display:none}
+  }
+
   canvas{max-width:100%;background:#fff;border:1px dashed #cbd5e1;border-radius:12px}
   .advanced{margin-top:8px;display:none}
   .advanced-toggle{display:inline-flex;gap:8px;align-items:center}
 
   select{max-width:100%}
 </style>
-
-<!-- jsPDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
 <div class="wrap">
-  <h1>Калькулятор теплотехнического расчёта — РБ (v2.1)</h1>
+  <h1>Калькулятор теплотехнического расчёта — РБ (v2.2)</h1>
   <div class="muted">R<sub>пр</sub>=R<sub>si</sub>+Σ(d/λ)+R<sub>se</sub>. <b>Rsi подставляется автоматически</b> по типу конструкции. «Расширенные» позволяют задать Rsi/Rse вручную.</div>
 
   <!-- Вводные -->
@@ -115,7 +152,7 @@
     <div id="layers"></div>
 
     <div class="toolbar">
-      <div style="display:flex;gap:8px;align-items:center">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <label>Кол-во слоёв
           <input id="layersCount" type="number" min="1" step="1" value="4" style="width:110px">
         </label>
@@ -124,7 +161,7 @@
         <button id="btnClear">Очистить</button>
         <button id="btnAdd" class="btn">+ Слой</button>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <button id="btnDraw">Обновить схему</button>
         <button id="btnPdf" class="btn">Экспорт PDF</button>
       </div>
@@ -192,7 +229,10 @@
     </div>
 
     <div id="paneDetail" style="display:none">
-      <div id="layersTable"></div>
+      <div class="scroll-x">
+        <div id="layersTable" class="detail-table"></div>
+      </div>
+      <div class="note" style="margin-top:6px">На узких экранах таблица превращается в компактные 2-рядные строки. Можно листать вбок при необходимости.</div>
     </div>
   </div>
 
@@ -248,7 +288,6 @@
   ];
   const RNORM = { wall:3.2, roof:6.0, basement:2.5, ground:0 };
   const RSE_OUT = 0.04;
-
   const CAT_COLORS = { insul:"#fde68a", aac:"#c7d2fe", lightcon:"#ddd6fe", brick:"#fecaca", concrete:"#e5e7eb", wood:"#fed7aa", board:"#e9d5ff", plaster:"#f3e8ff", tile:"#e2e8f0", membrane:"#cffafe", other:"#e5e7eb" };
 
   /* ====== ХЕЛПЕРЫ ====== */
@@ -263,7 +302,7 @@
 
   /* ====== АВТО-Rsi / Rse ====== */
   function rsiAuto(ctype){
-    if(ctype==='roof') return 0.10;                  // поток вверх
+    if(ctype==='roof') return 0.10;                  // вверх
     if(ctype==='basement' || ctype==='ground') return 0.17; // вниз
     return 0.13;                                     // стены — вертикально
   }
@@ -318,7 +357,7 @@
     layers.forEach((L, i) => {
       const row = document.createElement('div'); row.className='layer';
 
-      const name = document.createElement('input'); name.className='name';
+      const name = document.createElement('input'); name.className='name truncate';
       name.value = L.name; name.oninput = e => { layers[i].name = e.target.value; saveState(); };
 
       const d = document.createElement('input'); d.className='d'; d.type='number'; d.step='1'; d.value=L.d;
@@ -427,32 +466,35 @@
 
   function renderLayersTable(Rsi, Rse){
     const box = $('layersTable'); box.innerHTML = "";
-    const tbl = document.createElement('div');
-    tbl.style.border='1px solid #e5e7eb'; tbl.style.borderRadius='12px'; tbl.style.overflow='hidden';
-    const header = row(['#','Материал','d, мм','λ, Вт/(м·К)','R_i, м²·°C/Вт'], true);
-    tbl.append(header);
+    const header = drow(['#','Материал','d, мм','λ, Вт/(м·К)','R_i, м²·°C/Вт'], true);
+    box.append(header);
     let Rlayers=0;
     layers.forEach((L,i)=>{
       const d_m = num(L.d)/1000;
       const lam = Math.max(1e-6, num(L.lam));
       const Ri = d_m/lam; Rlayers += Ri;
-      tbl.append(row([String(i+1), L.name, num(L.d).toFixed(0), num(L.lam).toFixed(3), Ri.toFixed(3)]));
+      box.append(drow([String(i+1), L.name, num(L.d).toFixed(0), num(L.lam).toFixed(3), Ri.toFixed(3)]));
     });
-    // Итого
-    tbl.append(row(['','Σ','', '', Rlayers.toFixed(3)], true));
-    // Rsi/Rse
-    tbl.append(row(['','Rsi','', '', Rsi.toFixed(2)]));
-    if (Rse>0) tbl.append(row(['','Rse','', '', Rse.toFixed(2)]));
-    box.append(tbl);
+    // Итого и Rsi/Rse
+    box.append(drow(['','Σ','', '', Rlayers.toFixed(3)], true));
+    box.append(drow(['','Rsi','', '', Rsi.toFixed(2)]));
+    if (Rse>0) box.append(drow(['','Rse','', '', Rse.toFixed(2)]));
 
-    function row(arr, head=false){
+    function drow(arr, head=false){
       const r = document.createElement('div');
-      r.style.display='grid'; r.style.gridTemplateColumns='46px 1fr 90px 120px 130px'; r.style.gap='8px';
-      r.style.padding='8px 10px'; r.style.borderBottom='1px solid #eef2f7';
-      if(head){ r.style.background='#f8fafc'; r.style.fontWeight='600'; }
-      arr.forEach(t=>{ const c = document.createElement('div'); c.textContent=t; r.append(c); });
+      r.className = 'drow' + (head ? ' head' : '');
+      const [cNum,cName,cD,cLam,cRi] = arr;
+
+      const vNum = el('div','cell num', cNum);
+      const vName= el('div','cell name truncate', cName);
+      const vD   = el('div','cell d', cD);
+      const vLam = el('div','cell lam', cLam);
+      const vRi  = el('div','cell ri', cRi);
+
+      r.append(vNum,vName,vD,vLam,vRi);
       return r;
     }
+    function el(tag, cls, txt){ const e=document.createElement(tag); e.className=cls; e.textContent=txt; return e; }
   }
 
   /* ====== СХЕМА РАЗРЕЗА ====== */
@@ -471,8 +513,9 @@
       ctx.strokeStyle='#334155'; ctx.strokeRect(x,y0,w,h);
       ctx.fillStyle='#0f172a';
       const label=`${i+1}. ${L.name} (${num(L.d)} мм)`;
-      let tx=x+4; if(tx+ctx.measureText(label).width>x+w-4) tx = x+w-4-ctx.measureText(label).width;
-      if(tx<x+4) tx=x+4; ctx.fillText(label, tx, y0+h+16);
+      let tx=x+4; const tw=ctx.measureText(label).width;
+      if(tx+tw>x+w-4) tx=Math.max(x+4, x+w-4-tw);
+      ctx.fillText(label, tx, y0+h+16);
       x+=w;
     });
   }
@@ -483,7 +526,7 @@
     const doc = new jsPDF({ unit:'mm', format:'a4' });
     let x=15,y=16;
 
-    doc.setFontSize(14); doc.text('Теплотехнический расчёт (РБ) — v2.1', x, y); y+=6;
+    doc.setFontSize(14); doc.text('Теплотехнический расчёт (РБ) — v2.2', x, y); y+=6;
     doc.setFontSize(10);
     const now = new Date();
     const ctypeText = $('ctype').selectedOptions[0].text;
@@ -543,7 +586,7 @@
       doc.text('Для неоднородных участков учитывайте коэффициент теплотехнической однородности.', x, y);
     }
 
-    doc.save('thermal_calc_v2_1.pdf');
+    doc.save('thermal_calc_v2_2.pdf');
 
     function hexToRgb(hex){ const c = hex.replace('#',''); const v = c.length===3 ? c.split('').map(s=>s+s).join('') : c; const n = parseInt(v,16); return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 }; }
   }
@@ -554,11 +597,11 @@
       advRsi:$('advRsi').value, advRse:$('advRse').value,
       layers: layers.map(L=>({ name:L.name, d:L.d, lam:L.lam, matKey:L.matKey })),
       insulMat:$('insulMat').value, lamIns:$('lamIns').value };
-    localStorage.setItem('rb_thermal_v2_1', JSON.stringify(st));
+    localStorage.setItem('rb_thermal_v2_2', JSON.stringify(st));
   }
   function loadState(){
     try{
-      const s = JSON.parse(localStorage.getItem('rb_thermal_v2_1')||'{}');
+      const s = JSON.parse(localStorage.getItem('rb_thermal_v2_2')||'{}');
       if(s.ctype) $('ctype').value = s.ctype;
       if(s.regime) $('regime').value = s.regime;
       if(typeof s.manualR==='boolean'){ manualR = s.manualR; $('advToggle').checked = manualR; $('advBox').style.display = manualR? 'block':'none'; }
@@ -573,17 +616,13 @@
   }
 
   /* ====== СВЯЗИ ====== */
-  // слои
   $('btnAdd').onclick = ()=>{ layers.push({ name:"Новый слой", d:50, lam:0.037, matKey:"mw" }); renderLayers(); recalc(); drawSection(); };
   $('btnClear').onclick = ()=>{ layers = [{ name:"Минеральная вата", d:100, lam:0.037, matKey:"mw" }]; renderLayers(); recalc(); drawSection(); };
   $('btnPlus').onclick = ()=> ensureCount(layers.length+1);
   $('btnMinus').onclick = ()=> ensureCount(layers.length-1);
   $('layersCount').oninput = e => ensureCount(num(e.target.value));
-  // вводные
-  $('ctype').onchange = ()=>{ if(!manualR){ // авто-Rse в зависимости от типа
-      $('advRse').value = rseAuto($('ctype').value).toFixed(2);
-      $('advRsi').value = rsiAuto($('ctype').value).toFixed(2);
-    } recalc(); };
+
+  $('ctype').onchange = ()=>{ if(!manualR){ $('advRse').value = rseAuto($('ctype').value).toFixed(2); $('advRsi').value = rsiAuto($('ctype').value).toFixed(2); } recalc(); };
   $('regime').onchange = ()=>{
     const reg = $('regime').value;
     layers = layers.map(L=>{
@@ -595,20 +634,18 @@
     });
     renderLayers(); updateInsulLambdaFromPreset(); recalc(); drawSection();
   };
-  // расширенные
+
   $('advToggle').onchange = (e)=>{ manualR = e.target.checked; $('advBox').style.display = manualR? 'block':'none';
     if(!manualR){ $('advRsi').value = rsiAuto($('ctype').value).toFixed(2); $('advRse').value = rseAuto($('ctype').value).toFixed(2); }
     recalc(); };
   $('advRsi').oninput = recalc; $('advRse').oninput = recalc;
 
-  // утеплитель
   $('insulMat').onchange = ()=>{ updateInsulLambdaFromPreset(); recalc(); };
   $('lamIns').oninput = ()=>{ recalc(); };
 
   $('btnDraw').onclick = drawSection;
   $('btnPdf').onclick  = exportPDF;
 
-  // Вкладки «Кратко/Подробно»
   $('tabBrief').onclick = ()=>{
     $('tabBrief').classList.add('active'); $('tabDetail').classList.remove('active');
     $('paneBrief').style.display=''; $('paneDetail').style.display='none';
@@ -623,15 +660,20 @@
     $('advRsi').value = rsiAuto($('ctype').value).toFixed(2);
     $('advRse').value = rseAuto($('ctype').value).toFixed(2);
   }
+  window.addEventListener('beforeunload', ()=>saveState());
 
-  function saveOnUnload(){ saveState(); }
-  window.addEventListener('beforeunload', saveOnUnload);
+  function fillInsulMat(){
+    const sel = $('insulMat'); sel.innerHTML = "";
+    const group = MATERIAL_GROUPS.find(g=>g.group==="Утеплители");
+    group.items.forEach(m=>{ const o = document.createElement('option'); o.value=m.key; o.textContent=m.name; sel.append(o); });
+    sel.value = sel.value || 'mw'; updateInsulLambdaFromPreset();
+  }
 
-  fillInsulMat();
   renderLayers();
   initAdvDefaults();
   loadState();
   renderLayers();
+  fillInsulMat();
   updateInsulLambdaFromPreset();
   recalc();
   drawSection();
