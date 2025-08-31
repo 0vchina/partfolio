@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Калькулятор теплотехнического расчёта (РБ)</title>
+<style>
+  :root{
+    --bg:#f7f8fb;--fg:#0f172a;--muted:#64748b;--b:#e5e7eb;--b2:#cbd5e1;
+    --okb:#a7f3d0;--okbg:#ecfdf5;--badb:#fecaca;--badbg:#fef2f2;--acc:#0ea5e9;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+  .wrap{max-width:1100px;margin:24px auto;padding:16px}
+  h1{margin:0 0 6px 0;font-size:clamp(22px,3vw,28px);font-weight:650}
+  .muted{color:var(--muted);font-size:14px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .card{background:#fff;border:1px solid var(--b);border-radius:16px;padding:16px;margin:12px 0}
+  input,select,button{border:1px solid var(--b2);border-radius:10px;padding:8px;font:inherit}
+  input[type="number"]{appearance:textfield}
+  button{cursor:pointer}
+  .btn{background:var(--acc);border-color:var(--acc);color:#fff}
+  .btn.outline{background:#fff;color:var(--acc)}
+  .ghost{background:#fff}
+  .gridHdr,.grid{display:grid;grid-template-columns:5fr 2.5fr 2.5fr 3.2fr 44px;gap:8px;align-items:center}
+  .gridHdr{font-size:12px;color:var(--muted);margin-top:8px}
+  .pill{display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;border-radius:999px;padding:4px 10px;font-size:12px;margin:0 6px 6px 0}
+  .pill .num{font-weight:650}
+  .ok{background:var(--okbg);border:1px solid var(--okb);padding:10px;border-radius:12px}
+  .bad{background:var(--badbg);border:1px solid var(--badb);padding:10px;border-radius:12px}
+  .foot{font-size:12px;color:var(--muted)}
+  .flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .space{height:8px}
+  .toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap}
+  canvas{max-width:100%;background:#fff;border:1px dashed #cbd5e1;border-radius:12px}
+  @media (max-width:900px){
+    .gridHdr,.grid{grid-template-columns:1fr 110px 120px 1fr 38px}
+  }
+  @media (max-width:640px){
+    .row,.row3{grid-template-columns:1fr}
+    .gridHdr,.grid{grid-template-columns:1fr 100px 110px 1fr 36px}
+  }
+</style>
+<!-- jsPDF с CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-NaWqzHkU1mN9s6X9fQ8zQ8e3l8LPf1J7kGzM2qR8q9+8N0gH0t4kz2i2c3Hk9x9VqTb4KmUe5qz2N6S5K3f6sg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+<div class="wrap">
+  <h1>Калькулятор теплотехнического расчёта — РБ</h1>
+  <div class="muted">R<sub>пр</sub> = R<sub>si</sub> + Σ(d/λ) + R<sub>se</sub>. Сравнение с R<sub>норм</sub>. Экспорт в PDF — с разрезом слоёв.</div>
+
+  <!-- Вводные -->
+  <div class="card">
+    <div class="row">
+      <label>Тип конструкции
+        <select id="ctype">
+          <option value="wall">Наружная стена (Rн=3.2)</option>
+          <option value="roof">Покрытие/чердачное (Rн=6.0)</option>
+          <option value="basement">Перекрытие над неотапл. подвалом (Rн=2.5)</option>
+          <option value="ground">Пол по грунту (см. прим.)</option>
+        </select>
+      </label>
+      <label>Направление теплопотока (для Rsi)
+        <select id="flow">
+          <option>Гор./верт. (по умолчанию)</option>
+          <option>Вверх (потолок)</option>
+          <option>Вниз (пол/плита)</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="row" style="margin-top:8px">
+      <label>Режим эксплуатации (влажностное состояние) — влияет на λ материалов
+        <select id="regime">
+          <option value="A">A — сухой/нормальный (ϕ≈75%)</option>
+          <option value="B">B — увлажнённый (ϕ≈90%)</option>
+        </select>
+      </label>
+      <div class="flex">
+        <label>Количество слоёв
+          <input id="layersCount" type="number" min="1" step="1" value="4" style="width:110px">
+        </label>
+        <button id="btnMinus" class="ghost" title="Убавить слой">–</button>
+        <button id="btnPlus"  class="btn outline" title="Добавить слой">+</button>
+      </div>
+    </div>
+
+    <!-- Слои -->
+    <div class="space"></div>
+    <div class="gridHdr">
+      <div>Материал слоя</div>
+      <div>Толщина, мм</div>
+      <div>λ, Вт/(м·К)</div>
+      <div>Пресет материала</div>
+      <div></div>
+    </div>
+    <div id="layers"></div>
+
+    <div class="toolbar">
+      <div class="flex" style="gap:6px">
+        <button id="btnClear">Очистить</button>
+        <button id="btnAdd" class="btn">+ Добавить слой</button>
+      </div>
+      <div class="flex" style="gap:10px">
+        <button id="btnDraw" class="ghost" title="Обновить схему">Обновить схему разреза</button>
+        <button id="btnPdf"  class="btn"   title="Экспорт PDF">Экспорт в PDF</button>
+      </div>
+    </div>
+
+    <div style="margin-top:10px">
+      <canvas id="sectionCanvas" width="980" height="140"></canvas>
+      <div class="foot">Схема разреза: ширина каждого слоя пропорциональна толщине (масштаб по горизонтали). Цвет — ориентировочно по категории материала.</div>
+    </div>
+  </div>
+
+  <!-- Результаты -->
+  <div class="card" id="result">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+      <span class="pill">Rsi: <span class="num" id="rsi">0.13</span> м²·°C/Вт</span>
+      <span class="pill">Σ(d/λ): <span class="num" id="rsum">0.000</span> м²·°C/Вт</span>
+      <span class="pill">Rse: <span class="num" id="rse">0.04</span> м²·°C/Вт</span>
+      <span class="pill">Rпр: <span class="num" id="rpr">0.000</span> м²·°C/Вт</span>
+      <span class="pill">Rнорм: <span class="num" id="rnorm">3.20</span> м²·°C/Вт</span>
+      <span class="pill">U=1/R: <span class="num" id="uval">—</span> Вт/(м²·°C)</span>
+    </div>
+    <div id="verdict" class="ok">—</div>
+
+    <div class="card" style="margin:12px 0 0">
+      <b>Подбор дополнительного утеплителя</b>
+      <div class="row" style="margin-top:8px">
+        <label>Материал утеплителя (λ по выбранному режиму)
+          <select id="insulMat"></select>
+        </label>
+        <label>Расчётная λ утеплителя, Вт/(м·К)
+          <input id="lamIns" type="number" step="0.001" value="0.037">
+        </label>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <label>Нужно добавить, мм
+          <input id="need" type="number" readonly>
+        </label>
+        <label>Дефицит R (если есть), м²·°C/Вт
+          <input id="deficit" type="text" readonly>
+        </label>
+      </div>
+    </div>
+
+    <div class="foot" style="margin-top:8px">
+      Пол по грунту: финальная проверка — по Приложению K (СП 2.04.01-2020). Здесь показан расчёт слоёв без учёта грунта. Рекомендуется периметральная изоляция ≥0.8 м.
+    </div>
+  </div>
+
+  <div class="foot">Упрощённый расчёт для однородных участков. Для узлов/мостиков — использовать коэффициент теплотехнической однородности.</div>
+</div>
+
+<script>
+  // ===== ДАННЫЕ (расширенный справочник с группировкой) =====
+  const MATERIAL_GROUPS = [
+    { group: "Утеплители", items: [
+      { key:"mw",   name:"Минеральная вата",                lambdaA:0.037, lambdaB:0.040, cat:"insul" },
+      { key:"mw150",name:"Базальтовая плита 150 кг/м³",    lambdaA:0.041, lambdaB:0.045, cat:"insul" },
+      { key:"glassw",name:"Стекловата",                    lambdaA:0.040, lambdaB:0.044, cat:"insul" },
+      { key:"eps",  name:"ПСБ (EPS)",                      lambdaA:0.036, lambdaB:0.038, cat:"insul" },
+      { key:"xps",  name:"XPS",                            lambdaA:0.032, lambdaB:0.034, cat:"insul" },
+      { key:"pur",  name:"Пенополиуретан жёсткий (PUR)",   lambdaA:0.028, lambdaB:0.030, cat:"insul" },
+      { key:"ecow", name:"Эковата",                        lambdaA:0.040, lambdaB:0.045, cat:"insul" },
+    ]},
+    { group: "Газо- и пенобетон", items: [
+      { key:"aac3", name:"Газобетон D300",                 lambdaA:0.10,  lambdaB:0.12,  cat:"aac" },
+      { key:"aac4", name:"Газобетон D400",                 lambdaA:0.12,  lambdaB:0.14,  cat:"aac" },
+      { key:"aac5", name:"Газобетон D500",                 lambdaA:0.14,  lambdaB:0.16,  cat:"aac" },
+      { key:"aac6", name:"Газобетон D600",                 lambdaA:0.16,  lambdaB:0.18,  cat:"aac" },
+      { key:"foam", name:"Пенобетон монолитный",           lambdaA:0.35,  lambdaB:0.38,  cat:"lightcon" },
+    ]},
+    { group: "Кирпич", items: [
+      { key:"brick_full", name:"Кирпич керамический полнотелый", lambdaA:0.81, lambdaB:0.87, cat:"brick" },
+      { key:"brick_hole", name:"Кирпич керамический пустотелый", lambdaA:0.58, lambdaB:0.63, cat:"brick" },
+      { key:"sil_full",   name:"Кирпич силикатный полнотелый",   lambdaA:0.87, lambdaB:0.93, cat:"brick" },
+      { key:"sil_hole",   name:"Кирпич силикатный пустотелый",   lambdaA:0.65, lambdaB:0.71, cat:"brick" },
+    ]},
+    { group: "Бетоны и растворы", items: [
+      { key:"concr", name:"Бетон тяжёлый",                 lambdaA:1.69,  lambdaB:1.75,  cat:"concrete" },
+      { key:"lcon1400", name:"Бетон лёгкий (ρ≈1400)",      lambdaA:0.52,  lambdaB:0.56,  cat:"lightcon" },
+      { key:"clc",   name:"Керамзитобетон (блок)",         lambdaA:0.43,  lambdaB:0.46,  cat:"lightcon" },
+      { key:"mortar",name:"Раствор цементный",             lambdaA:1.00,  lambdaB:1.05,  cat:"concrete" },
+      { key:"screed",name:"Стяжка цем.-песч.",             lambdaA:1.40,  lambdaB:1.45,  cat:"concrete" },
+    ]},
+    { group: "Дерево и плиты", items: [
+      { key:"wood", name:"Дерево хвойное",                 lambdaA:0.18,  lambdaB:0.20,  cat:"wood" },
+      { key:"wood_hard", name:"Дерево лиственное",         lambdaA:0.20,  lambdaB:0.22,  cat:"wood" },
+      { key:"board_dry", name:"Доска сухая строганная",    lambdaA:0.15,  lambdaB:0.17,  cat:"wood" },
+      { key:"osb3", name:"OSB-3",                          lambdaA:0.13,  lambdaB:0.15,  cat:"wood" },
+      { key:"ply",  name:"Фанера",                         lambdaA:0.15,  lambdaB:0.17,  cat:"wood" },
+      { key:"gkl",  name:"ГКЛ",                            lambdaA:0.25,  lambdaB:0.27,  cat:"board" },
+    ]},
+    { group: "Отделка / покрытие", items: [
+      { key:"plstr",name:"Штукатурка цем.-песч.",          lambdaA:0.93,  lambdaB:1.00,  cat:"plaster" },
+      { key:"gyp_pl",name:"Штукатурка гипсовая",           lambdaA:0.35,  lambdaB:0.40,  cat:"plaster" },
+      { key:"tile", name:"Керамогранит/плитка",            lambdaA:1.00,  lambdaB:1.05,  cat:"tile" },
+      { key:"roofmem",name:"Кровельная мембрана (оценочно)", lambdaA:0.20,lambdaB:0.22,  cat:"membrane" },
+    ]},
+  ];
+
+  const RNORM = { wall:3.2, roof:6.0, basement:2.5, ground:0 };
+  const RSI = {
+    "Гор./верт. (по умолчанию)":0.13,
+    "Вверх (потолок)":0.10,
+    "Вниз (пол/плита)":0.17
+  };
+  const RSE_OUT = 0.04;
+
+  // Цвета категорий для схемы (мягкие)
+  const CAT_COLORS = {
+    insul:"#fde68a", aac:"#c7d2fe", lightcon:"#ddd6fe", brick:"#fecaca",
+    concrete:"#e5e7eb", wood:"#fed7aa", board:"#e9d5ff", plaster:"#f3e8ff",
+    tile:"#e2e8f0", membrane:"#cffafe", other:"#e5e7eb"
+  };
+
+  // ===== ВСПОМОГАТЕЛЬНЫЕ =====
+  const $ = (id)=>document.getElementById(id);
+  const num = (v)=>{ const n = typeof v==="string" ? parseFloat(v.replace(",", ".")) : Number(v); return isFinite(n)?n:0; };
+  const clamp = (x,min,max)=>Math.max(min,Math.min(max,x));
+  const flatMaterials = MATERIAL_GROUPS.reduce((a,g)=>a.concat(g.items),[]);
+
+  function matByKey(k){ return flatMaterials.find(m=>m.key===k); }
+  function lambdaOf(matKey, regime){
+    const m = matByKey(matKey);
+    if(!m) return 0.04;
+    return regime==="B" ? m.lambdaB : m.lambdaA;
+  }
+  function catColor(matKey){
+    const m = matByKey(matKey);
+    return CAT_COLORS[m?.cat || "other"] || CAT_COLORS.other;
+  }
+
+  function saveState(){
+    const st = {
+      ctype: $('ctype').value, flow:$('flow').value, regime:$('regime').value,
+      layers: layers.map(L=>({ name:L.name, d:L.d, lam:L.lam, matKey:L.matKey })),
+      insulMat:$('insulMat').value, lamIns:$('lamIns').value
+    };
+    localStorage.setItem('rb_thermal', JSON.stringify(st));
+  }
+  function loadState(){
+    try{
+      const s = JSON.parse(localStorage.getItem('rb_thermal')||'{}');
+      if(s.ctype) $('ctype').value = s.ctype;
+      if(s.flow) $('flow').value = s.flow;
+      if(s.regime) $('regime').value = s.regime;
+      if(Array.isArray(s.layers) && s.layers.length){
+        layers = s.layers.map(x=>({ name:x.name||"", d:num(x.d), lam:num(x.lam), matKey:x.matKey||"" }));
+      }
+      if(s.insulMat) $('insulMat').value = s.insulMat;
+      if(s.lamIns) $('lamIns').value = s.lamIns;
+    }catch(e){}
+  }
+
+  // ===== СЛОИ =====
+  const layersBox = $('layers');
+  let layers = [
+    { name:"Штукатурка", d:15, lam:0.93,  matKey:"plstr" },
+    { name:"Газобетон D400", d:300, lam:0.12, matKey:"aac4" },
+    { name:"Минеральная вата", d:120, lam:0.037, matKey:"mw" },
+    { name:"OSB-3", d:12, lam:0.13, matKey:"osb3" },
+  ];
+
+  function ensureCount(n){
+    n = clamp(n|0,1,100);
+    const cur = layers.length;
+    if(n>cur){ for(let i=0;i<n-cur;i++) layers.push({ name:"Новый слой", d:50, lam:0.037, matKey:"mw" }); }
+    if(n<cur){ layers.splice(n, cur-n); }
+    renderLayers(); recalc(); drawSection();
+  }
+
+  function buildPresetSelect(i, currentKey){
+    const preset = document.createElement('select');
+    const opt0 = document.createElement('option'); opt0.textContent = "— выбрать материал —";
+    preset.append(opt0);
+    MATERIAL_GROUPS.forEach(gr=>{
+      const og = document.createElement('optgroup'); og.label = gr.group;
+      gr.items.forEach(m=>{
+        const o = document.createElement('option');
+        o.value=m.key; o.textContent=m.name;
+        if(m.key===currentKey) o.selected=true;
+        og.append(o);
+      });
+      preset.append(og);
+    });
+    preset.onchange = () => {
+      const k = preset.value;
+      layers[i].matKey = k;
+      const m = matByKey(k);
+      if(m){
+        layers[i].name = m.name;
+        layers[i].lam  = lambdaOf(k, $('regime').value);
+        const row = layersBox.querySelectorAll('.grid')[i];
+        row.querySelector('.name').value = layers[i].name;
+        row.querySelector('.lam').value  = layers[i].lam;
+        recalc(); drawSection(); saveState();
+      }
+    };
+    return preset;
+  }
+
+  function renderLayers(){
+    layersBox.innerHTML = "";
+    $('layersCount').value = layers.length;
+
+    layers.forEach((L, i) => {
+      const row = document.createElement('div'); row.className='grid';
+
+      const name = document.createElement('input'); name.className='name';
+      name.value = L.name;
+      name.oninput = e => { layers[i].name = e.target.value; saveState(); };
+
+      const d = document.createElement('input'); d.type='number'; d.step='1'; d.value=L.d;
+      d.oninput = e => { layers[i].d = num(e.target.value); recalc(); drawSection(); saveState(); };
+
+      const lam = document.createElement('input'); lam.className='lam';
+      lam.type='number'; lam.step='0.001'; lam.value=L.lam;
+      lam.oninput = e => { layers[i].lam = num(e.target.value); recalc(); drawSection(); saveState(); };
+
+      const preset = buildPresetSelect(i, L.matKey);
+
+      const del = document.createElement('button');
+      del.textContent='×'; del.title='Удалить';
+      del.onclick = () => { layers.splice(i,1); renderLayers(); recalc(); drawSection(); saveState(); };
+
+      row.append(name, d, lam, preset, del);
+      layersBox.append(row);
+    });
+  }
+
+  // ===== ИСХОДНЫЕ ПОКАЗАТЕЛИ =====
+  function rsiValue(){ return RSI[$('flow').value] ?? 0.13; }
+  function rseValue(){
+    const t = $('ctype').value;
+    return (t==='wall' || t==='roof') ? RSE_OUT : 0;
+  }
+  function rnormValue(){ return RNORM[$('ctype').value] ?? 0; }
+
+  // ===== ПОДБОР УТЕПЛИТЕЛЯ =====
+  function fillInsulMat(){
+    const sel = $('insulMat');
+    sel.innerHTML = "";
+    MATERIAL_GROUPS.find(g=>g.group==="Утеплители").items.forEach(m=>{
+      const o = document.createElement('option');
+      o.value=m.key; o.textContent=m.name;
+      sel.append(o);
+    });
+    sel.value = sel.value || 'mw';
+    updateInsulLambdaFromPreset();
+  }
+  function updateInsulLambdaFromPreset(){
+    const k = $('insulMat').value;
+    $('lamIns').value = lambdaOf(k, $('regime').value).toFixed(3);
+  }
+
+  // ===== РАСЧЁТ =====
+  function recalc(){
+    const Rsi = rsiValue();
+    const Rse = rseValue();
+    let Rlayers = 0;
+    layers.forEach(L=>{
+      const d_m = num(L.d)/1000;
+      const lam = Math.max(1e-6, num(L.lam));
+      Rlayers += d_m/lam;
+    });
+    const Rpr = Rsi + Rlayers + Rse;
+    const Rnorm = rnormValue();
+    const U = Rpr>0 ? (1/Rpr) : 0;
+
+    $('rsi').textContent = Rsi.toFixed(2);
+    $('rse').textContent = Rse.toFixed(2);
+    $('rsum').textContent = Rlayers.toFixed(3);
+    $('rpr').textContent = Rpr.toFixed(3);
+    $('rnorm').textContent = Rnorm.toFixed(2);
+    $('uval').textContent = Rpr>0 ? U.toFixed(4) : "—";
+
+    const v = $('verdict');
+    if ($('ctype').value==='ground'){
+      v.className='ok';
+      v.textContent = "Пол по грунту: итог по Приложению K (СП 2.04.01-2020). Здесь расчёт слоёв без грунта. Рекомендуется периметральная изоляция ≥0.8 м.";
+      $('deficit').value = "";
+      $('need').value = "";
+      saveState();
+      return;
+    }
+    const deficit = Math.max(0, Rnorm - Rpr);
+    $('deficit').value = deficit>0 ? deficit.toFixed(3) : "0.000";
+
+    const lamIns = Math.max(1e-6, num($('lamIns').value) || 0.037);
+    const add_mm = deficit > 0 ? Math.ceil(deficit * lamIns * 1000) : 0;
+    $('need').value = add_mm;
+
+    if (Rnorm === 0){
+      v.className='ok'; v.textContent='—';
+    } else if (Rpr >= Rnorm){
+      v.className='ok'; v.textContent='Ок: Rпр ≥ Rн. Конструкция соответствует требованию.';
+    } else {
+      v.className='bad'; v.textContent='Недостаточно: не хватает ' + deficit.toFixed(2) + ' м²·°C/Вт.';
+    }
+    saveState();
+  }
+
+  // ===== СХЕМА РАЗРЕЗА (Canvas) =====
+  function drawSection(){
+    const cnv = $('sectionCanvas'), ctx = cnv.getContext('2d');
+    const W = cnv.width, H = cnv.height;
+    ctx.clearRect(0,0,W,H);
+    // рамка
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(10,10,W-20,H-20);
+
+    const total_mm = layers.reduce((s,L)=>s+Math.max(0,num(L.d)),0);
+    const innerW = W-40, x0 = 20, y0 = 40, h = 40;
+    let x = x0;
+    if(total_mm<=0){
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('Добавьте толщины слоёв — схема появится', x0, y0+20);
+      return;
+    }
+
+    // прямоугольники слоёв
+    ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+    layers.forEach((L, i)=>{
+      const frac = Math.max(0,num(L.d)) / total_mm;
+      const w = Math.max(2, innerW * frac);
+      ctx.fillStyle = catColor(L.matKey);
+      ctx.fillRect(x, y0, w, h);
+      ctx.strokeStyle = '#334155';
+      ctx.strokeRect(x, y0, w, h);
+
+      // подпись
+      ctx.fillStyle = '#111827';
+      const label = `${i+1}. ${L.name} (${num(L.d)} мм)`;
+      const textW = ctx.measureText(label).width;
+      let tx = x + 4; if (tx + textW > x + w - 4) tx = x + w - 4 - textW;
+      if (tx < x + 4) tx = x + 4;
+      ctx.fillText(label, tx, y0 + h + 18);
+
+      x += w;
+    });
+
+    // шкала толщин
+    ctx.fillStyle = '#64748b';
+    ctx.fillText(`Σ толщин = ${total_mm.toFixed(0)} мм`, x0, y0 - 12);
+  }
+
+  // ===== Экспорт в PDF =====
+  async function exportPDF(){
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:'mm', format:'a4' }); // 210 x 297
+    const fontLoaded = await tryLoadIso(doc); // попытка загрузить isocpeur-italic.ttf
+    try{ doc.setFont(fontLoaded ? 'isocpeur' : 'helvetica', 'italic'); }catch(e){}
+    let x = 15, y = 16;
+
+    // Заголовок
+    doc.setFontSize(14);
+    doc.text('Теплотехнический расчёт (РБ)', x, y);
+    y += 6;
+    doc.setFontSize(10);
+    const now = new Date();
+    doc.text(`Тип: ${$('ctype').selectedOptions[0].text} • Режим: ${$('regime').value} • Поток: ${$('flow').value} • Дата: ${now.toLocaleString()}`, x, y);
+    y += 6;
+
+    // Схема слоёв (рисуем в PDF векторно)
+    const figX = x, figY = y, figW = 180, figH = 18; // ширина области под слои
+    const total_mm = layers.reduce((s,L)=>s+Math.max(0,num(L.d)),0);
+    doc.setDrawColor(150); doc.rect(figX, figY, figW, figH);
+    let px = figX;
+    if (total_mm>0){
+      layers.forEach((L,i)=>{
+        const frac = Math.max(0,num(L.d))/total_mm;
+        const w = Math.max(1, figW*frac);
+        const col = hexToRgb(catColor(L.matKey));
+        doc.setFillColor(col.r, col.g, col.b);
+        doc.rect(px, figY, w, figH, 'F');
+        doc.setDrawColor(80); doc.rect(px, figY, w, figH);
+        // подпись номера
+        doc.setTextColor(30);
+        doc.text(String(i+1), px+1.5, figY+figH-2.5);
+        px += w;
+      });
+    } else {
+      doc.text('Добавьте толщины слоёв — схема появится', figX+2, figY+figH/1.5);
+    }
+    y += figH + 4;
+
+    // Таблица слоёв
+    doc.setTextColor(30);
+    doc.text('Слои:', x, y); y += 5;
+    // Заголовок таблицы
+    const cols = [8, 82, 24, 24, 24]; // #, Материал, d мм, λ, R_i
+    let cx = x;
+    ['#','Материал','Толщина, мм','λ, Вт/(м·К)','R_i, м²·°C/Вт'].forEach((t,i2)=>{
+      doc.text(t, cx+1, y);
+      cx += cols[i2];
+    });
+    y += 2; doc.setDrawColor(150); doc.line(x, y, x+cols.reduce((a,b)=>a+b,0), y); y += 3;
+
+    // Строки
+    let Rlayers = 0;
+    layers.forEach((L,i)=>{
+      const d_m = num(L.d)/1000;
+      const lam = Math.max(1e-6, num(L.lam));
+      const Ri = d_m/lam; Rlayers += Ri;
+      cx = x;
+      const row = [String(i+1), L.name, num(L.d).toFixed(0), num(L.lam).toFixed(3), Ri.toFixed(3)];
+      row.forEach((t,i2)=>{ doc.text(String(t), cx+1, y); cx += cols[i2]; });
+      y += 5;
+      if (y > 270){ doc.addPage(); try{ doc.setFont(fontLoaded ? 'isocpeur' : 'helvetica', 'italic'); }catch(e){} y = 16; }
+    });
+
+    // Итого + проверка
+    const Rsi = rsiValue(), Rse = rseValue(), Rpr = Rsi + Rlayers + Rse, Rnorm = rnormValue();
+    const U = Rpr>0 ? (1/Rpr) : 0;
+    y += 2; doc.setDrawColor(150); doc.line(x, y, x+cols.reduce((a,b)=>a+b,0), y); y += 6;
+    doc.text(`Rsi: ${Rsi.toFixed(2)};  Σ(d/λ): ${Rlayers.toFixed(3)};  Rse: ${Rse.toFixed(2)}`, x, y); y += 5;
+    doc.text(`Rпр: ${Rpr.toFixed(3)};  U=1/R: ${U.toFixed(4)} Вт/(м²·°C)`, x, y); y += 5;
+    doc.text(`Rнорм: ${Rnorm.toFixed(2)} → ${Rnorm>0 ? (Rpr>=Rnorm ? 'СООТВЕТСТВУЕТ' : 'НЕ СООТВЕТСТВУЕТ') : '—'}`, x, y); y += 7;
+
+    // Подбор утеплителя
+    const def = Math.max(0, Rnorm - Rpr);
+    const lamIns = Math.max(1e-6, num($('lamIns').value) || 0.037);
+    const add_mm = def > 0 ? Math.ceil(def * lamIns * 1000) : 0;
+    doc.text(`Подбор утеплителя: материал — ${$('insulMat').selectedOptions[0].text}; λ = ${lamIns.toFixed(3)} Вт/(м·К)`, x, y); y += 5;
+    doc.text(`Дефицит R: ${def.toFixed(3)} м²·°C/Вт;  Требуется добавить: ${add_mm} мм`, x, y); y += 7;
+
+    // Примечания
+    doc.setTextColor(90);
+    const type = $('ctype').value;
+    if(type==='ground'){
+      doc.text('Примечание: для пола по грунту итоговый расчёт по Приложению K (СП 2.04.01-2020).', x, y); y += 5;
+    }
+    doc.text('Упрощённый расчёт для однородных участков. Для узлов/мостиков — применять коэффициент теплотехнической однородности.', x, y);
+
+    doc.save('thermal_calc.pdf');
+  }
+
+  async function tryLoadIso(doc){
+    // Положи файл TTF сюда: /assets/isocpeur-italic.ttf
+    // Если не найден — используем стандартный курсив.
+    try{
+      const resp = await fetch('assets/isocpeur-italic.ttf', { cache:'no-store' });
+      if(!resp.ok) throw new Error('no font');
+      const ab = await resp.arrayBuffer();
+      const b64 = arrayBufferToBase64(ab);
+      doc.addFileToVFS('isocpeur-italic.ttf', b64);
+      doc.addFont('isocpeur-italic.ttf','isocpeur','italic');
+      return true;
+    }catch(e){
+      console.warn('ISO CPEUR italic TTF не найден, используем fallback');
+      return false;
+    }
+  }
+  function arrayBufferToBase64(buffer){
+    let binary = ''; const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) binary += String.fromCharCode(bytes[i]);
+    return window.btoa(binary);
+  }
+  function hexToRgb(hex){
+    const c = hex.replace('#','');
+    const v = c.length===3 ? c.split('').map(s=>s+s).join('') : c;
+    const n = parseInt(v,16);
+    return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 };
+  }
+
+  // ===== СВЯЗИ UI =====
+  $('btnAdd').onclick = ()=>{ layers.push({ name:"Новый слой", d:50, lam:0.037, matKey:"mw" }); renderLayers(); recalc(); drawSection(); };
+  $('btnClear').onclick = ()=>{ layers = [{ name:"Минеральная вата", d:100, lam:0.037, matKey:"mw" }]; renderLayers(); recalc(); drawSection(); };
+  $('btnPlus').onclick = ()=> ensureCount(layers.length+1);
+  $('btnMinus').onclick = ()=> ensureCount(layers.length-1);
+  $('layersCount').oninput = e => ensureCount(num(e.target.value));
+  $('ctype').onchange = ()=>{ recalc(); };
+  $('flow').onchange = ()=>{ recalc(); };
+  $('regime').onchange = ()=>{
+    const reg = $('regime').value;
+    layers = layers.map(L=>{
+      if (L.matKey){
+        const m = matByKey(L.matKey);
+        if(m){ return { ...L, name:m.name, lam: lambdaOf(L.matKey, reg) }; }
+      }
+      return L;
+    });
+    renderLayers();
+    updateInsulLambdaFromPreset();
+    recalc();
+    drawSection();
+  };
+  $('insulMat').onchange = ()=>{ updateInsulLambdaFromPreset(); recalc(); };
+  $('lamIns').oninput = ()=>{ recalc(); };
+
+  $('btnDraw').onclick = drawSection;
+  $('btnPdf').onclick  = exportPDF;
+
+  // ===== INIT =====
+  fillInsulMat();
+  renderLayers();
+  loadState();
+  renderLayers();
+  updateInsulLambdaFromPreset();
+  recalc();
+  drawSection();
+</script>
+</body>
+</html>
