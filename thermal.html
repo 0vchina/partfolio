@@ -1,56 +1,68 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Калькулятор теплотехнического расчёта — РБ (v2.2, авто-Rsi)</title>
-<meta name="description" content="Пошаговый теплотехнический расчёт по РБ: авто-Rsi по типу конструкции, понятный вывод, PDF.">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Теплотехнический калькулятор — РБ (v2.2, авто-Rsi)</title>
+<meta name="description" content="Пошаговый теплотехнический расчёт по РБ: авто-Rsi по типу конструкции, понятный вывод, печать/PDF.">
 <style>
   :root{
-    --bg:#f7f8fb;--fg:#0f172a;--muted:#64748b;--b:#e5e7eb;--b2:#cbd5e1;
-    --okb:#a7f3d0;--okbg:#ecfdf5;--badb:#fecaca;--badbg:#fef2f2;--warnbg:#fff7cc;--warnb:#ffe58f;--acc:#0ea5e9;
+    /* как у «ветровых» */
+    --bg:#0b1020; --card:#111730; --ink:#eaf1ff; --muted:#b7c4e0; --line:#263166; --acc:#8ab4ff;
+    --radius:16px; --shadow:0 8px 22px rgba(0,0,0,.35);
+    --col-left:460px; --gap:16px; --max:1500px;
+    --okbg:#0f2a22; --okb:#2dd4bf; --badbg:#2a0f13; --badb:#f87171; --warnbg:#2a2410; --warnb:#facc15;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
-  .wrap{max-width:1100px;margin:22px auto;padding:16px}
-  h1{margin:0 0 8px;font-size:clamp(22px,3.2vw,30px);font-weight:650}
-  .muted{color:var(--muted);font-size:14px}
+  html,body{height:100%; overflow-x:hidden}
+  body{margin:0; font-family:Inter, system-ui, Arial, sans-serif; background:var(--bg); color:var(--ink)}
+  .container{max-width:var(--max); margin:auto; padding:14px}
+  header{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+  h1{margin:0; font-size:22px}
+  .badge{font-size:12px; color:var(--muted)}
+  .actions{display:flex; gap:8px}
+  .actions .btn, .actions button{
+    appearance:none; border:1px solid var(--line); background:#1a2340; color:var(--ink);
+    padding:10px 14px; border-radius:10px; cursor:pointer; text-decoration:none; display:inline-block
+  }
+  .actions .btn:hover, .actions button:hover{background:#213058}
 
-  .card{background:#fff;border:1px solid var(--b);border-radius:16px;padding:16px;margin:12px 0}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media (max-width:720px){ .row{grid-template-columns:1fr} }
-  input,select,button{border:1px solid var(--b2);border-radius:10px;padding:8px;font:inherit}
-  button{cursor:pointer}
-  .btn{background:var(--acc);border-color:var(--acc);color:#fff}
-  .btn.secondary{background:#fff;color:var(--acc)}
-  .toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:6px}
+  .grid{
+    display:grid;
+    grid-template-columns: minmax(0,var(--col-left)) minmax(0,1.5fr);
+    gap:var(--gap); margin-top:14px
+  }
+  @media (max-width: 1000px){ .grid{grid-template-columns:1fr} }
 
-  /* Утилиты */
-  .note{font-size:12px;color:var(--muted)}
-  .pill{display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;border-radius:999px;padding:4px 10px;font-size:12px;margin:0 6px 6px 0}
-  .pill .num{font-weight:650}
-  .ok{background:var(--okbg);border:1px solid var(--okb);padding:10px;border-radius:12px}
-  .bad{background:var(--badbg);border:1px solid var(--badb);padding:10px;border-radius:12px}
-  .warn{background:var(--warnbg);border:1px solid var(--warnb);padding:10px;border-radius:12px}
-  .scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .truncate{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card{background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); margin-bottom:16px; box-shadow:var(--shadow)}
+  .card h2{margin:0; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.08); font-size:16px}
+  .card .bd{padding:14px}
 
-  .tabs{display:flex;gap:8px;margin:10px 0}
-  .tab{border:1px solid var(--b2);padding:6px 10px;border-radius:999px;background:#fff;font-size:13px}
-  .tab.active{background:#0ea5e9;color:#fff;border-color:#0ea5e9}
-  .calc-line{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0}
-  .eq{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:6px 10px}
+  label{font-size:12px; color:var(--muted); display:block; margin:4px 0}
+  input,select,button{width:100%; border:1px solid #2a3564; border-radius:10px; padding:10px 12px; background:#0f1532; color:var(--ink); outline:none}
+  input:focus,select:focus{border-color:#3b55b9; box-shadow:0 0 0 3px rgba(138,180,255,.18)}
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  @media (max-width:640px){ .row{grid-template-columns:1fr} }
+  .note{font-size:11px; color:var(--muted)}
+  .pill{display:inline-block; padding:4px 8px; border-radius:999px; background:#16203a; border:1px solid var(--line); font-size:12px}
 
-  /* СЛОИ — адаптив и без переполнений */
+  .kpi{display:grid; grid-template-columns: repeat(5,1fr); gap:10px}
+  @media (max-width:1100px){ .kpi{grid-template-columns: repeat(3,1fr)} }
+  @media (max-width:700px){ .kpi{grid-template-columns: repeat(2,1fr)} }
+  .kpi .itm{background:#0f1532; border:1px solid #2a3564; border-radius:12px; padding:10px}
+  .kpi .v{font-size:20px; font-weight:700}
+  .kpi .t{font-size:12px; color:var(--muted)}
+
+  /* Лэйаут слоёв */
   .layers-head,.layer{
     display:grid;
     grid-template-columns:minmax(130px,1.6fr) minmax(92px,0.8fr) minmax(110px,0.9fr) minmax(160px,1.1fr) 40px;
-    gap:8px;align-items:center
+    gap:8px; align-items:center
   }
-  .layers-head{font-size:12px;color:var(--muted);margin-top:8px}
-  .layer input,.layer select{min-width:0} /* ключ к тому, чтобы fr-колонки ужимались */
-  .layer .name{width:100%}
-  .layer .preset{width:100%}
+  .layers-head{font-size:12px; color:var(--muted); margin-top:8px}
+  .layer input,.layer select{min-width:0}
+  .layer .del{width:auto}
+
   @media (max-width:900px){
     .layers-head{grid-template-columns:1.5fr 0.8fr 0.9fr 1.1fr 40px}
   }
@@ -65,191 +77,221 @@
     .layer .d{grid-area:d}
     .layer .lam{grid-area:lam}
     .layer .preset{grid-area:preset}
-    .layer .del{grid-area:del;justify-self:end}
+    .layer .del{grid-area:del; justify-self:end}
   }
 
-  /* Таблица «Подробно» — резиновая, не вылезает */
-  .detail-table{border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;min-width:520px}
-  .drow{display:grid;grid-template-columns:46px 1fr 90px 120px 130px;gap:8px;padding:8px 10px;border-bottom:1px solid #eef2f7}
-  .drow.head{background:#f8fafc;font-weight:600}
-  .cell{min-width:0} .cell.name.truncate{max-width:100%}
-
-  @media (max-width:760px){
-    .drow{grid-template-columns:42px 1fr 78px 108px 108px}
-  }
-  /* На очень узких — строки раскладываются в 2-рядный компакт */
+  /* Таблица «Подробно» */
+  .detail-table{border:1px solid #2a3564; border-radius:12px; overflow:hidden}
+  .drow{display:grid; grid-template-columns:46px 1fr 90px 120px 130px; gap:8px; padding:8px 10px; border-bottom:1px dashed rgba(255,255,255,.08)}
+  .drow.head{background:#0f1532; font-weight:600}
+  .cell{min-width:0; font-size:14px}
+  .truncate{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  @media (max-width:760px){ .drow{grid-template-columns:42px 1fr 78px 108px 108px} }
   @media (max-width:540px){
-    .detail-table{min-width:0}
-    .drow{
-      grid-template-columns:44px 1fr 1fr;
-      grid-template-areas:
-        "num name name"
-        "num d lam ri";
-    }
+    .drow{grid-template-columns:44px 1fr 1fr; grid-template-areas:
+      "num name name" "num d lam ri"}
     .cell.num{grid-area:num}
     .cell.name{grid-area:name}
     .cell.d{grid-area:d}
     .cell.lam{grid-area:lam}
     .cell.ri{grid-area:ri}
-    .drow head{display:none}
   }
 
-  canvas{max-width:100%;background:#fff;border:1px dashed #cbd5e1;border-radius:12px}
-  .advanced{margin-top:8px;display:none}
-  .advanced-toggle{display:inline-flex;gap:8px;align-items:center}
+  /* Вердикты */
+  .ok{background:var(--okbg); border:1px solid var(--okb); padding:10px; border-radius:12px; font-size:14px}
+  .bad{background:var(--badbg); border:1px solid var(--badb); padding:10px; border-radius:12px; font-size:14px}
+  .warn{background:var(--warnbg); border:1px solid var(--warnb); padding:10px; border-radius:12px; font-size:14px}
 
-  select{max-width:100%}
+  /* Вкладки */
+  .tabs{display:flex; gap:8px; margin:10px 0}
+  .tab{border:1px solid #2a3564; padding:6px 10px; border-radius:999px; background:#0f1532; color:var(--ink); font-size:13px; cursor:pointer}
+  .tab.active{background:#27408f; border-color:#3b55b9}
+
+  canvas{max-width:100%; background:#0f1532; border:1px dashed #2a3564; border-radius:12px}
+
+  /* Печать — как в «ветровых» */
+  .print-only{display:none}
+  @media print{
+    html,body{height:auto; overflow:visible}
+    @page{size:A4 portrait; margin:12mm}
+    .print-only{display:block}
+    button,header,.actions{display:none!important}
+    body{background:#fff; color:#000}
+    .card{background:#fff; border:1px solid #ccc; box-shadow:none; break-inside:avoid; page-break-inside:avoid}
+    .drow, .bd, .kpi, .layers-head{break-inside:avoid; page-break-inside:avoid}
+  }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
-<div class="wrap">
-  <h1>Калькулятор теплотехнического расчёта — РБ (v2.2)</h1>
-  <div class="muted">R<sub>пр</sub>=R<sub>si</sub>+Σ(d/λ)+R<sub>se</sub>. <b>Rsi подставляется автоматически</b> по типу конструкции. «Расширенные» позволяют задать Rsi/Rse вручную.</div>
-
-  <!-- Вводные -->
-  <div class="card">
-    <div class="row">
-      <label>Тип конструкции
-        <select id="ctype">
-          <option value="wall">Наружная стена (Rн=3.2)</option>
-          <option value="roof">Покрытие/чердачное (Rн=6.0)</option>
-          <option value="basement">Перекрытие над неотапл. подвалом (Rн=2.5)</option>
-          <option value="ground">Пол по грунту (см. прим.)</option>
-        </select>
-      </label>
-      <label>Режим эксплуатации материалов (влияет на λ)
-        <select id="regime">
-          <option value="A">A — нормальный (ϕ≈75%)</option>
-          <option value="B">B — увлажнённый (ϕ≈90%)</option>
-        </select>
-      </label>
-    </div>
-
-    <label class="advanced-toggle">
-      <input type="checkbox" id="advToggle"> Показать «Расширенные» (ручной Rsi / Rse)
-    </label>
-    <div class="advanced" id="advBox">
-      <div class="row" style="margin-top:6px">
-        <label>Rsi (внутр.), м²·°C/Вт
-          <input id="advRsi" type="number" step="0.01" value="0.13">
-        </label>
-        <label>Rse (наруж.), м²·°C/Вт
-          <input id="advRse" type="number" step="0.01" value="0.04">
-        </label>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Теплотехнический калькулятор — РБ</h1>
+        <div class="badge">R<sub>пр</sub>=R<sub>si</sub>+Σ(d/λ)+R<sub>se</sub> · авто-R<sub>si</sub> по типу конструкции</div>
       </div>
-      <div class="note">По умолчанию Rsi≈0.13 (стена), 0.10 (покрытие), 0.17 (поток вниз/перекрытие), Rse≈0.04 для стен/покрытий; для перекрытия над неотапл. подвалом и пола по грунту Rse=0.</div>
-    </div>
-
-    <!-- Слои -->
-    <div class="layers-head">
-      <div>Материал слоя</div>
-      <div>Толщина, мм</div>
-      <div>λ, Вт/(м·К)</div>
-      <div>Пресет материала</div>
-      <div></div>
-    </div>
-    <div id="layers"></div>
-
-    <div class="toolbar">
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <label>Кол-во слоёв
-          <input id="layersCount" type="number" min="1" step="1" value="4" style="width:110px">
-        </label>
-        <button id="btnMinus" class="btn secondary" title="Убавить">–</button>
-        <button id="btnPlus"  class="btn" title="Добавить">+</button>
-        <button id="btnClear">Очистить</button>
-        <button id="btnAdd" class="btn">+ Слой</button>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div class="actions">
+        <a class="btn" href="https://0vchina.github.io/partfolio/">На главную</a>
         <button id="btnDraw">Обновить схему</button>
-        <button id="btnPdf" class="btn">Экспорт PDF</button>
+        <button id="btnPdf">Экспорт PDF</button>
+        <button id="btnPrint">Печать / PDF</button>
       </div>
-    </div>
+    </header>
 
-    <!-- Разрез -->
-    <div style="margin-top:10px">
-      <canvas id="sectionCanvas" width="980" height="120" aria-label="Схема разреза слоёв"></canvas>
-      <div class="note">Ширина каждого прямоугольника пропорциональна толщине слоя. Цвет — по категории материала.</div>
+    <div class="grid">
+      <!-- Левая колонка: ввод -->
+      <section class="card" aria-labelledby="inputs-h2">
+        <h2 id="inputs-h2">Входные данные</h2>
+        <div class="bd">
+          <div class="row">
+            <label>Тип конструкции
+              <select id="ctype">
+                <option value="wall">Наружная стена (Rн=3.2)</option>
+                <option value="roof">Покрытие/чердачное (Rн=6.0)</option>
+                <option value="basement">Перекрытие над неотапл. подвалом (Rн=2.5)</option>
+                <option value="ground">Пол по грунту (см. прим.)</option>
+              </select>
+            </label>
+            <label>Режим эксплуатации материалов (влияет на λ)
+              <select id="regime">
+                <option value="A">A — нормальный (ϕ≈75%)</option>
+                <option value="B">B — увлажнённый (ϕ≈90%)</option>
+              </select>
+            </label>
+          </div>
+
+          <label style="display:flex; gap:8px; align-items:center; margin-top:6px">
+            <input type="checkbox" id="advToggle" style="width:auto"> Показать «Расширенные» (ручной Rsi / Rse)
+          </label>
+          <div class="bd" id="advBox" style="display:none; padding:10px 0 0">
+            <div class="row">
+              <label>Rsi (внутр.), м²·°C/Вт
+                <input id="advRsi" type="number" step="0.01" value="0.13">
+              </label>
+              <label>Rse (наруж.), м²·°C/Вт
+                <input id="advRse" type="number" step="0.01" value="0.04">
+              </label>
+            </div>
+            <div class="note">По умолчанию Rsi≈0.13 (стена), 0.10 (покрытие), 0.17 (поток вниз/перекрытие), Rse≈0.04 для стен/покрытий; для перекрытия над неотапл. подвалом и пола по грунту Rse=0.</div>
+          </div>
+
+          <!-- Слои -->
+          <div class="layers-head" style="margin-top:10px">
+            <div>Материал слоя</div>
+            <div>Толщина, мм</div>
+            <div>λ, Вт/(м·К)</div>
+            <div>Пресет материала</div>
+            <div></div>
+          </div>
+          <div id="layers"></div>
+
+          <div class="bd" style="padding:10px 0 0">
+            <div class="row">
+              <div>
+                <label>Кол-во слоёв
+                  <input id="layersCount" type="number" min="1" step="1" value="4">
+                </label>
+              </div>
+              <div style="display:flex; gap:8px; align-items:end">
+                <button id="btnMinus">–</button>
+                <button id="btnPlus">+</button>
+                <button id="btnAdd">+ Слой</button>
+                <button id="btnClear">Очистить</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Разрез -->
+          <div style="margin-top:10px">
+            <label>Схема разреза слоёв</label>
+            <canvas id="sectionCanvas" width="980" height="120" aria-label="Схема разреза слоёв"></canvas>
+            <div class="note">Ширина каждого прямоугольника пропорциональна толщине слоя. Цвет — по категории материала.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Правая колонка: результат -->
+      <section class="card" aria-labelledby="res-h2">
+        <h2 id="res-h2">Результаты</h2>
+        <div class="bd">
+          <div class="kpi">
+            <div class="itm"><div class="t">R<sub>si</sub></div><div class="v" id="kpi-rsi">—</div></div>
+            <div class="itm"><div class="t">Σ(d/λ)</div><div class="v" id="kpi-rsum">—</div></div>
+            <div class="itm"><div class="t">R<sub>se</sub></div><div class="v" id="kpi-rse">—</div></div>
+            <div class="itm"><div class="t">R<sub>пр</sub></div><div class="v" id="kpi-rpr">—</div></div>
+            <div class="itm"><div class="t">U=1/R</div><div class="v" id="kpi-u">—</div></div>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div id="verdict" class="ok">—</div>
+
+          <div class="tabs">
+            <button class="tab active" id="tabBrief">Кратко</button>
+            <button class="tab" id="tabDetail">Подробно по слоям</button>
+          </div>
+
+          <div id="paneBrief">
+            <div class="pill" id="briefText">Rsi=— | Σ(d/λ)=— | Rse=— → Rпр=—</div>
+
+            <div class="row" style="margin-top:6px">
+              <div>
+                <label><b>Подбор утеплителя (одним слоем)</b></label>
+                <div class="row" style="margin-top:6px">
+                  <label>Материал
+                    <select id="insulMat"></select>
+                  </label>
+                  <label>λ утеплителя
+                    <input id="lamIns" type="number" step="0.001" value="0.037">
+                  </label>
+                </div>
+                <div class="row">
+                  <label>Нужно добавить, мм
+                    <input id="need" type="number" readonly>
+                  </label>
+                  <label>Дефицит R
+                    <input id="deficit" type="text" readonly>
+                  </label>
+                </div>
+                <div class="note" style="margin-top:6px">Если нужна многослойная система — добавьте утеплители в список слоёв и проверьте Σ(d/λ).</div>
+              </div>
+              <div>
+                <b>Примечание по полу по грунту</b>
+                <div id="groundNote" class="warn" style="margin-top:6px; display:none">
+                  Для пола по грунту контроль по Приложению K (СП 2.04.01-2020). Здесь расчёт слоёв без учёта грунта.
+                </div>
+                <div id="notGround" class="note" style="margin-top:6px">
+                  Для стен и покрытий Rse учитывается; для перекрытия над неотапл. подвалом и пола по грунту — Rse=0.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="paneDetail" style="display:none">
+            <div id="layersTable" class="detail-table"></div>
+            <div class="note" style="margin-top:6px">На узких экранах таблица превращается в компактные 2-рядные строки. Можно листать вбок при необходимости.</div>
+          </div>
+
+          <div class="print-only" style="margin-top:12px">
+            <h2 style="margin:0 0 6px">Отчёт (кратко)</h2>
+            <div class="note">Подробная таблица слоёв включена выше; при печати разбивка по страницам сохранится.</div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
-
-  <!-- Результат -->
-  <div class="card">
-    <h3 style="margin:4px 0 8px">Результат</h3>
-
-    <div class="calc-line">
-      <div class="eq">R<sub>пр</sub> = R<sub>si</sub> + Σ(d/λ) + R<sub>se</sub></div>
-      <span class="pill">Rsi: <span class="num" id="rsi">0.13</span></span>
-      <span class="pill">Σ(d/λ): <span class="num" id="rsum">0.000</span></span>
-      <span class="pill">Rse: <span class="num" id="rse">0.04</span></span>
-      <span class="pill">Rпр: <span class="num" id="rpr">0.000</span></span>
-      <span class="pill">Rнорм: <span class="num" id="rnorm">3.20</span></span>
-      <span class="pill">U=1/R: <span class="num" id="uval">—</span></span>
-    </div>
-
-    <div id="verdict" class="ok">—</div>
-
-    <div class="tabs">
-      <button class="tab active" id="tabBrief">Кратко</button>
-      <button class="tab" id="tabDetail">Подробно по слоям</button>
-    </div>
-
-    <div id="paneBrief">
-      <p class="note" id="briefText">Здесь будет краткое пояснение после ввода.</p>
-      <div class="row">
-        <div>
-          <b>Подбор утеплителя (одним слоем)</b>
-          <div style="margin-top:6px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-            <label>Материал
-              <select id="insulMat"></select>
-            </label>
-            <label>λ утеплителя
-              <input id="lamIns" type="number" step="0.001" value="0.037" style="width:120px">
-            </label>
-            <label>Нужно добавить, мм
-              <input id="need" type="number" readonly style="width:120px">
-            </label>
-            <label>Дефицит R
-              <input id="deficit" type="text" readonly style="width:120px">
-            </label>
-          </div>
-          <p class="note">Если нужна многослойная система — добавьте утеплители в список слоёв и проверьте Σ(d/λ).</p>
-        </div>
-        <div>
-          <b>Примечание по полу по грунту</b>
-          <div id="groundNote" class="warn" style="margin-top:6px;display:none">
-            Для пола по грунту контроль по Приложению K (СП 2.04.01-2020). Здесь расчёт слоёв без учёта грунта.
-          </div>
-          <div id="notGround" class="note" style="margin-top:6px">
-            Для стен и покрытий Rse учитывается; для перекрытия над неотапл. подвалом и пола по грунту — Rse=0.
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="paneDetail" style="display:none">
-      <div class="scroll-x">
-        <div id="layersTable" class="detail-table"></div>
-      </div>
-      <div class="note" style="margin-top:6px">На узких экранах таблица превращается в компактные 2-рядные строки. Можно листать вбок при необходимости.</div>
-    </div>
-  </div>
-
-  <div class="note">Упрощённый расчёт для однородных участков. Мостики холода учитывайте коэффициентом теплотехнической однородности.</div>
-</div>
 
 <script>
-  /* ====== ДАННЫЕ ====== */
+  /* ===== ДАННЫЕ ===== */
   const MATERIAL_GROUPS = [
     { group: "Утеплители", items: [
       { key:"mw",   name:"Минеральная вата",                lambdaA:0.037, lambdaB:0.040, cat:"insul" },
       { key:"mw150",name:"Базальтовая плита 150 кг/м³",    lambdaA:0.041, lambdaB:0.045, cat:"insul" },
       { key:"glassw",name:"Стекловата",                    lambdaA:0.040, lambdaB:0.044, cat:"insul" },
-      { key:"eps",  name:"ПСБ (EPS)",                      lambdaA:0.036, lambdaB:0.038, cat:"insul" },
-      { key:"xps",  name:"XPS",                            lambdaA:0.032, lambdaB:0.034, cat:"insul" },
-      { key:"pur",  name:"Пенополиуретан (PUR)",           lambdaA:0.028, lambdaB:0.030, cat:"insul" },
-      { key:"ecow", name:"Эковата",                        lambdaA:0.040, lambdaB:0.045, cat:"insul" },
+      { key:"eps",  name:"ПСБ (EPS)",                      lambdaA:0.036, lambdaB:0.038,  cat:"insul" },
+      { key:"xps",  name:"XPS",                            lambdaA:0.032, lambdaB:0.034,  cat:"insul" },
+      { key:"pur",  name:"Пенополиуретан (PUR)",           lambdaA:0.028, lambdaB:0.030,  cat:"insul" },
+      { key:"ecow", name:"Эковата",                        lambdaA:0.040, lambdaB:0.045,  cat:"insul" },
     ]},
     { group: "Газо- и пенобетон", items: [
       { key:"aac3", name:"Газобетон D300",                 lambdaA:0.10,  lambdaB:0.12,  cat:"aac" },
@@ -288,9 +330,9 @@
   ];
   const RNORM = { wall:3.2, roof:6.0, basement:2.5, ground:0 };
   const RSE_OUT = 0.04;
-  const CAT_COLORS = { insul:"#fde68a", aac:"#c7d2fe", lightcon:"#ddd6fe", brick:"#fecaca", concrete:"#e5e7eb", wood:"#fed7aa", board:"#e9d5ff", plaster:"#f3e8ff", tile:"#e2e8f0", membrane:"#cffafe", other:"#e5e7eb" };
+  const CAT_COLORS = { insul:"#3f3a12", aac:"#1e2a55", lightcon:"#2d1f55", brick:"#3f171a", concrete:"#2a2e36", wood:"#4a2c15", board:"#3a214e", plaster:"#352452", tile:"#2a2e36", membrane:"#123b3b", other:"#2a2e36" };
 
-  /* ====== ХЕЛПЕРЫ ====== */
+  /* ===== Хелперы ===== */
   const $ = id => document.getElementById(id);
   const flatMaterials = MATERIAL_GROUPS.reduce((a,g)=>a.concat(g.items),[]);
   const num = v => { const n = typeof v==="string" ? parseFloat(v.replace(",", ".")) : Number(v); return isFinite(n)?n:0; };
@@ -300,19 +342,19 @@
   const catColor = k => CAT_COLORS[(matByKey(k)||{}).cat || "other"] || CAT_COLORS.other;
   const fmt = (x,d=3)=> (isFinite(x)? (Math.round(x*10**d)/10**d).toFixed(d): "—");
 
-  /* ====== АВТО-Rsi / Rse ====== */
+  /* ===== авто Rsi/Rse ===== */
   function rsiAuto(ctype){
     if(ctype==='roof') return 0.10;                  // вверх
     if(ctype==='basement' || ctype==='ground') return 0.17; // вниз
-    return 0.13;                                     // стены — вертикально
+    return 0.13;                                     // стены
   }
   function rseAuto(ctype){
     if(ctype==='wall' || ctype==='roof') return RSE_OUT;
     return 0; // basement/ground
   }
 
-  /* ====== СОСТОЯНИЕ ====== */
-  let manualR = false; // «Расширенные»
+  /* ===== Состояние ===== */
+  let manualR = false;
   let layers = [
     { name:"Штукатурка", d:15, lam:0.93,  matKey:"plstr" },
     { name:"Газобетон D400", d:300, lam:0.12, matKey:"aac4" },
@@ -320,7 +362,7 @@
     { name:"OSB-3", d:12, lam:0.13, matKey:"osb3" },
   ];
 
-  /* ====== UI: СЛОИ ====== */
+  /* ===== UI слои ===== */
   const layersBox = $('layers');
   function buildPresetSelect(i, currentKey){
     const preset = document.createElement('select'); preset.className='preset';
@@ -384,7 +426,7 @@
     renderLayers(); recalc(); drawSection();
   }
 
-  /* ====== ПОДБОР УТЕПЛИТЕЛЯ ====== */
+  /* ===== Подбор утеплителя ===== */
   function fillInsulMat(){
     const sel = $('insulMat'); sel.innerHTML = "";
     const group = MATERIAL_GROUPS.find(g=>g.group==="Утеплители");
@@ -394,7 +436,7 @@
   }
   const updateInsulLambdaFromPreset = ()=> $('lamIns').value = lambdaOf($('insulMat').value, $('regime').value).toFixed(3);
 
-  /* ====== РАСЧЁТ И ВЫВОД ====== */
+  /* ===== Расчёт ===== */
   function getRsiRse(){
     const ctype = $('ctype').value;
     if (manualR){
@@ -417,15 +459,14 @@
     const Rpr = Rsi + Rlayers + Rse;
     const U = Rpr>0 ? (1/Rpr) : 0;
 
-    $('rsi').textContent = fmt(Rsi,2);
-    $('rse').textContent = fmt(Rse,2);
-    $('rsum').textContent = fmt(Rlayers,3);
-    $('rpr').textContent = fmt(Rpr,3);
-    $('rnorm').textContent = fmt(Rnorm,2);
-    $('uval').textContent = Rpr>0 ? fmt(U,4) : "—";
+    // KPI
+    $('kpi-rsi').textContent = fmt(Rsi,2);
+    $('kpi-rse').textContent = fmt(Rse,2);
+    $('kpi-rsum').textContent = fmt(Rlayers,3);
+    $('kpi-rpr').textContent = fmt(Rpr,3);
+    $('kpi-u').textContent = Rpr>0 ? fmt(U,4) : "—";
 
     const v = $('verdict');
-    const brief = $('briefText');
     const groundNote = $('groundNote');
     const notGround = $('notGround');
 
@@ -449,7 +490,7 @@
     if (Rse>0) parts.push(`Rse=${fmt(Rse,2)}`);
     parts.push(`→ Rпр=${fmt(Rpr,3)}`);
     if (Rnorm>0) parts.push(`; Rн=${fmt(Rnorm,2)}`);
-    brief.textContent = parts.join('  |  ');
+    $('briefText').textContent = parts.join('  |  ');
 
     // Подбор утеплителя
     const deficit = Math.max(0, Rnorm - Rpr);
@@ -497,21 +538,21 @@
     function el(tag, cls, txt){ const e=document.createElement(tag); e.className=cls; e.textContent=txt; return e; }
   }
 
-  /* ====== СХЕМА РАЗРЕЗА ====== */
+  /* ===== Схема разреза ===== */
   function drawSection(){
     const cnv=$('sectionCanvas'), ctx=cnv.getContext('2d');
     const W=cnv.width, H=cnv.height; ctx.clearRect(0,0,W,H);
-    ctx.strokeStyle='#cbd5e1'; ctx.strokeRect(8,8,W-16,H-16);
+    ctx.strokeStyle='#2a3564'; ctx.strokeRect(8,8,W-16,H-16);
     const total = layers.reduce((s,L)=>s+Math.max(0,num(L.d)),0);
     const x0=16, y0=36, h=40, innerW=W-32;
-    if(!total){ ctx.fillStyle='#94a3b8'; ctx.fillText('Добавьте толщины слоёв', x0+6, y0+18); return; }
+    if(!total){ ctx.fillStyle='#b7c4e0'; ctx.fillText('Добавьте толщины слоёв', x0+6, y0+18); return; }
     let x=x0;
-    ctx.font='12px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+    ctx.font='12px Inter, system-ui, Arial';
     layers.forEach((L,i)=>{
       const w=Math.max(2, innerW*(Math.max(0,num(L.d))/total));
       ctx.fillStyle=catColor(L.matKey); ctx.fillRect(x,y0,w,h);
-      ctx.strokeStyle='#334155'; ctx.strokeRect(x,y0,w,h);
-      ctx.fillStyle='#0f172a';
+      ctx.strokeStyle='#3c487a'; ctx.strokeRect(x,y0,w,h);
+      ctx.fillStyle='#eaf1ff';
       const label=`${i+1}. ${L.name} (${num(L.d)} мм)`;
       let tx=x+4; const tw=ctx.measureText(label).width;
       if(tx+tw>x+w-4) tx=Math.max(x+4, x+w-4-tw);
@@ -520,13 +561,13 @@
     });
   }
 
-  /* ====== PDF ====== */
+  /* ===== PDF ===== */
   async function exportPDF(){
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit:'mm', format:'a4' });
     let x=15,y=16;
 
-    doc.setFontSize(14); doc.text('Теплотехнический расчёт (РБ) — v2.2', x, y); y+=6;
+    doc.setFontSize(14); doc.text('Теплотехнический расчёт — v2.2', x, y); y+=6;
     doc.setFontSize(10);
     const now = new Date();
     const ctypeText = $('ctype').selectedOptions[0].text;
@@ -576,7 +617,8 @@
     const lamIns = Math.max(1e-6, num($('lamIns').value)||0.037);
     const add_mm = def>0 ? Math.ceil(def*lamIns*1000) : 0;
     y+=2; doc.setDrawColor(160); doc.line(x,y,x+cols.reduce((a,b)=>a+b,0),y); y+=6;
-    doc.text(`Подбор утеплителя: ${$('insulMat').selectedOptions[0].text}; λ=${lamIns.toFixed(3)} Вт/(м·К); дефицит R=${def.toFixed(3)}; нужно добавить ≈ ${add_mm} мм.`, x, y); y+=6;
+    const insName = $('insulMat').selectedOptions[0]?.text || '—';
+    doc.text(`Подбор утеплителя: ${insName}; λ=${lamIns.toFixed(3)} Вт/(м·К); дефицит R=${def.toFixed(3)}; нужно добавить ≈ ${add_mm} мм.`, x, y); y+=6;
 
     // Примечание
     doc.setTextColor(90);
@@ -591,17 +633,17 @@
     function hexToRgb(hex){ const c = hex.replace('#',''); const v = c.length===3 ? c.split('').map(s=>s+s).join('') : c; const n = parseInt(v,16); return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 }; }
   }
 
-  /* ====== STATE SAVE ====== */
+  /* ===== Сохранение состояния ===== */
   function saveState(){
     const st = { ctype:$('ctype').value, regime:$('regime').value, manualR,
       advRsi:$('advRsi').value, advRse:$('advRse').value,
       layers: layers.map(L=>({ name:L.name, d:L.d, lam:L.lam, matKey:L.matKey })),
       insulMat:$('insulMat').value, lamIns:$('lamIns').value };
-    localStorage.setItem('rb_thermal_v2_2', JSON.stringify(st));
+    localStorage.setItem('rb_thermal_v2_2_dark', JSON.stringify(st));
   }
   function loadState(){
     try{
-      const s = JSON.parse(localStorage.getItem('rb_thermal_v2_2')||'{}');
+      const s = JSON.parse(localStorage.getItem('rb_thermal_v2_2_dark')||'{}');
       if(s.ctype) $('ctype').value = s.ctype;
       if(s.regime) $('regime').value = s.regime;
       if(typeof s.manualR==='boolean'){ manualR = s.manualR; $('advToggle').checked = manualR; $('advBox').style.display = manualR? 'block':'none'; }
@@ -615,7 +657,7 @@
     }catch(e){}
   }
 
-  /* ====== СВЯЗИ ====== */
+  /* ===== События ===== */
   $('btnAdd').onclick = ()=>{ layers.push({ name:"Новый слой", d:50, lam:0.037, matKey:"mw" }); renderLayers(); recalc(); drawSection(); };
   $('btnClear').onclick = ()=>{ layers = [{ name:"Минеральная вата", d:100, lam:0.037, matKey:"mw" }]; renderLayers(); recalc(); drawSection(); };
   $('btnPlus').onclick = ()=> ensureCount(layers.length+1);
@@ -645,6 +687,7 @@
 
   $('btnDraw').onclick = drawSection;
   $('btnPdf').onclick  = exportPDF;
+  $('btnPrint').onclick = ()=> window.print();
 
   $('tabBrief').onclick = ()=>{
     $('tabBrief').classList.add('active'); $('tabDetail').classList.remove('active');
@@ -655,14 +698,14 @@
     $('paneBrief').style.display='none'; $('paneDetail').style.display='';
   };
 
-  /* ====== INIT ====== */
+  /* ===== INIT ===== */
   function initAdvDefaults(){
     $('advRsi').value = rsiAuto($('ctype').value).toFixed(2);
     $('advRse').value = rseAuto($('ctype').value).toFixed(2);
   }
   window.addEventListener('beforeunload', ()=>saveState());
 
-  function fillInsulMat(){
+  function fillInsulMatInit(){
     const sel = $('insulMat'); sel.innerHTML = "";
     const group = MATERIAL_GROUPS.find(g=>g.group==="Утеплители");
     group.items.forEach(m=>{ const o = document.createElement('option'); o.value=m.key; o.textContent=m.name; sel.append(o); });
@@ -673,7 +716,7 @@
   initAdvDefaults();
   loadState();
   renderLayers();
-  fillInsulMat();
+  fillInsulMatInit();
   updateInsulLambdaFromPreset();
   recalc();
   drawSection();
