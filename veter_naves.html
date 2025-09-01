@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Калькулятор ветровой нагрузки для навесов · СН 2.01.05-2019</title>
-  <meta name="description" content="Ветровые нагрузки на навесы (односкатные/плоские): верх и низ покрытия, интерполяция cpe по площади и уклону, два направления ветра по скату. Печать/PDF с формулами.">
+  <title>Навесы · Ветровой калькулятор (плоский / односкатный / двускатный)</title>
+  <meta name="description" content="Ветровые нагрузки на навесы: чистое давление (верх–низ), интерполяция cpe по уклону и площади, θ к коньку для двускатных. Печать/PDF с формулами.">
   <style>
     :root{
       --bg:#0b1020; --card:#111730; --ink:#eaf1ff; --muted:#b7c4e0; --line:#263166; --acc:#8ab4ff;
@@ -61,16 +61,10 @@
     .kpi .v{font-size:20px; font-weight:700}
     .kpi .t{font-size:12px; color:var(--muted)}
 
-    details.help{margin-top:8px; border:1px dashed rgba(255,255,255,.16); border-radius:10px; background:#0e1735}
-    details.help[open]{background:#0e183b}
-    details.help>summary{cursor:pointer; padding:8px 10px; color:var(--acc); list-style:none}
-    details.help>summary::-webkit-details-marker{display:none}
-    details.help .help-body{padding:0 12px 10px 12px; color:var(--muted); font-size:12px; line-height:1.5}
-
     .print-only{display:none}
     @media print{
       .print-only{display:block}
-      button,header,details.help{display:none!important}
+      button,header{display:none!important}
       body{background:#fff;color:#000}
       .card{background:#fff;border:1px solid #ccc;box-shadow:none}
       .report{white-space:pre-wrap; font-family:Consolas, monospace; font-size:12px; line-height:1.45}
@@ -81,8 +75,8 @@
   <div class="container">
     <header style="margin-bottom:6px">
       <div>
-        <h1>Калькулятор ветровой нагрузки — Навес</h1>
-        <div class="badge">СН 2.01.05-2019 / EN 1991-1-4 · верх/низ покрытия, интерполяция по A и α</div>
+        <h1>Ветровой калькулятор — Навесы</h1>
+        <div class="badge">Плоский / Односкатный / Двускатный · чистое давление (верх − низ)</div>
       </div>
       <div class="actions">
         <button id="btn-calc">Рассчитать</button>
@@ -96,44 +90,57 @@
       <section class="card" aria-labelledby="inputs-h2">
         <h2 id="inputs-h2">Входные данные</h2>
         <div class="bd">
-          <!-- Геометрия навеса -->
+          <!-- Геометрия -->
           <div class="row">
             <div>
-              <label>Пролёт b, м (поперёк ветра)</label>
-              <input type="number" step="0.01" id="span" value="10">
-              <div class="hint">Перпендикулярно направлению ветра (ширина навеса).</div>
+              <label>b, м (поперёк ветра)</label>
+              <input type="number" step="0.01" id="b" value="10">
+              <div class="hint">Ширина покрытия поперёк фронта ветра.</div>
             </div>
             <div>
-              <label>Длина L, м (вдоль ветра)</label>
-              <input type="number" step="0.01" id="length" value="24">
+              <label>L, м (вдоль фронта ветра)</label>
+              <input type="number" step="0.01" id="L" value="24">
             </div>
           </div>
           <div class="row">
             <div>
-              <label>Высота h, м (до верхней кромки)</label>
+              <label>h, м (высота z<sub>e</sub>≈h)</label>
               <input type="number" step="0.01" id="H" value="5">
+              <div class="hint">Для навеса с открытыми сторонами берём z<sub>e</sub>≈h (не ниже z<sub>min</sub>).</div>
             </div>
             <div>
-              <label>Тип покрытия</label>
+              <label>Тип навеса</label>
               <select id="roofType">
-                <option value="flat">Плоское</option>
-                <option value="mono" selected>Односкатное</option>
+                <option value="flat">Плоский</option>
+                <option value="mono" selected>Односкатный</option>
+                <option value="gable">Двускатный</option>
               </select>
-              <div class="hint">Для односкатного укажите уклон α.</div>
             </div>
           </div>
-          <div class="row" id="slopeRow">
+
+          <!-- Уклон/ориентация -->
+          <div class="row" id="slopeRow" style="display:flex">
             <div>
               <label>Уклон α, °</label>
-              <input type="number" step="0.5" id="slope" value="10">
+              <input type="number" step="0.5" id="alpha" value="10">
             </div>
-            <div>
-              <label>Направление ветра по скату</label>
+            <div id="flowDirWrap">
+              <label>Направление по скату (односкатный)</label>
               <select id="flowDir">
                 <option value="up" selected>Снизу вверх (к высокой кромке)</option>
                 <option value="down">Сверху вниз (к низкой кромке)</option>
               </select>
             </div>
+          </div>
+          <div class="row" id="thetaRow" style="display:none">
+            <div>
+              <label>Ориентация к коньку θ (двускатный)</label>
+              <select id="theta">
+                <option value="90" selected>90° (ветер ⟂ коньку)</option>
+                <option value="0">0° (ветер ∥ коньку)</option>
+              </select>
+            </div>
+            <div></div>
           </div>
 
           <hr style="border:none; border-top:1px solid #223; margin:12px 0">
@@ -196,12 +203,12 @@
             </div>
           </div>
 
-          <!-- Площадь элемента -->
+          <!-- Площадь элемента и e -->
           <div class="row">
             <div>
-              <label>Площадь элемента A, м² (для ограждений)</label>
+              <label>A, м² (для ограждений)</label>
               <input type="number" step="0.1" id="Aelem" value="20">
-              <div class="hint">Интерполяция c<sub>pe</sub>(A) по логарифму между 1 и 10 м².</div>
+              <div class="hint">Лог-интерполяция c<sub>pe</sub>(A) между 1 и 10 м².</div>
             </div>
             <div>
               <label>Интерполяция по A</label>
@@ -210,121 +217,116 @@
           </div>
 
           <details>
-            <summary>Расширенные настройки коэффициентов</summary>
+            <summary>Расширенные настройки (таблицы c<sub>pe</sub>)</summary>
             <div class="bd" style="padding:10px 0 0">
               <div class="row">
                 <div>
-                  <label>Ширина краевых полос: e = 0.2·min(b, 2h)</label>
+                  <label>e = 0.2·min(b, 2h)</label>
                   <input type="number" step="0.01" id="eRoofFactor" value="0.2">
                 </div>
                 <div>
-                  <label>Трение кровли (доп.) — c<sub>fr</sub></label>
+                  <label>Трение (опц.) c<sub>fr</sub></label>
                   <input type="number" step="0.01" id="cfr" value="0.02">
-                  <div class="hint"><input type="checkbox" id="frictionOn" /> Учитывать суммарное трение (оценка)</div>
+                  <div class="hint"><input type="checkbox" id="frictionOn" /> Учитывать суммарное трение</div>
                 </div>
               </div>
 
-              <!-- Базовые таблицы cpe для A=10 и A=1 м² -->
+              <!-- Плоский: top/bot (A=10 и A=1) -->
               <details>
-                <summary>c<sub>pe</sub> покрытия (ПЛОСКОЕ) — верх/низ</summary>
+                <summary>Плоский навес — верх/низ (F,G,H)</summary>
                 <div class="row">
-                  <div>
-                    <label>Плоское — верх F,G,H (A=10 м²)</label>
-                    <input id="flatTop10" value="-1.5,-1.0,-0.7">
-                  </div>
-                  <div>
-                    <label>Плоское — верх F,G,H (A=1 м²)</label>
-                    <input id="flatTop1" value="-1.9,-1.3,-0.9">
-                  </div>
+                  <div><label>TOP F,G,H · A=10</label><input id="flatTop10" value="-1.5,-1.0,-0.7"></div>
+                  <div><label>TOP F,G,H · A=1</label> <input id="flatTop1"  value="-1.9,-1.3,-0.9"></div>
                 </div>
                 <div class="row">
-                  <div>
-                    <label>Плоское — НИЗ F,G,H (A=10 м²)</label>
-                    <input id="flatBot10" value="-0.5,-0.3,-0.2">
-                  </div>
-                  <div>
-                    <label>Плоское — НИЗ F,G,H (A=1 м²)</label>
-                    <input id="flatBot1" value="-0.7,-0.5,-0.3">
-                  </div>
+                  <div><label>BOT F,G,H · A=10</label><input id="flatBot10" value="-0.5,-0.3,-0.2"></div>
+                  <div><label>BOT F,G,H · A=1</label> <input id="flatBot1"  value="-0.7,-0.5,-0.3"></div>
                 </div>
-                <div class="hint">«Низ» учитывает подсос под навесом при обдуве снизу. Подкорректируйте под вашу методику.</div>
               </details>
 
+              <!-- Односкатный: вверх ската / вниз ската -->
               <details>
-                <summary>c<sub>pe</sub> покрытия (ОДНОСКАТНОЕ) — по уклонам α и верх/низ</summary>
+                <summary>Односкатный — ВЕТЕР «ВВЕРХ СКАТА» (flow: up)</summary>
                 <div class="row">
-                  <div>
-                    <label>α=5° — верх F,G,H (A=10/1 м²)</label>
-                    <input id="mono5Top10" value="-1.1,-0.9,-0.6">
-                    <input id="mono5Top1"  value="-1.4,-1.1,-0.8">
-                  </div>
-                  <div>
-                    <label>α=10° — верх F,G,H (A=10/1 м²)</label>
-                    <input id="mono10Top10" value="-1.2,-1.0,-0.7">
-                    <input id="mono10Top1"  value="-1.5,-1.2,-0.9">
-                  </div>
+                  <div><label>α=5° TOP F,G,H · A=10/1</label><input id="monoUp5Top10" value="-1.1,-0.9,-0.6"><input id="monoUp5Top1" value="-1.4,-1.1,-0.8"></div>
+                  <div><label>α=10° TOP</label><input id="monoUp10Top10" value="-1.2,-1.0,-0.7"><input id="monoUp10Top1" value="-1.5,-1.2,-0.9"></div>
                 </div>
                 <div class="row">
-                  <div>
-                    <label>α=15° — верх F,G,H (A=10/1 м²)</label>
-                    <input id="mono15Top10" value="-1.4,-1.1,-0.8">
-                    <input id="mono15Top1"  value="-1.7,-1.4,-1.0">
-                  </div>
-                  <div>
-                    <label>α=30° — верх F,G,H (A=10/1 м²)</label>
-                    <input id="mono30Top10" value="-1.8,-1.4,-1.0">
-                    <input id="mono30Top1"  value="-2.1,-1.7,-1.2">
-                  </div>
+                  <div><label>α=15° TOP</label><input id="monoUp15Top10" value="-1.4,-1.1,-0.8"><input id="monoUp15Top1" value="-1.7,-1.4,-1.0"></div>
+                  <div><label>α=30° TOP</label><input id="monoUp30Top10" value="-1.8,-1.4,-1.0"><input id="monoUp30Top1" value="-2.1,-1.7,-1.2"></div>
                 </div>
                 <div class="row">
-                  <div>
-                    <label>α=5° — НИЗ F,G,H (A=10/1 м²)</label>
-                    <input id="mono5Bot10" value="-0.5,-0.3,-0.2">
-                    <input id="mono5Bot1"  value="-0.7,-0.5,-0.3">
-                  </div>
-                  <div>
-                    <label>α=10° — НИЗ F,G,H (A=10/1 м²)</label>
-                    <input id="mono10Bot10" value="-0.6,-0.4,-0.3">
-                    <input id="mono10Bot1"  value="-0.8,-0.6,-0.4">
-                  </div>
+                  <div><label>α=5° BOT</label><input id="monoUp5Bot10" value="-0.5,-0.3,-0.2"><input id="monoUp5Bot1" value="-0.7,-0.5,-0.3"></div>
+                  <div><label>α=10° BOT</label><input id="monoUp10Bot10" value="-0.6,-0.4,-0.3"><input id="monoUp10Bot1" value="-0.8,-0.6,-0.4"></div>
                 </div>
                 <div class="row">
-                  <div>
-                    <label>α=15° — НИЗ F,G,H (A=10/1 м²)</label>
-                    <input id="mono15Bot10" value="-0.7,-0.5,-0.4">
-                    <input id="mono15Bot1"  value="-0.9,-0.7,-0.5">
-                  </div>
-                  <div>
-                    <label>α=30° — НИЗ F,G,H (A=10/1 м²)</label>
-                    <input id="mono30Bot10" value="-0.9,-0.7,-0.5">
-                    <input id="mono30Bot1"  value="-1.1,-0.9,-0.7">
-                  </div>
-                </div>
-                <div class="hint">Значения ориентировочные; при необходимости замените на табличные из вашей редакции СН/Еврокода для «свободных крыш/навесов».</div>
-              </details>
-
-              <details>
-                <summary>Карта ветровых районов (vb,0)</summary>
-                <div class="row">
-                  <div>
-                    <label>vb,0 для I/II/III (м/с)</label>
-                    <input id="regionsMap" value="22,24,26" />
-                  </div>
-                  <div><label class="hint">Подставляется при выборе района I/II/III.</label></div>
+                  <div><label>α=15° BOT</label><input id="monoUp15Bot10" value="-0.7,-0.5,-0.4"><input id="monoUp15Bot1" value="-0.9,-0.7,-0.5"></div>
+                  <div><label>α=30° BOT</label><input id="monoUp30Bot10" value="-0.9,-0.7,-0.5"><input id="monoUp30Bot1" value="-1.1,-0.9,-0.7"></div>
                 </div>
               </details>
 
               <details>
-                <summary>Высоты отсчёта z_e</summary>
+                <summary>Односкатный — ВЕТЕР «ВНИЗ СКАТА» (flow: down)</summary>
                 <div class="row">
-                  <div>
-                    <label>Режим</label>
-                    <select id="zeMode"><option value="auto" selected>Авто (наружное = h)</option><option value="manual">Вручную</option></select>
-                  </div>
+                  <div><label>α=5° TOP</label><input id="monoDn5Top10" value="-0.9,-0.7,-0.5"><input id="monoDn5Top1" value="-1.2,-0.9,-0.7"></div>
+                  <div><label>α=10° TOP</label><input id="monoDn10Top10" value="-1.0,-0.8,-0.6"><input id="monoDn10Top1" value="-1.3,-1.0,-0.8"></div>
+                </div>
+                <div class="row">
+                  <div><label>α=15° TOP</label><input id="monoDn15Top10" value="-1.2,-0.9,-0.7"><input id="monoDn15Top1" value="-1.5,-1.2,-0.9"></div>
+                  <div><label>α=30° TOP</label><input id="monoDn30Top10" value="-1.6,-1.2,-0.9"><input id="monoDn30Top1" value="-1.9,-1.5,-1.1"></div>
+                </div>
+                <div class="row">
+                  <div><label>α=5° BOT</label><input id="monoDn5Bot10" value="-0.4,-0.3,-0.2"><input id="monoDn5Bot1" value="-0.6,-0.4,-0.3"></div>
+                  <div><label>α=10° BOT</label><input id="monoDn10Bot10" value="-0.5,-0.4,-0.3"><input id="monoDn10Bot1" value="-0.7,-0.5,-0.4"></div>
+                </div>
+                <div class="row">
+                  <div><label>α=15° BOT</label><input id="monoDn15Bot10" value="-0.6,-0.5,-0.4"><input id="monoDn15Bot1" value="-0.8,-0.6,-0.5"></div>
+                  <div><label>α=30° BOT</label><input id="monoDn30Bot10" value="-0.8,-0.6,-0.5"><input id="monoDn30Bot1" value="-1.0,-0.8,-0.6"></div>
+                </div>
+              </details>
+
+              <!-- Двускатный: θ=90° и θ=0°, зоны F,G,H,I -->
+              <details>
+                <summary>Двускатный — θ=90° (ветер ⟂ коньку): зоны F,G,H,I</summary>
+                <div class="row">
+                  <div><label>α=15° TOP (A=10/1)</label><input id="g90a15Top10" value="-0.9,-0.7,-0.5,-0.3"><input id="g90a15Top1" value="-1.2,-1.0,-0.7,-0.5"></div>
+                  <div><label>α=30° TOP</label><input id="g90a30Top10" value="-1.1,-0.9,-0.6,-0.4"><input id="g90a30Top1" value="-1.4,-1.2,-0.8,-0.6"></div>
+                </div>
+                <div class="row">
+                  <div><label>α=15° BOT</label><input id="g90a15Bot10" value="-0.5,-0.4,-0.3,-0.2"><input id="g90a15Bot1" value="-0.7,-0.6,-0.5,-0.3"></div>
+                  <div><label>α=30° BOT</label><input id="g90a30Bot10" value="-0.6,-0.5,-0.4,-0.3"><input id="g90a30Bot1" value="-0.8,-0.7,-0.6,-0.4"></div>
+                </div>
+              </details>
+
+              <details>
+                <summary>Двускатный — θ=0° (ветер ∥ коньку): зоны F,G,H,I</summary>
+                <div class="row">
+                  <div><label>α=15° TOP</label><input id="g0a15Top10" value="0.2,-0.6,-0.9,-0.4"><input id="g0a15Top1" value="0.2,-0.9,-1.2,-0.6"></div>
+                  <div><label>α=30° TOP</label><input id="g0a30Top10" value="0.2,-0.7,-1.0,-0.5"><input id="g0a30Top1" value="0.2,-1.0,-1.3,-0.7"></div>
+                </div>
+                <div class="row">
+                  <div><label>α=15° BOT</label><input id="g0a15Bot10" value="-0.4,-0.3,-0.2,-0.2"><input id="g0a15Bot1" value="-0.6,-0.5,-0.3,-0.3"></div>
+                  <div><label>α=30° BOT</label><input id="g0a30Bot10" value="-0.5,-0.4,-0.3,-0.3"><input id="g0a30Bot1" value="-0.7,-0.6,-0.4,-0.4"></div>
+                </div>
+              </details>
+
+              <details>
+                <summary>Карта ветровых районов (v<sub>b,0</sub>)</summary>
+                <div class="row">
+                  <div><label>v<sub>b,0</sub> для I/II/III (м/с)</label><input id="regionsMap" value="22,24,26"></div>
+                  <div><label class="hint">Подставляется при выборе района.</label></div>
+                </div>
+              </details>
+
+              <details>
+                <summary>Высота отсчёта z<sub>e</sub></summary>
+                <div class="row">
+                  <div><label>Режим</label><select id="zeMode"><option value="auto" selected>Авто (z<sub>e</sub>=h)</option><option value="manual">Вручную</option></select></div>
                   <div></div>
                 </div>
                 <div class="row" id="zeManualRow" style="display:none">
-                  <div><label>z_e,ext (внешнее), м</label><input type="number" step="0.1" id="zeExt" value="5"></div>
+                  <div><label>z<sub>e</sub>, м</label><input type="number" step="0.1" id="zeExt" value="5"></div>
+                  <div></div>
                 </div>
               </details>
             </div>
@@ -332,17 +334,17 @@
         </div>
       </section>
 
-      <!-- Правая панель: результаты -->
+      <!-- Правая панель -->
       <section class="card" aria-labelledby="results-h2">
         <h2 id="results-h2">Результаты</h2>
         <div class="bd" id="results">
           <div class="legend" id="legend"></div>
 
           <div class="kpi">
-            <div class="itm"><div class="t">vb,0</div><div class="v" id="kpi-vb0">—</div></div>
-            <div class="itm"><div class="t">vb</div><div class="v" id="kpi-vb">—</div></div>
-            <div class="itm"><div class="t">Iv(h)</div><div class="v" id="kpi-iv">—</div></div>
-            <div class="itm"><div class="t">qp(h), Па</div><div class="v" id="kpi-qp">—</div></div>
+            <div class="itm"><div class="t">v<sub>b,0</sub></div><div class="v" id="kpi-vb0">—</div></div>
+            <div class="itm"><div class="t">v<sub>b</sub></div><div class="v" id="kpi-vb">—</div></div>
+            <div class="itm"><div class="t">I<sub>v</sub>(h)</div><div class="v" id="kpi-iv">—</div></div>
+            <div class="itm"><div class="t">q<sub>p</sub>(h), Па</div><div class="v" id="kpi-qp">—</div></div>
           </div>
 
           <div style="height:10px"></div>
@@ -358,34 +360,25 @@
   </div>
 
   <script>
-    // ===== Константы
+    // ===== Константы и утилиты
     const Z0_MAP={"0":0.003,"I":0.01,"II":0.05,"III":0.3,"IV":1.0};
     const ZMIN_MAP={"0":1,"I":1,"II":2,"III":5,"IV":10};
     const RHO_DEF=1.25;
-
-    // ===== Утилиты
     const clamp=(v,min,max)=>Math.min(Math.max(v,min),max);
     const fmt=(v,d=2)=>Number.isFinite(v)?Number(v).toFixed(d):'—';
     const $=s=>document.querySelector(s);
     function parseList(str,expect){ const arr=String(str).split(/[,;\s]+/).filter(Boolean).map(Number); while(arr.length<expect) arr.push(arr[arr.length-1] ?? 0); return arr.slice(0,expect); }
     const log10=(x)=>Math.log(x)/Math.log(10);
+    const lerp=(a,b,t)=>a+(b-a)*t;
 
-    // ===== Профиль скорости / qp
+    // ===== Профиль скорости / qp (наружный поток)
     function kCoef(z0){return 0.19*Math.pow(z0/0.05,0.07)}
     function cr(z,z0){ const zc=Math.max(z, 1.0001*z0); return kCoef(z0)*Math.log(zc/z0); }
     function Iv(z,z0,co=1,ki=1){ const zc=Math.max(z, 1.0001*z0); return (ki*co/Math.log(zc/z0)) * Math.pow(z0/0.05, 0.07); }
     function peakPressure(rho, vb, z, z0, co, ki=1){ const vm = cr(z,z0) * (co||1) * vb; const iv = Iv(z,z0, co||1, ki); const qp = 0.5 * rho * vm * vm * (1 + 7*iv); return { vm, iv, qp }; }
 
     // ===== Геометрия зон
-    function eRoofFor(b, H){ const k=parseFloat($('#eRoofFactor').value)||0.2; return k * Math.min(b, 2*H); }
-
-    // ===== Зоны для навесов
-    function zoneDesc(z, roofType){
-      if(roofType==='flat'){
-        const map={F:'Плоская — кромка (F)', G:'Плоская — краевые (G)', H:'Плоская — центр (H)'}; return map[z];
-      }
-      const mapM={F:'Односкатная — наветр. кромка (F)', G:'Односкатная — краевые (G)', H:'Односкатная — центр (H)'}; return mapM[z];
-    }
+    function eRoof(b,H){ const k=parseFloat($('#eRoofFactor').value)||0.2; return k * Math.min(b, 2*H); }
 
     // ===== Интерполяции cpe
     function cpeAreaInterp(c10, c1, A){
@@ -393,46 +386,70 @@
       if(!(A>0)) return c10;
       if(A<=1) return c1;
       if(A>=10) return c10;
-      return c1 - (c1 - c10)*log10(A);
+      return c1 - (c1 - c10)*log10(A); // логарифмическая по A
     }
-    function lerp(a,b,t){ return a+(b-a)*t }
-    function interpSetBySlope(alpha, sets, angles){ // sets: array of arrays [F,G,H], angles: matching degrees
-      // линейная интерполяция между ближайшими опорными углами
-      const n=angles.length;
-      if(alpha<=angles[0]) return sets[0];
-      if(alpha>=angles[n-1]) return sets[n-1];
-      for(let i=0;i<n-1;i++){
-        if(alpha>=angles[i] && alpha<=angles[i+1]){
-          const t=(alpha-angles[i])/(angles[i+1]-angles[i]);
-          return sets[i].map((v,idx)=> lerp(v, sets[i+1][idx], t));
-        }
-      }
-      return sets[n-1];
+    function pickLerp(alpha, a0, a1, set0, set1){ // линейно по уклону
+      const t=clamp((alpha-a0)/(a1-a0),0,1);
+      return set0.map((v,i)=> lerp(v, set1[i], t));
     }
 
-    // ===== Сбор коэффициентов (верх/низ)
-    function getFlatSets(A){
+    // ===== Наборы коэффициентов
+    function setsFlat(A){
       const top10=parseList($('#flatTop10').value,3), top1=parseList($('#flatTop1').value,3);
       const bot10=parseList($('#flatBot10').value,3), bot1=parseList($('#flatBot1').value,3);
-      const top=[0,1,2].map(i=> cpeAreaInterp(top10[i], top1[i], A));
-      const bot=[0,1,2].map(i=> cpeAreaInterp(bot10[i], bot1[i], A));
-      return {top, bot};
+      return {
+        zones:['F','G','H'],
+        top:[0,1,2].map(i=> cpeAreaInterp(top10[i], top1[i], A)),
+        bot:[0,1,2].map(i=> cpeAreaInterp(bot10[i], bot1[i], A))
+      };
     }
-    function getMonoSets(A, alphaDeg){
+
+    function setsMono(A, alphaDeg, flow){ // flow: 'up' | 'down'
+      const pref = flow==='up' ? 'monoUp' : 'monoDn';
       const a=[5,10,15,30];
-      const monoTop10=[ parseList($('#mono5Top10').value,3), parseList($('#mono10Top10').value,3), parseList($('#mono15Top10').value,3), parseList($('#mono30Top10').value,3) ];
-      const monoTop1 =[ parseList($('#mono5Top1').value ,3), parseList($('#mono10Top1').value ,3), parseList($('#mono15Top1').value ,3), parseList($('#mono30Top1').value ,3) ];
-      const monoBot10=[ parseList($('#mono5Bot10').value,3), parseList($('#mono10Bot10').value,3), parseList($('#mono15Bot10').value,3), parseList($('#mono30Bot10').value,3) ];
-      const monoBot1 =[ parseList($('#mono5Bot1').value ,3), parseList($('#mono10Bot1').value ,3), parseList($('#mono15Bot1').value ,3), parseList($('#mono30Bot1').value ,3) ];
+      const t10 = a.map(v=> parseList($(`#${pref}${v}Top10`).value,3));
+      const t1  = a.map(v=> parseList($(`#${pref}${v}Top1`).value ,3));
+      const b10 = a.map(v=> parseList($(`#${pref}${v}Bot10`).value,3));
+      const b1  = a.map(v=> parseList($(`#${pref}${v}Bot1`).value ,3));
 
-      const top10=interpSetBySlope(alphaDeg, monoTop10, a);
-      const top1 =interpSetBySlope(alphaDeg, monoTop1 , a);
-      const bot10=interpSetBySlope(alphaDeg, monoBot10, a);
-      const bot1 =interpSetBySlope(alphaDeg, monoBot1 , a);
+      function interp(arr, alpha){
+        if(alpha<=a[0]) return arr[0];
+        if(alpha>=a[a.length-1]) return arr[a.length-1];
+        for(let i=0;i<a.length-1;i++){
+          if(alpha>=a[i] && alpha<=a[i+1]){
+            return pickLerp(alpha, a[i], a[i+1], arr[i], arr[i+1]);
+          }
+        }
+        return arr[arr.length-1];
+      }
+      const top10 = interp(t10, alphaDeg), top1 = interp(t1, alphaDeg);
+      const bot10 = interp(b10, alphaDeg), bot1 = interp(b1, alphaDeg);
 
-      const top=[0,1,2].map(i=> cpeAreaInterp(top10[i], top1[i], A));
-      const bot=[0,1,2].map(i=> cpeAreaInterp(bot10[i], bot1[i], A));
-      return {top, bot};
+      return {
+        zones:['F','G','H'],
+        top:[0,1,2].map(i=> cpeAreaInterp(top10[i], top1[i], A)),
+        bot:[0,1,2].map(i=> cpeAreaInterp(bot10[i], bot1[i], A))
+      };
+    }
+
+    function setsGable(A, alphaDeg, theta){ // theta: '90' | '0'
+      const tag = (theta==='90') ? 'g90' : 'g0';
+      const a0=15, a1=30;
+      const t10a0=parseList($(`#${tag}a15Top10`).value,4), t1a0=parseList($(`#${tag}a15Top1`).value,4);
+      const t10a1=parseList($(`#${tag}a30Top10`).value,4), t1a1=parseList($(`#${tag}a30Top1`).value,4);
+      const b10a0=parseList($(`#${tag}a15Bot10`).value,4), b1a0=parseList($(`#${tag}a15Bot1`).value,4);
+      const b10a1=parseList($(`#${tag}a30Bot10`).value,4), b1a1=parseList($(`#${tag}a30Bot1`).value,4);
+
+      const top10 = pickLerp(alphaDeg, a0, a1, t10a0, t10a1);
+      const top1  = pickLerp(alphaDeg, a0, a1, t1a0 , t1a1 );
+      const bot10 = pickLerp(alphaDeg, a0, a1, b10a0, b10a1);
+      const bot1  = pickLerp(alphaDeg, a0, a1, b1a0 , b1a1 );
+
+      return {
+        zones:['F','G','H','I'],
+        top: top10.map((v,i)=> cpeAreaInterp(v, top1[i], A)),
+        bot: bot10.map((v,i)=> cpeAreaInterp(v, bot1[i], A))
+      };
     }
 
     // ===== Режимы
@@ -440,89 +457,87 @@
       const m=$('#cscdMode').value;
       if(!apply) return 1.0;
       if(m==='manual') return Math.max(0.5, parseFloat($('#cscd').value)||1);
-      return 1.0; // auto / "1"
+      return 1.0;
     }
 
-    // ===== Построение таблиц/кейсов
-    function buildTable(title,note,rows, ctx){
+    // ===== Таблицы
+    function tableRows(zones, top, bot, qp, cscd){
+      return zones.map((zn,i)=>{
+        const cTop=top[i], cBot=bot[i];
+        const cNet = cTop - cBot;      // ВАЖНО: чистое давление панели = верх − низ
+        const wnet = cNet * qp * cscd; // знак «+» — вниз на панель
+        return {zone:zn, cTop, cBot, cNet, wnet};
+      });
+    }
+
+    function buildTable(title,note,rows){
       const thead = `<thead>
         <tr>
           <th>Зона</th>
           <th>Описание</th>
-          <th>c<sub>pe</sub><sup>top</sup>(A)</th>
-          <th>c<sub>pe</sub><sup>bot</sup>(A)</th>
-          <th>c<sub>pe,net</sub>=top−bot</th>
-          <th>w<sub>net</sub>=c<sub>pe,net</sub>·q<sub>p</sub>·(c<sub>s</sub>c<sub>d</sub>)</th>
+          <th>c<sup>top</sup></th>
+          <th>c<sup>bot</sup></th>
+          <th>c<sub>net</sub>=top−bot</th>
+          <th>w<sub>net</sub>=c<sub>net</sub>·q<sub>p</sub>·(c<sub>s</sub>c<sub>d</sub>)</th>
         </tr>
       </thead>`;
+      const desc = (z)=>({
+        F:'Кромка (F)',
+        G:'Краевые (G)',
+        H:'Центр (H)',
+        I:'Подветренная половина (I)'
+      }[z] || `Зона ${z}`);
       const tbody = `<tbody>${
         rows.map(r => `<tr>
           <td><b>${r.zone}</b></td>
-          <td style="text-align:left">${zoneDesc(r.zone, ctx.roofType)}</td>
-          <td>${fmt(r.cpeTop,2)}</td>
-          <td>${fmt(r.cpeBot,2)}</td>
-          <td>${fmt(r.cpeNet,2)}</td>
+          <td style="text-align:left">${desc(r.zone)}</td>
+          <td>${fmt(r.cTop,2)}</td>
+          <td>${fmt(r.cBot,2)}</td>
+          <td>${fmt(r.cNet,2)}</td>
           <td>${fmt(r.wnet,0)}</td>
         </tr>`).join('')
       }</tbody>`;
       return `<div class="card" style="margin-top:12px"><div class="hd"><h2>${title}</h2><span class="pill">${note}</span></div><div class="bd"><table>${thead+tbody}</table></div></div>`;
     }
 
-    function buildCaseBlock(name, rows, note){
-      return `<div class="card" style="margin-top:12px">
-        <div class="hd"><h2>${name}</h2><span class="pill">${note}</span></div>
-        <div class="bd">${buildTable('Покрытие навеса', 'Зоны F/G/H', rows, {roofType: $('#roofType').value})}</div>
-      </div>`;
-    }
-
     // ===== Отчёт
     function headerReport(ctx){
-      const {b,L,H,roofType,alpha,flowDir,region,vb0,cdir,cseason,terrain,z0,zmin,co,zeExt,rho,ki,vb,ext,mode}=ctx;
+      const {b,L,H,roofType,alpha,flowDir,theta,region,vb0,cdir,cseason,terrain,z0,zmin,co,ze,rho,ki,vb,ext,mode,cscd,A,e}=ctx;
       const lines=[];
       lines.push('— ВХОДНЫЕ ДАННЫЕ —');
-      lines.push(`Геометрия: b=${fmt(b,2)} м; L=${fmt(L,2)} м; h=${fmt(H,2)} м; покрытие=${roofType==='flat'?'плоское':`односкатное (α=${fmt(alpha,1)}°)`}`);
-      lines.push(`Направление ветра: ${flowDir==='up'?'снизу-вверх (к высокой кромке)':'сверху-вниз (к низкой кромке)'}`);
-      lines.push(`Регион=${region}; v_b,0=${fmt(vb0,1)} м/с; c_dir=${fmt(cdir,2)}; c_season=${fmt(cseason,2)}`);
-      lines.push(`v_b = ${fmt(vb0,1)} · ${fmt(cdir,2)} · ${fmt(cseason,2)} = ${fmt(vb,2)} м/с`);
-      lines.push(`Местность: ${terrain} → z₀=${z0} м; z_min=${zmin} м; cₒ(z)=${fmt(co,2)}; ρ=${fmt(rho,2)} кг/м³; k_i=${fmt(ki,2)}`);
-      lines.push(`z_e,ext=${fmt(zeExt,2)} м`);
+      lines.push(`Геометрия: b=${fmt(b,2)} м; L=${fmt(L,2)} м; h=${fmt(H,2)} м; e=${fmt(e,2)} м`);
+      const rt = roofType==='flat'?'плоский':(roofType==='mono'?`односкатный (α=${fmt(alpha,1)}°; ${flowDir==='up'?'ветер вверх ската':'ветер вниз ската'})`:`двускатный (α=${fmt(alpha,1)}°, θ=${theta}°)`);
+      lines.push(`Тип: ${rt}`);
+      lines.push(`Регион=${region}; v_b,0=${fmt(vb0,1)} м/с; c_dir=${fmt(cdir,2)}; c_season=${fmt(cseason,2)}; v_b=${fmt(vb,2)} м/с`);
+      lines.push(`Местность: ${terrain} → z₀=${z0} м; z_min=${zmin} м; cₒ=${fmt(co,2)}; ρ=${fmt(rho,2)}; k_i=${fmt(ki,2)}`);
+      lines.push(`z_e=${fmt(ze,2)} м; A=${fmt(A,2)} м²; режим: ${mode}; c_s c_d=${fmt(cscd,2)}`);
 
       lines.push('\n— ПРОФИЛЬ СКОРОСТИ И ПИКОВОЕ ДАВЛЕНИЕ —');
-      const k=0.19*Math.pow(z0/0.05,0.07);
-      lines.push(`k_r = 0.19 · (z₀ / 0.05)^0.07 = ${fmt(k,4)}`);
-      lines.push(`c_r(z_e,ext) = ${fmt(cr(zeExt,z0),4)}; v_m(ext) = c_r·cₒ·v_b = ${fmt(ext.vm,3)} м/с`);
-      lines.push(`I_v(ext) = (k_i·cₒ)/ln(z_e/z₀)·(z₀/0.05)^0.07 = ${fmt(ext.iv,4)}`);
-      lines.push(`q_p(ext) = 0.5·ρ·v_m²·(1+7I_v) = ${fmt(ext.qp,0)} Па`);
-
-      lines.push('\n— ПАРАМЕТРЫ РЕЖИМА —');
-      lines.push(`Режим: ${($('#mode').value==='mwfrs')?'MWFRS (учёт c_s c_d)':'Cladding (локальные давления)'}; c_s c_d = ${fmt(getCscd($('#mode').value==='mwfrs'),2)}`);
-      if($('#frictionOn').checked){
-        lines.push(`Трение кровли: учтено с c_fr=${fmt(parseFloat($('#cfr').value)||0.02,2)} (оценка суммарной силы).`);
-      }
+      lines.push(`c_r(z_e)=${fmt(cr(ze,z0),4)}; v_m=c_r·cₒ·v_b=${fmt(ext.vm,3)} м/с; I_v=${fmt(ext.iv,4)}; q_p=0.5·ρ·v_m²·(1+7I_v)=${fmt(ext.qp,0)} Па`);
       return lines;
     }
 
-    function zoneReportDetailed(title, rows, qp, cscd){
+    function rowsReport(title, rows, qp, cscd){
       const lines=[`\n— ${title} —`];
       rows.forEach(r=>{
-        lines.push(`\nЗона ${r.zone} — ${zoneDesc(r.zone, $('#roofType').value)}`);
-        lines.push(`1) c_pe^top(A) = ${fmt(r.cpeTop,2)}; c_pe^bot(A) = ${fmt(r.cpeBot,2)}; c_pe,net = ${fmt(r.cpeNet,2)}`);
-        lines.push(`2) w_net = c_pe,net · q_p · (c_s c_d) = ${fmt(r.cpeNet,2)} · ${fmt(qp,0)} · ${fmt(cscd,2)} = ${fmt(r.wnet,0)} Па`);
+        lines.push(`\nЗона ${r.zone}: c_top=${fmt(r.cTop,2)}, c_bot=${fmt(r.cBot,2)}, c_net=${fmt(r.cNet,2)}`);
+        lines.push(`w_net = c_net · q_p · (c_s c_d) = ${fmt(r.cNet,2)} · ${fmt(qp,0)} · ${fmt(cscd,2)} = ${fmt(r.wnet,0)} Па`);
       });
       return lines;
     }
 
     // ===== Основной расчёт
     function calc(){
-      // Геометрия
-      const b=parseFloat($('#span').value);
-      const L=parseFloat($('#length').value);
+      // Геометрия / тип
+      const b=parseFloat($('#b').value);
+      const L=parseFloat($('#L').value);
       const H=parseFloat($('#H').value);
       const roofType=$('#roofType').value;
-      const alpha=parseFloat($('#slope').value||'0');
+      const alpha=parseFloat($('#alpha').value||'0');
       const flowDir=$('#flowDir').value;
+      const theta=$('#theta').value;
 
-      // Климат
+      // Климат / скорость
       const region=$('#region').value; const [rI,rII,rIII]=parseList($('#regionsMap').value,3);
       if(region!=='custom'){ const map={I:rI, II:rII, III:rIII}; $('#vb0').value = map[region] ?? $('#vb0').value }
       const vb0=parseFloat($('#vb0').value); const cdir=parseFloat($('#cdir').value); const cseason=parseFloat($('#cseason').value);
@@ -530,13 +545,14 @@
       const terrain=$('#terrain').value; const co=parseFloat($('#co').value);
       const rho=Math.max(0.5, parseFloat($('#rho').value)||RHO_DEF);
       const ki=Math.max(0.5, parseFloat($('#ki').value)||1);
+
       const z0=Z0_MAP[terrain]; const zmin=ZMIN_MAP[terrain];
       const zeMode=$('#zeMode')?.value||'auto';
-      const zeExtRaw=zeMode==='manual'?parseFloat($('#zeExt').value):H;
-      const zeExt=Math.max(zeExtRaw,zmin);
+      const zeRaw=zeMode==='manual'?parseFloat($('#zeExt').value):H;
+      const ze=Math.max(zeRaw,zmin);
 
       const vb=cdir*cseason*vb0;
-      const ext=peakPressure(rho, vb, zeExt, z0, co, ki);
+      const ext=peakPressure(rho, vb, ze, z0, co, ki);
 
       // KPI
       $('#kpi-vb0').textContent = fmt(vb0,1)+' м/с';
@@ -544,84 +560,78 @@
       $('#kpi-iv').textContent  = fmt(ext.iv,3);
       $('#kpi-qp').textContent  = fmt(ext.qp,0);
 
-      const mode=$('#mode').value; const applyCscd=(mode==='mwfrs');
-      const cscd = getCscd(applyCscd);
+      const mode=$('#mode').value;
+      const cscd=getCscd(mode==='mwfrs');
       const Aelem = Math.max(0.01, parseFloat($('#Aelem').value)||10);
-      const e = eRoofFor(b,H);
+      const e = eRoof(b,H);
 
-      // Коэф. верх/низ для зон F,G,H
-      let top=[], bot=[];
+      // Коэф. в зависимости от типа
+      let Z=[], TOP=[], BOT=[];
       if(roofType==='flat'){
-        const sets=getFlatSets(Aelem);
-        top=sets.top; bot=sets.bot;
-      } else { // mono
-        const sets=getMonoSets(Aelem, alpha);
-        top=sets.top; bot=sets.bot;
+        const s=setsFlat(Aelem); Z=s.zones; TOP=s.top; BOT=s.bot;
+      } else if(roofType==='mono'){
+        const s=setsMono(Aelem, alpha, flowDir); Z=s.zones; TOP=s.top; BOT=s.bot;
+      } else {
+        const s=setsGable(Aelem, alpha, $('#theta').value); Z=s.zones; TOP=s.top; BOT=s.bot;
       }
 
-      // Влияние направления по скату:
-      // «up»: сильнее подсос снизу у кромки F; «down»: перераспределение — можно задать поправочные множители.
-      // Делаем мягкую корректировку (пользователь может изменить таблицы при необходимости).
-      const dirMul = (flowDir==='up') ? {top:[1.00,1.00,1.00], bot:[1.10,1.05,1.00]} : {top:[1.05,1.00,0.95], bot:[0.95,1.00,1.05]};
-      const topAdj = top.map((v,i)=> v*dirMul.top[i]);
-      const botAdj = bot.map((v,i)=> v*dirMul.bot[i]);
+      // Строки таблицы
+      const rows = Z.map((zn,i)=>{
+        const cTop=TOP[i], cBot=BOT[i];
+        const cNet=cTop-cBot;              // ВАЖНО: знак/формула исправлены
+        const wnet=cNet*ext.qp*cscd;
+        return {zone:zn, cTop, cBot, cNet, wnet};
+      });
 
-      function row(zoneIdx, zoneName){
-        const cpeTop = topAdj[zoneIdx];
-        const cpeBot = botAdj[zoneIdx];
-        const cpeNet = cpeTop - cpeBot; // чистое давление на покрытие
-        const wnet = cpeNet * ext.qp * cscd;
-        return { zone:zoneName, cpeTop, cpeBot, cpeNet, wnet };
-      }
-
-      const rows = [
-        row(0,'F'), // кромка
-        row(1,'G'), // краевые
-        row(2,'H')  // центр
-      ];
-
+      // Рендер
       const casesEl=$('#cases'); casesEl.innerHTML='';
+      const title = (roofType==='flat') ? 'Плоский навес'
+                  : (roofType==='mono') ? `Односкатный — ветер ${flowDir==='up'?'вверх ската':'вниз ската'}`
+                  : `Двускатный — θ=${$('#theta').value}°`;
       casesEl.insertAdjacentHTML('beforeend',
-        buildCaseBlock('Случай 1 — Основной обдув', rows, `e=${fmt(e,2)} м; A=${fmt(Aelem,2)} м²`)
+        buildTable(title, `e=${fmt(e,2)} м; A=${fmt(Aelem,2)} м²`, rows)
       );
 
-      // Отчёт
-      const ctxRep={b,L,H,roofType,alpha,flowDir,region,vb0,cdir,cseason,terrain,z0,zmin,co,zeExt,rho,ki,vb,ext,mode};
-      const lines=[...headerReport(ctxRep)];
-      lines.push('\n— РЕЗУЛЬТАТЫ ПО ЗОНАМ —');
-      lines.push(...zoneReportDetailed('Покрытие навеса (F/G/H)', rows, ext.qp, cscd));
+      // Легенда
+      const leg=$('#legend');
+      leg.innerHTML = (roofType==='flat')
+        ? `<div class="item">Плоский: зоны <b>F</b> — кромка; <b>G</b> — краевые; <b>H</b> — центр. Нагрузка панели: (c_top−c_bot)·q_p.</div>`
+        : (roofType==='mono')
+        ? `<div class="item">Односкатный: <b>F</b> кромка наветренная; <b>G</b> краевые; <b>H</b> центр. Направление: ${flowDir==='up'?'снизу-вверх по скату':'сверху-вниз по скату'}.</div>`
+        : `<div class="item">Двускатный: θ=${$('#theta').value}°. Зоны <b>F/G/H/I</b> — по таблицам. Нагрузка: (c_top−c_bot)·q_p.</div>`;
 
-      // Трение (сдвигающая сила по кровле)
+      // Отчёт
+      const ctx={b,L,H,roofType,alpha,flowDir,theta,region,vb0,cdir,cseason,terrain,z0,zmin,co,ze,rho,ki,vb,ext,mode,cscd,A:Aelem,e};
+      const lines=[...headerReport(ctx), ...rowsReport('Покрытие (зоны)', rows, ext.qp, cscd)];
       if($('#frictionOn').checked){
         const cfr = Math.max(0, parseFloat($('#cfr').value)||0.02);
         const tau = cfr * ext.qp;
         const F = tau * b * L;
-        lines.push(`\n— ТРЕНИЕ КРОВЛИ (оценка) —`);
-        lines.push(`τ = c_fr · q_p(ext) = ${fmt(cfr,3)} · ${fmt(ext.qp,0)} = ${fmt(tau,0)} Па; F ≈ τ · (b·L) = ${fmt(F,0)} Н`);
+        lines.push(`\n— ТРЕНИЕ (оценка) —`);
+        lines.push(`τ = c_fr · q_p = ${fmt(cfr,3)} · ${fmt(ext.qp,0)} = ${fmt(tau,0)} Па; F ≈ τ · (b·L) = ${fmt(F,0)} Н`);
       }
-
-      lines.push('\nПримечание: коэффициенты c_pe^top/c_pe^bot заданы ориентировочно и подлежат подтверждению вашей редакцией СН/локальным документом. Для промежуточных уклонов применяется линейная интерполяция, для A — логарифмическая между 1 и 10 м².');
+      lines.push('\nПримечание: подставьте табличные c_pe^top / c_pe^bot из вашей редакции СН для навесов (свободных крыш).');
       $('#report').textContent = lines.join('\n');
-
-      // Легенда
-      const el=$('#legend');
-      el.innerHTML = (roofType==='flat')
-        ? `<div class="item">Плоский навес: <b>F</b> — кромка; <b>G</b> — краевые; <b>H</b> — центр. Чистое давление: c_pe^top − c_pe^bot.</div>`
-        : `<div class="item">Односкатный навес: <b>F</b> — наветренная кромка; <b>G</b> — краевые; <b>H</b> — центр. Направление ветра: ${$('#flowDir').value==='up'?'снизу-вверх':'сверху-вниз'}.</div>`;
     }
 
-    // ===== События
+    // ===== События UI
+    function toggleRows(){
+      const rt=$('#roofType').value;
+      $('#slopeRow').style.display = (rt==='flat') ? 'none' : '';
+      $('#flowDirWrap').style.display = (rt==='mono') ? '' : 'none';
+      $('#thetaRow').style.display = (rt==='gable') ? '' : 'none';
+    }
+
     $('#btn-calc').addEventListener('click', calc);
     $('#btn-print').addEventListener('click', ()=> window.print());
     $('#btn-copy').addEventListener('click', ()=>{ const t=$('#report').innerText.trim(); if(!t) return; navigator.clipboard.writeText(t) });
 
-    $('#roofType').addEventListener('change', (e)=>{ $('#slopeRow').style.display = e.target.value==='mono' ? '' : 'none'; calc(); });
-
+    $('#roofType').addEventListener('change', ()=>{ toggleRows(); calc(); });
     $('#zeMode')?.addEventListener('change', e=>{ $('#zeManualRow').style.display = e.target.value==='manual' ? '' : 'none'; calc(); });
 
     let t; document.querySelectorAll('.bd input, .bd select').forEach(el=> el.addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(calc,150) }));
 
-    window.addEventListener('load', ()=>{ calc(); });
+    window.addEventListener('load', ()=>{ toggleRows(); calc(); });
   </script>
 </body>
 </html>
