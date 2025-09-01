@@ -65,6 +65,11 @@
     .kpi .v{font-size:20px; font-weight:700}
     .kpi .t{font-size:12px; color:var(--muted)}
 
+    /* СХЕМА */
+    .scheme-wrap{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .scheme-caption{font-size:12px; color:var(--muted)}
+    svg.scheme{width:100%; max-width:700px; height:auto; border:1px solid rgba(255,255,255,.08); border-radius:12px; background:#0f1532}
+
     .print-only{display:none}
 
     /* === ПРАВКИ ДЛЯ ПЕЧАТИ / PDF — исправляют обрезание на 1-й странице === */
@@ -79,12 +84,8 @@
         size:auto;
         margin:12mm;
       }
-      /* скрываем управление при печати */
       header, .actions, button { display:none !important; }
-
-      /* grid → обычный поток, чтобы не было багов пагинации */
       .grid{ display:block !important; }
-
       .container{ max-width:100% !important; padding:0 !important; }
 
       .card{
@@ -97,13 +98,15 @@
       #report{
         break-inside:auto; page-break-inside:auto;
       }
-
       table{ page-break-inside:auto; width:100%; table-layout:fixed; }
       tr{ page-break-inside:avoid; page-break-after:auto; }
       th, td{ white-space:normal; word-break:break-word; }
 
       .print-only{ display:block !important; }
       .report{ white-space:pre-wrap; font-family:Consolas, monospace; font-size:12px; line-height:1.45; }
+
+      /* схема печатается «как есть» на всю ширину */
+      svg.scheme{ background:#fff; border-color:#ddd }
     }
   </style>
 </head>
@@ -379,6 +382,12 @@
         <div class="bd" id="results">
           <div class="legend" id="legend"></div>
 
+          <!-- СХЕМА -->
+          <div class="scheme-wrap" style="margin:8px 0 14px">
+            <svg id="scheme" class="scheme" viewBox="0 0 800 300" role="img" aria-label="Схема покрытия и зон"></svg>
+            <div class="scheme-caption" id="scheme-caption">Схема покрытий: F — кромка, G — краевые, H — центр, I — подветренная половина (для двускатной θ=90°).</div>
+          </div>
+
           <div class="kpi">
             <div class="itm"><div class="t">v<sub>b,0</sub></div><div class="v" id="kpi-vb0">—</div></div>
             <div class="itm"><div class="t">v<sub>b</sub></div><div class="v" id="kpi-vb">—</div></div>
@@ -556,7 +565,190 @@
       return lines;
     }
 
+    // ===== Схема (SVG)
+    function drawScheme(){
+      const svg = document.getElementById('scheme');
+      if(!svg) return;
+      const roofType=$('#roofType').value;
+      const alpha=parseFloat($('#alpha').value||'0');
+      const flowDir=$('#flowDir').value;
+      const theta=$('#theta').value;
+      const b=parseFloat($('#b').value);
+      const H=parseFloat($('#H').value);
+      const e = (parseFloat($('#eRoofFactor').value)||0.2) * Math.min(b, 2*H);
+
+      // очистка
+      while(svg.firstChild) svg.removeChild(svg.firstChild);
+
+      // helpers
+      const NS='http://www.w3.org/2000/svg';
+      const add = (name, attrs={}, parent=svg)=>{
+        const el=document.createElementNS(NS,name);
+        Object.entries(attrs).forEach(([k,v])=> el.setAttribute(k, String(v)));
+        parent.appendChild(el); return el;
+      };
+      const label = (x,y,text,opts={})=>{
+        add('text', {x, y, 'font-size': opts.size||14, 'text-anchor': opts.anchor||'middle', 'fill': opts.fill||'#eaf1ff'}, svg).textContent=text;
+      };
+
+      // рамка рабочей области
+      add('rect',{x:10,y:10,width:780,height:280,rx:12,ry:12,fill:'#0b1235',stroke:'#2a3564'});
+
+      // стрелка ветра слева направо
+      const arrowY=50;
+      add('line',{x1:40,y1:arrowY,x2:200,y2:arrowY,stroke:'#8ab4ff','stroke-width':3,'marker-end':'url(#arrow)'});      
+      label(120, arrowY-10, 'ветер', {size:12, fill:'#8ab4ff'});
+
+      // дефиним маркер-стрелку
+      const defs=add('defs',{},svg);
+      const marker=add('marker',{id:'arrow',viewBox:'0 0 10 10',refX:'10',refY:'5',markerWidth:'8',markerHeight:'8',orient:'auto-start-reverse'},defs);
+      add('path',{d:'M 0 0 L 10 5 L 0 10 z', fill:'#8ab4ff'},marker);
+
+      // площадка покрытия
+      const plateX=120, plateY=110, plateW=560, plateH=120;
+
+      // базовая плита
+      add('rect',{x:plateX,y:plateY,width:plateW,height:plateH,fill:'#13204a',stroke:'#415a9a'});
+
+      // уклон / форма
+      if(roofType==='flat'){
+        // зоны: F (кромка наветренная), G (краевые), H (центр)
+        const ePix = clamp(e / Math.max(b,1) * plateH * 0.6, 12, plateH*0.35);
+        // F (наветренная кромка)
+        add('rect',{x:plateX,y:plateY,width:plateW, height: ePix, fill:'rgba(255,255,255,0.06)', stroke:'#7aa2ff'});
+        label(plateX+30, plateY+ePix/2+5, 'F', {size:16});
+        // G (боковые+подветренная) — две полосы снизу/середина
+        add('rect',{x:plateX,y:plateY+ePix,width:plateW, height: ePix, fill:'rgba(255,255,255,0.05)', stroke:'#7aa2ff','stroke-dasharray':'4,4'});
+        label(plateX+30, plateY+ePix+ePix/2+5, 'G', {size:16});
+        // H (центр)
+        add('rect',{x:plateX,y:plateY+2*ePix,width:plateW, height: plateH-2*ePix, fill:'rgba(255,255,255,0.03)', stroke:'#7aa2ff','stroke-dasharray':'2,6'});
+        label(plateX+30, plateY+2*ePix+(plateH-2*ePix)/2+5, 'H', {size:16});
+
+        // размер e
+        add('line',{x1:plateX+plateW+15,y1:plateY,x2:plateX+plateW+15,y2:plateY+ePix,stroke:'#9ec3ff','stroke-width':2});
+        add('line',{x1:plateX+plateW+10,y1:plateY,x2:plateX+plateW+20,y2:plateY,stroke:'#9ec3ff'});
+        add('line',{x1:plateX+plateW+10,y1:plateY+ePix,x2:plateX+plateW+20,y2:plateY+ePix,stroke:'#9ec3ff'});
+        label(plateX+plateW+28, plateY+ePix/2+5, `e`, {anchor:'start', fill:'#9ec3ff'});
+
+      } else if(roofType==='mono'){
+        // рисуем наклон: верхняя кромка справа (если flow up — ветер снизу вверх к высокой кромке)
+        const tilt = clamp(alpha,0,40);
+        const dy = tilt/40 * 40; // визуальный наклон
+        const poly = add('polygon',{fill:'rgba(255,255,255,0.04)',stroke:'#7aa2ff'},svg);
+        const pts = [
+          [plateX, plateY+plateH-dy],
+          [plateX+plateW, plateY+plateH],
+          [plateX+plateW, plateY+plateH],
+          [plateX, plateY+plateH-dy]
+        ];
+        poly.setAttribute('points', pts.map(p=>p.join(',')).join(' '));
+        // зоны F/G/H по высоте
+        const ePix = clamp(e / Math.max(b,1) * plateH * 0.6, 12, plateH*0.35);
+        add('rect',{x:plateX,y:plateY,width:plateW, height: ePix, fill:'rgba(255,255,255,0.06)', stroke:'#7aa2ff'});
+        label(plateX+30, plateY+ePix/2+5, 'F', {size:16});
+        add('rect',{x:plateX,y:plateY+ePix,width:plateW, height: ePix, fill:'rgba(255,255,255,0.05)', stroke:'#7aa2ff','stroke-dasharray':'4,4'});
+        label(plateX+30, plateY+ePix+ePix/2+5, 'G', {size:16});
+        add('rect',{x:plateX,y:plateY+2*ePix,width:plateW, height: plateH-2*ePix, fill:'rgba(255,255,255,0.03)', stroke:'#7aa2ff','stroke-dasharray':'2,6'});
+        label(plateX+30, plateY+2*ePix+(plateH-2*ePix)/2+5, 'H', {size:16});
+
+        // стрелка вдоль ската
+        const dirText = (flowDir==='up')?'вверх ската':'вниз ската';
+        add('line',{x1:plateX+plateW-200,y1:plateY+plateH-10-dy,x2:plateX+plateW-60,y2:plateY+plateH-10,stroke:'#8ab4ff','stroke-width':2,'marker-end':'url(#arrow)'});
+        label(plateX+plateW-130, plateY+plateH-25-dy/2, dirText, {size:12, fill:'#8ab4ff'});
+
+        // размер e
+        add('line',{x1:plateX+plateW+15,y1:plateY,x2:plateX+plateW+15,y2:plateY+ePix,stroke:'#9ec3ff','stroke-width':2});
+        add('line',{x1:plateX+plateW+10,y1:plateY,x2:plateX+plateW+20,y2:plateY,stroke:'#9ec3ff'});
+        add('line',{x1:plateX+plateW+10,y1:plateY+ePix,x2:plateX+plateW+20,y2:plateY+ePix,stroke:'#9ec3ff'});
+        label(plateX+plateW+28, plateY+ePix/2+5, `e`, {anchor:'start', fill:'#9ec3ff'});
+
+      } else { // gable
+        // двускатная: вершина по центру
+        const ridgeY = plateY + plateH*0.35;
+        const ridgeX = plateX + plateW/2;
+        add('polygon',{points:`${plateX},${plateY+plateH} ${ridgeX},${ridgeY} ${plateX+plateW},${plateY+plateH}`, fill:'rgba(255,255,255,0.04)', stroke:'#7aa2ff'});
+
+        // зоны: F/G/H/I (θ=90) либо F/G/H/I (θ=0) — просто подписи
+        const zoneY = plateY + 20;
+        label(plateX+30, zoneY, 'F', {size:16});
+        label(plateX+plateW/3, zoneY, 'G', {size:16});
+        label(plateX+2*plateW/3, zoneY, 'H', {size:16});
+        label(plateX+plateW-30, zoneY, 'I', {size:16});
+
+        // обозначение θ
+        label(plateX+plateW-60, plateY+plateH-10, `θ=${$('#theta').value}°`, {anchor:'end', size:12, fill:'#9ec3ff'});
+
+        // e
+        const ePix = clamp(e / Math.max(b,1) * plateH * 0.6, 12, plateH*0.35);
+        add('line',{x1:plateX+plateW+15,y1:plateY,x2:plateX+plateW+15,y2:plateY+ePix,stroke:'#9ec3ff','stroke-width':2});
+        add('line',{x1:plateX+plateW+10,y1:plateY,x2:plateX+plateW+20,y2:plateY,stroke:'#9ec3ff'});
+        add('line',{x1:plateX+plateW+10,y1:plateY+ePix,x2:plateX+plateW+20,y2:plateY+ePix,stroke:'#9ec3ff'});
+        label(plateX+plateW+28, plateY+ePix/2+5, `e`, {anchor:'start', fill:'#9ec3ff'});
+      }
+    }
+
     // ===== Основной расчёт
+    function buildTable(title,note,rows){
+      const thead = `<thead>
+        <tr>
+          <th>Зона</th>
+          <th>Описание</th>
+          <th>c<sup>top</sup></th>
+          <th>c<sup>bot</sup></th>
+          <th>c<sub>net</sub>=top−bot</th>
+          <th>w<sub>net</sub>=c<sub>net</sub>·q<sub>p</sub>·(c<sub>s</sub>c<sub>d</sub>)</th>
+        </tr>
+      </thead>`;
+      const desc = (z)=>({
+        F:'Кромка (F)',
+        G:'Краевые (G)',
+        H:'Центр (H)',
+        I:'Подветренная половина (I)'
+      }[z] || `Зона ${z}`);
+      const tbody = `<tbody>${
+        rows.map(r => `<tr>
+          <td><b>${r.zone}</b></td>
+          <td style="text-align:left">${desc(r.zone)}</td>
+          <td>${fmt(r.cTop,2)}</td>
+          <td>${fmt(r.cBot,2)}</td>
+          <td>${fmt(r.cNet,2)}</td>
+          <td>${fmt(r.wnet,0)}</td>
+        </tr>`).join('')
+      }</tbody>`;
+      return `<div class="card" style="margin-top:12px"><div class="hd"><h2>${title}</h2><span class="pill">${note}</span></div><div class="bd"><table>${thead+tbody}</table></div></div>`;
+    }
+
+    function getCscd(apply){
+      const m=$('#cscdMode').value;
+      if(!apply) return 1.0;
+      if(m==='manual') return Math.max(0.5, parseFloat($('#cscd').value)||1);
+      return 1.0;
+    }
+
+    function headerReport(ctx){
+      const {b,L,H,roofType,alpha,flowDir,theta,region,vb0,cdir,cseason,terrain,z0,zmin,co,ze,rho,ki,vb,ext,mode,cscd,A,e}=ctx;
+      const lines=[];
+      lines.push('— ВХОДНЫЕ ДАННЫЕ —');
+      lines.push(`Геометрия: b=${fmt(b,2)} м; L=${fmt(L,2)} м; h=${fmt(H,2)} м; e=${fmt(e,2)} м`);
+      const rt = roofType==='flat'?'плоский':(roofType==='mono'?`односкатный (α=${fmt(alpha,1)}°; ${flowDir==='up'?'ветер вверх ската':'ветер вниз ската'})`:`двускатный (α=${fmt(alpha,1)}°, θ=${theta}°)`);
+      lines.push(`Тип: ${rt}`);
+      lines.push(`Регион=${region}; v_b,0=${fmt(vb0,1)} м/с; c_dir=${fmt(cdir,2)}; c_season=${fmt(cseason,2)}; v_b=${fmt(vb,2)} м/с`);
+      lines.push(`Местность: ${terrain} → z₀=${z0} м; z_min=${zmin} м; cₒ=${fmt(co,2)}; ρ=${fmt(rho,2)}; k_i=${fmt(ki,2)}`);
+      lines.push(`z_e=${fmt(ze,2)} м; A=${fmt(A,2)} м²; режим: ${mode}; c_s c_d=${fmt(cscd,2)}`);
+      lines.push('\n— ПРОФИЛЬ СКОРОСТИ И ПИКОВОЕ ДАВЛЕНИЕ —');
+      lines.push(`c_r(z_e)=${fmt(cr(ze,z0),4)}; v_m=c_r·cₒ·v_b=${fmt(ext.vm,3)} м/с; I_v=${fmt(ext.iv,4)}; q_p=0.5·ρ·v_m²·(1+7I_v)=${fmt(ext.qp,0)} Па`);
+      return lines;
+    }
+
+    function rowsReport(title, rows, qp, cscd){
+      const lines=[`\n— ${title} —`];
+      rows.forEach(r=>{
+        lines.push(`\nЗона ${r.zone}: c_top=${fmt(r.cTop,2)}, c_bot=${fmt(r.cBot,2)}, c_net=${fmt(r.cNet,2)}`);
+        lines.push(`w_net = c_net · q_p · (c_s c_d) = ${fmt(r.cNet,2)} · ${fmt(qp,0)} · ${fmt(cscd,2)} = ${fmt(r.wnet,0)} Па`);
+      });
+      return lines;
+    }
+
     function calc(){
       // Геометрия / тип
       const b=parseFloat($('#b').value);
@@ -613,7 +805,7 @@
         return {zone:zn, cTop, cBot, cNet, wnet};
       });
 
-      // Рендер
+      // Рендер таблицы
       const casesEl=$('#cases'); casesEl.innerHTML='';
       const title = (roofType==='flat') ? 'Плоский навес'
                   : (roofType==='mono') ? `Односкатный — ветер ${flowDir==='up'?'вверх ската':'вниз ската'}`
@@ -629,6 +821,9 @@
         : (roofType==='mono')
         ? `<div class="item">Односкатный: <b>F</b> кромка; <b>G</b> краевые; <b>H</b> центр. Направление: ${flowDir==='up'?'снизу-вверх':'сверху-вниз'} по скату.</div>`
         : `<div class="item">Двускатный: θ=${$('#theta').value}°. Зоны <b>F/G/H/I</b>. Нагрузка: (c_top−c_bot)·q_p.</div>`;
+
+      // Обновить схему
+      drawScheme();
 
       // Отчёт
       const ctx={b,L,H,roofType,alpha,flowDir,theta,region,vb0,cdir,cseason,terrain,z0,zmin,co,ze,rho,ki,vb,ext,mode,cscd,A:Aelem,e};
