@@ -21,8 +21,12 @@
     h1{margin:0; font-size:22px}
     .badge{font-size:12px; color:var(--muted)}
     .actions{display:flex; gap:8px}
-    button{appearance:none; border:1px solid var(--line); background:#1a2340; color:var(--ink); padding:10px 14px; border-radius:10px; cursor:pointer}
-    button:hover{background:#213058}
+    /* кнопки и ссылка-кнопка */
+    .actions .btn, .actions button{
+      appearance:none; border:1px solid var(--line); background:#1a2340; color:var(--ink);
+      padding:10px 14px; border-radius:10px; cursor:pointer; text-decoration:none; display:inline-block
+    }
+    .actions .btn:hover, .actions button:hover{background:#213058}
 
     .grid{
       display:grid;
@@ -39,7 +43,7 @@
     .card, .bd, .row > * { min-width:0 }
 
     label{font-size:12px; color:var(--muted); display:block; margin:4px 0}
-    input, select, textarea{width:100%; padding:10px 12px; border-radius:10px; background:#0f1532; color:var(--ink); border:1px solid #2a3564; outline:none}
+    input, select, textarea{width:100%; padding:10px 12px; border-radius:10px; background:#0f1532; color:#eaf1ff; border:1px solid #2a3564; outline:none}
     input:focus, select:focus, textarea:focus{border-color:#3b55b9; box-shadow:0 0 0 3px rgba(138,180,255,.18)}
     .hint{font-size:11px; color:var(--muted); margin-top:6px; line-height:1.45}
 
@@ -62,12 +66,44 @@
     .kpi .t{font-size:12px; color:var(--muted)}
 
     .print-only{display:none}
+
+    /* === ПРАВКИ ДЛЯ ПЕЧАТИ / PDF — исправляют обрезание на 1-й странице === */
     @media print{
-      .print-only{display:block}
-      button,header{display:none!important}
-      body{background:#fff;color:#000}
-      .card{background:#fff;border:1px solid #ccc;box-shadow:none}
-      .report{white-space:pre-wrap; font-family:Consolas, monospace; font-size:12px; line-height:1.45}
+      html, body{
+        height:auto !important;
+        overflow:visible !important;
+        background:#fff !important;
+        color:#000 !important;
+      }
+      @page{
+        size:auto;
+        margin:12mm;
+      }
+      /* скрываем управление при печати */
+      header, .actions, button { display:none !important; }
+
+      /* grid → обычный поток, чтобы не было багов пагинации */
+      .grid{ display:block !important; }
+
+      .container{ max-width:100% !important; padding:0 !important; }
+
+      .card{
+        background:#fff; border:1px solid #ccc; box-shadow:none;
+        margin:0 0 12px 0;
+        break-inside:avoid; page-break-inside:avoid;
+      }
+      .card .bd,
+      #results table,
+      #report{
+        break-inside:auto; page-break-inside:auto;
+      }
+
+      table{ page-break-inside:auto; width:100%; table-layout:fixed; }
+      tr{ page-break-inside:avoid; page-break-after:auto; }
+      th, td{ white-space:normal; word-break:break-word; }
+
+      .print-only{ display:block !important; }
+      .report{ white-space:pre-wrap; font-family:Consolas, monospace; font-size:12px; line-height:1.45; }
     }
   </style>
 </head>
@@ -79,6 +115,9 @@
         <div class="badge">Плоский / Односкатный / Двускатный · чистое давление (верх − низ)</div>
       </div>
       <div class="actions">
+        <!-- Ссылка на главную страницу -->
+        <a class="btn" href="https://0vchina.github.io/partfolio/">На главную</a>
+
         <button id="btn-calc">Рассчитать</button>
         <button id="btn-print">Печать / PDF</button>
         <button id="btn-copy">Копия отчёта</button>
@@ -248,7 +287,7 @@
               <details>
                 <summary>Односкатный — ВЕТЕР «ВВЕРХ СКАТА» (flow: up)</summary>
                 <div class="row">
-                  <div><label>α=5° TOP F,G,H · A=10/1</label><input id="monoUp5Top10" value="-1.1,-0.9,-0.6"><input id="monoUp5Top1" value="-1.4,-1.1,-0.8"></div>
+                  <div><label>α=5° TOP A=10/1</label><input id="monoUp5Top10" value="-1.1,-0.9,-0.6"><input id="monoUp5Top1" value="-1.4,-1.1,-0.8"></div>
                   <div><label>α=10° TOP</label><input id="monoUp10Top10" value="-1.2,-1.0,-0.7"><input id="monoUp10Top1" value="-1.5,-1.2,-0.9"></div>
                 </div>
                 <div class="row">
@@ -460,16 +499,7 @@
       return 1.0;
     }
 
-    // ===== Таблицы
-    function tableRows(zones, top, bot, qp, cscd){
-      return zones.map((zn,i)=>{
-        const cTop=top[i], cBot=bot[i];
-        const cNet = cTop - cBot;      // ВАЖНО: чистое давление панели = верх − низ
-        const wnet = cNet * qp * cscd; // знак «+» — вниз на панель
-        return {zone:zn, cTop, cBot, cNet, wnet};
-      });
-    }
-
+    // ===== Таблица
     function buildTable(title,note,rows){
       const thead = `<thead>
         <tr>
@@ -575,11 +605,11 @@
         const s=setsGable(Aelem, alpha, $('#theta').value); Z=s.zones; TOP=s.top; BOT=s.bot;
       }
 
-      // Строки таблицы
+      // Строки
       const rows = Z.map((zn,i)=>{
         const cTop=TOP[i], cBot=BOT[i];
-        const cNet=cTop-cBot;              // ВАЖНО: знак/формула исправлены
-        const wnet=cNet*ext.qp*cscd;
+        const cNet=cTop-cBot;              // чистое давление панели = верх − низ
+        const wnet=cNet*ext.qp*cscd;       // знак «+» — вниз на панель
         return {zone:zn, cTop, cBot, cNet, wnet};
       });
 
@@ -595,10 +625,10 @@
       // Легенда
       const leg=$('#legend');
       leg.innerHTML = (roofType==='flat')
-        ? `<div class="item">Плоский: зоны <b>F</b> — кромка; <b>G</b> — краевые; <b>H</b> — центр. Нагрузка панели: (c_top−c_bot)·q_p.</div>`
+        ? `<div class="item">Плоский: зоны <b>F</b> — кромка; <b>G</b> — краевые; <b>H</b> — центр. Нагрузка: (c_top−c_bot)·q_p.</div>`
         : (roofType==='mono')
-        ? `<div class="item">Односкатный: <b>F</b> кромка наветренная; <b>G</b> краевые; <b>H</b> центр. Направление: ${flowDir==='up'?'снизу-вверх по скату':'сверху-вниз по скату'}.</div>`
-        : `<div class="item">Двускатный: θ=${$('#theta').value}°. Зоны <b>F/G/H/I</b> — по таблицам. Нагрузка: (c_top−c_bot)·q_p.</div>`;
+        ? `<div class="item">Односкатный: <b>F</b> кромка; <b>G</b> краевые; <b>H</b> центр. Направление: ${flowDir==='up'?'снизу-вверх':'сверху-вниз'} по скату.</div>`
+        : `<div class="item">Двускатный: θ=${$('#theta').value}°. Зоны <b>F/G/H/I</b>. Нагрузка: (c_top−c_bot)·q_p.</div>`;
 
       // Отчёт
       const ctx={b,L,H,roofType,alpha,flowDir,theta,region,vb0,cdir,cseason,terrain,z0,zmin,co,ze,rho,ki,vb,ext,mode,cscd,A:Aelem,e};
