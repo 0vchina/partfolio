@@ -21,6 +21,7 @@
     h1{margin:0; font-size:22px}
     .badge{font-size:12px; color:var(--muted)}
     .actions{display:flex; gap:8px}
+    /* кнопки и ссылка-кнопка */
     .actions .btn, .actions button{
       appearance:none; border:1px solid var(--line); background:#1a2340; color:var(--ink);
       padding:10px 14px; border-radius:10px; cursor:pointer; text-decoration:none; display:inline-block
@@ -42,7 +43,7 @@
     .card, .bd, .row > * { min-width:0 }
 
     label{font-size:12px; color:var(--muted); display:block; margin:4px 0}
-    input, select, textarea{width:100%; padding:10px 12px; border-radius:10px; background:#0f1532; color:var(--ink); border:1px solid #2a3564; outline:none}
+    input, select, textarea{width:100%; padding:10px 12px; border-radius:10px; background:#0f1532; color:#eaf1ff; border:1px solid #2a3564; outline:none}
     input:focus, select:focus, textarea:focus{border-color:#3b55b9; box-shadow:0 0 0 3px rgba(138,180,255,.18)}
     .hint{font-size:11px; color:var(--muted); margin-top:6px; line-height:1.45}
 
@@ -64,24 +65,48 @@
     .kpi .v{font-size:20px; font-weight:700}
     .kpi .t{font-size:12px; color:var(--muted)}
 
-    /* Схема */
+    /* СХЕМА */
     .scheme-wrap{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
     .scheme-caption{font-size:12px; color:var(--muted)}
     svg.scheme{width:100%; max-width:700px; height:auto; border:1px solid rgba(255,255,255,.08); border-radius:12px; background:#0f1532}
-    .simple-toggle{display:flex; align-items:center; gap:8px; margin:6px 0 10px}
 
-    /* Печать */
     .print-only{display:none}
+
+    /* === ПРАВКИ ДЛЯ ПЕЧАТИ / PDF — исправляют обрезание на 1-й странице === */
     @media print{
-      html,body{height:auto; overflow:visible}
-      @page{size:A4 portrait; margin:12mm}
-      .print-only{display:block}
-      button,header,.actions{display:none!important}
-      body{background:#fff;color:#000}
-      .card{background:#fff;border:1px solid #ccc;box-shadow:none; break-inside:avoid; page-break-inside:avoid}
-      .report{white-space:pre-wrap; font-family:Consolas, monospace; font-size:12px; line-height:1.45}
-      table, tr, .bd, .legend{break-inside:avoid; page-break-inside:avoid}
-      #cases > .card{break-inside:avoid; page-break-inside:avoid; margin-bottom:10px}
+      html, body{
+        height:auto !important;
+        overflow:visible !important;
+        background:#fff !important;
+        color:#000 !important;
+      }
+      @page{
+        size:auto;
+        margin:12mm;
+      }
+      header, .actions, button { display:none !important; }
+      .grid{ display:block !important; }
+      .container{ max-width:100% !important; padding:0 !important; }
+
+      .card{
+        background:#fff; border:1px solid #ccc; box-shadow:none;
+        margin:0 0 12px 0;
+        break-inside:avoid; page-break-inside:avoid;
+      }
+      .card .bd,
+      #results table,
+      #report{
+        break-inside:auto; page-break-inside:auto;
+      }
+      table{ page-break-inside:auto; width:100%; table-layout:fixed; }
+      tr{ page-break-inside:avoid; page-break-after:auto; }
+      th, td{ white-space:normal; word-break:break-word; }
+
+      .print-only{ display:block !important; }
+      .report{ white-space:pre-wrap; font-family:Consolas, monospace; font-size:12px; line-height:1.45; }
+
+      /* схема печатается «как есть» на всю ширину */
+      svg.scheme{ background:#fff; border-color:#ddd }
     }
   </style>
 </head>
@@ -93,7 +118,7 @@
         <div class="badge">Плоский / Односкатный / Двускатный · чистое давление (верх − низ)</div>
       </div>
       <div class="actions">
-        <!-- Ссылка на главную -->
+        <!-- Ссылка на главную страницу -->
         <a class="btn" href="https://0vchina.github.io/partfolio/">На главную</a>
 
         <button id="btn-calc">Рассчитать</button>
@@ -358,15 +383,9 @@
           <div class="legend" id="legend"></div>
 
           <!-- СХЕМА -->
-          <div class="simple-toggle">
-            <label><input type="checkbox" id="simpleScheme" checked> Простая схема</label>
-          </div>
           <div class="scheme-wrap" style="margin:8px 0 14px">
             <svg id="scheme" class="scheme" viewBox="0 0 800 300" role="img" aria-label="Схема покрытия и зон"></svg>
-            <div class="scheme-caption" id="scheme-caption">
-              Простая схема: зона F — кромка наветренной стороны; G — краевые; H — центр; I — подветренная половина (для двускатной θ=90°).
-              Чистое давление панели = (top − bot)·q<sub>p</sub>.
-            </div>
+            <div class="scheme-caption" id="scheme-caption">Схема покрытий: F — кромка, G — краевые, H — центр, I — подветренная половина (для двускатной θ=90°).</div>
           </div>
 
           <div class="kpi">
@@ -489,7 +508,7 @@
       return 1.0;
     }
 
-    // ===== Таблицы
+    // ===== Таблица
     function buildTable(title,note,rows){
       const thead = `<thead>
         <tr>
@@ -536,6 +555,7 @@
       lines.push(`c_r(z_e)=${fmt(cr(ze,z0),4)}; v_m=c_r·cₒ·v_b=${fmt(ext.vm,3)} м/с; I_v=${fmt(ext.iv,4)}; q_p=0.5·ρ·v_m²·(1+7I_v)=${fmt(ext.qp,0)} Па`);
       return lines;
     }
+
     function rowsReport(title, rows, qp, cscd){
       const lines=[`\n— ${title} —`];
       rows.forEach(r=>{
@@ -545,23 +565,22 @@
       return lines;
     }
 
-    // ===== СХЕМА
+    // ===== Схема (SVG)
     function drawScheme(){
       const svg = document.getElementById('scheme');
       if(!svg) return;
-
-      // входные
       const roofType=$('#roofType').value;
       const alpha=parseFloat($('#alpha').value||'0');
       const flowDir=$('#flowDir').value;
       const theta=$('#theta').value;
-      const b=parseFloat($('#b').value||'10');
-      const H=parseFloat($('#H').value||'5');
+      const b=parseFloat($('#b').value);
+      const H=parseFloat($('#H').value);
       const e = (parseFloat($('#eRoofFactor').value)||0.2) * Math.min(b, 2*H);
-      const simple = $('#simpleScheme')?.checked ?? true;
 
       // очистка
       while(svg.firstChild) svg.removeChild(svg.firstChild);
+
+      // helpers
       const NS='http://www.w3.org/2000/svg';
       const add = (name, attrs={}, parent=svg)=>{
         const el=document.createElementNS(NS,name);
@@ -569,73 +588,167 @@
         parent.appendChild(el); return el;
       };
       const label = (x,y,text,opts={})=>{
-        add('text', {x, y, 'font-size': opts.size||14, 'text-anchor': opts.anchor||'middle', 'fill': opts.fill||'#eaf1ff', 'font-weight': opts.bold?'700':'400'}, svg).textContent=text;
+        add('text', {x, y, 'font-size': opts.size||14, 'text-anchor': opts.anchor||'middle', 'fill': opts.fill||'#eaf1ff'}, svg).textContent=text;
       };
 
-      // стрелочный маркер
-      const defs=add('defs',{},svg);
-      const m=add('marker',{id:'arrow',viewBox:'0 0 10 10',refX:'10',refY:'5',markerWidth:'8',markerHeight:'8',orient:'auto'},defs);
-      add('path',{d:'M 0 0 L 10 5 L 0 10 z', fill:'#8ab4ff'},m);
-
-      // фон
+      // рамка рабочей области
       add('rect',{x:10,y:10,width:780,height:280,rx:12,ry:12,fill:'#0b1235',stroke:'#2a3564'});
 
-      // жирная стрелка ветра
-      const ay=48;
-      add('line',{x1:40,y1:ay,x2:240,y2:ay,stroke:'#8ab4ff','stroke-width':4,'marker-end':'url(#arrow)'});
-      label(140, ay-12, 'ВЕТЕР →', {size:16, bold:true, fill:'#8ab4ff'});
+      // стрелка ветра слева направо
+      const arrowY=50;
+      add('line',{x1:40,y1:arrowY,x2:200,y2:arrowY,stroke:'#8ab4ff','stroke-width':3,'marker-end':'url(#arrow)'});      
+      label(120, arrowY-10, 'ветер', {size:12, fill:'#8ab4ff'});
+
+      // дефиним маркер-стрелку
+      const defs=add('defs',{},svg);
+      const marker=add('marker',{id:'arrow',viewBox:'0 0 10 10',refX:'10',refY:'5',markerWidth:'8',markerHeight:'8',orient:'auto-start-reverse'},defs);
+      add('path',{d:'M 0 0 L 10 5 L 0 10 z', fill:'#8ab4ff'},marker);
 
       // площадка покрытия
-      const X=100, Y=100, W=600, Hh=140;
-      add('rect',{x:X,y:Y,width:W,height:Hh,fill:'#13204a',stroke:'#415a9a'});
+      const plateX=120, plateY=110, plateW=560, plateH=120;
 
-      // подписи ВЕРХ/НИЗ
-      label(X+W-8, Y-12, 'ВЕРХ (top)', {anchor:'end', bold:true});
-      label(X+W-8, Y+Hh+20, 'НИЗ (bot)', {anchor:'end', bold:true});
+      // базовая плита
+      add('rect',{x:plateX,y:plateY,width:plateW,height:plateH,fill:'#13204a',stroke:'#415a9a'});
 
-      // размер e (краевая полоса) — в пикселях
-      const ePix = Math.max(12, Math.min(Hh*0.35, (e/Math.max(b,1))*Hh*0.6));
+      // уклон / форма
+      if(roofType==='flat'){
+        // зоны: F (кромка наветренная), G (краевые), H (центр)
+        const ePix = clamp(e / Math.max(b,1) * plateH * 0.6, 12, plateH*0.35);
+        // F (наветренная кромка)
+        add('rect',{x:plateX,y:plateY,width:plateW, height: ePix, fill:'rgba(255,255,255,0.06)', stroke:'#7aa2ff'});
+        label(plateX+30, plateY+ePix/2+5, 'F', {size:16});
+        // G (боковые+подветренная) — две полосы снизу/середина
+        add('rect',{x:plateX,y:plateY+ePix,width:plateW, height: ePix, fill:'rgba(255,255,255,0.05)', stroke:'#7aa2ff','stroke-dasharray':'4,4'});
+        label(plateX+30, plateY+ePix+ePix/2+5, 'G', {size:16});
+        // H (центр)
+        add('rect',{x:plateX,y:plateY+2*ePix,width:plateW, height: plateH-2*ePix, fill:'rgba(255,255,255,0.03)', stroke:'#7aa2ff','stroke-dasharray':'2,6'});
+        label(plateX+30, plateY+2*ePix+(plateH-2*ePix)/2+5, 'H', {size:16});
 
-      if(simple){
-        // F — кромка (наветренная)
-        add('rect',{x:X,y:Y,width:W,height:ePix,fill:'rgba(255,255,255,0.08)',stroke:'#7aa2ff'});
-        label(X+22, Y+ePix/2+5, 'F — кромка', {anchor:'start', bold:true});
+        // размер e
+        add('line',{x1:plateX+plateW+15,y1:plateY,x2:plateX+plateW+15,y2:plateY+ePix,stroke:'#9ec3ff','stroke-width':2});
+        add('line',{x1:plateX+plateW+10,y1:plateY,x2:plateX+plateW+20,y2:plateY,stroke:'#9ec3ff'});
+        add('line',{x1:plateX+plateW+10,y1:plateY+ePix,x2:plateX+plateW+20,y2:plateY+ePix,stroke:'#9ec3ff'});
+        label(plateX+plateW+28, plateY+ePix/2+5, `e`, {anchor:'start', fill:'#9ec3ff'});
 
-        // G — краевые
-        add('rect',{x:X,y:Y+ePix,width:W,height:ePix,fill:'rgba(255,255,255,0.06)',stroke:'#7aa2ff','stroke-dasharray':'5,5'});
-        label(X+22, Y+ePix+ePix/2+5, 'G — краевые', {anchor:'start', bold:true});
+      } else if(roofType==='mono'){
+        // рисуем наклон: верхняя кромка справа (если flow up — ветер снизу вверх к высокой кромке)
+        const tilt = clamp(alpha,0,40);
+        const dy = tilt/40 * 40; // визуальный наклон
+        const poly = add('polygon',{fill:'rgba(255,255,255,0.04)',stroke:'#7aa2ff'},svg);
+        const pts = [
+          [plateX, plateY+plateH-dy],
+          [plateX+plateW, plateY+plateH],
+          [plateX+plateW, plateY+plateH],
+          [plateX, plateY+plateH-dy]
+        ];
+        poly.setAttribute('points', pts.map(p=>p.join(',')).join(' '));
+        // зоны F/G/H по высоте
+        const ePix = clamp(e / Math.max(b,1) * plateH * 0.6, 12, plateH*0.35);
+        add('rect',{x:plateX,y:plateY,width:plateW, height: ePix, fill:'rgba(255,255,255,0.06)', stroke:'#7aa2ff'});
+        label(plateX+30, plateY+ePix/2+5, 'F', {size:16});
+        add('rect',{x:plateX,y:plateY+ePix,width:plateW, height: ePix, fill:'rgba(255,255,255,0.05)', stroke:'#7aa2ff','stroke-dasharray':'4,4'});
+        label(plateX+30, plateY+ePix+ePix/2+5, 'G', {size:16});
+        add('rect',{x:plateX,y:plateY+2*ePix,width:plateW, height: plateH-2*ePix, fill:'rgba(255,255,255,0.03)', stroke:'#7aa2ff','stroke-dasharray':'2,6'});
+        label(plateX+30, plateY+2*ePix+(plateH-2*ePix)/2+5, 'H', {size:16});
 
-        if(roofType==='flat' || roofType==='mono'){
-          // H — центр
-          add('rect',{x:X,y:Y+2*ePix,width:W,height:Hh-2*ePix,fill:'rgba(255,255,255,0.04)',stroke:'#7aa2ff','stroke-dasharray':'2,8'});
-          label(X+22, Y+2*ePix+(Hh-2*ePix)/2+5, 'H — центр', {anchor:'start', bold:true});
+        // стрелка вдоль ската
+        const dirText = (flowDir==='up')?'вверх ската':'вниз ската';
+        add('line',{x1:plateX+plateW-200,y1:plateY+plateH-10-dy,x2:plateX+plateW-60,y2:plateY+plateH-10,stroke:'#8ab4ff','stroke-width':2,'marker-end':'url(#arrow)'});
+        label(plateX+plateW-130, plateY+plateH-25-dy/2, dirText, {size:12, fill:'#8ab4ff'});
 
-          if(roofType==='mono'){
-            // стрелка вдоль ската
-            const txt = (flowDir==='up') ? 'вверх по скату' : 'вниз по скату';
-            add('line',{x1:X+W-220,y1:Y+Hh-12,x2:X+W-70,y2:Y+Hh-12,stroke:'#8ab4ff','stroke-width':2,'marker-end':'url(#arrow)'});
-            label(X+W-145, Y+Hh-24, txt, {fill:'#8ab4ff', size:12});
-            // условная линия уклона
-            const slopeH = clamp(alpha,0,45)/45*20;
-            add('line',{x1:X+40,y1:Y+Hh-40, x2:X+160,y2:Y+Hh-40-slopeH, stroke:'#6ea0ff','stroke-width':2});
-          }
-        } else {
-          // gable — H / I половины
-          const restH = Hh-2*ePix;
-          const mid = Y+2*ePix + restH/2;
-          add('rect',{x:X,y:Y+2*ePix,width:W,height:restH/2,fill:'rgba(255,255,255,0.04)',stroke:'#7aa2ff','stroke-dasharray':'2,8'});
-          label(X+22, Y+2*ePix+restH/4+5, 'H — наветренная половина', {anchor:'start', bold:true});
-          add('rect',{x:X,y:mid,width:W,height:restH/2,fill:'rgba(255,255,255,0.035)',stroke:'#7aa2ff','stroke-dasharray':'2,8'});
-          label(X+22, mid+restH/4+5, 'I — подветренная половина', {anchor:'start', bold:true});
-          label(X+W-10, Y+Hh+38, `θ=${theta}°`, {anchor:'end', size:12, fill:'#8ab4ff'});
-        }
-      } else {
-        // (На будущее: место для детализированной схемы, если отключить "Простая схема")
-        label(X+W/2, Y+Hh/2, 'Детальная схема отключена', {size:14, fill:'#b7c4e0'});
+        // размер e
+        add('line',{x1:plateX+plateW+15,y1:plateY,x2:plateX+plateW+15,y2:plateY+ePix,stroke:'#9ec3ff','stroke-width':2});
+        add('line',{x1:plateX+plateW+10,y1:plateY,x2:plateX+plateW+20,y2:plateY,stroke:'#9ec3ff'});
+        add('line',{x1:plateX+plateW+10,y1:plateY+ePix,x2:plateX+plateW+20,y2:plateY+ePix,stroke:'#9ec3ff'});
+        label(plateX+plateW+28, plateY+ePix/2+5, `e`, {anchor:'start', fill:'#9ec3ff'});
+
+      } else { // gable
+        // двускатная: вершина по центру
+        const ridgeY = plateY + plateH*0.35;
+        const ridgeX = plateX + plateW/2;
+        add('polygon',{points:`${plateX},${plateY+plateH} ${ridgeX},${ridgeY} ${plateX+plateW},${plateY+plateH}`, fill:'rgba(255,255,255,0.04)', stroke:'#7aa2ff'});
+
+        // зоны: F/G/H/I (θ=90) либо F/G/H/I (θ=0) — просто подписи
+        const zoneY = plateY + 20;
+        label(plateX+30, zoneY, 'F', {size:16});
+        label(plateX+plateW/3, zoneY, 'G', {size:16});
+        label(plateX+2*plateW/3, zoneY, 'H', {size:16});
+        label(plateX+plateW-30, zoneY, 'I', {size:16});
+
+        // обозначение θ
+        label(plateX+plateW-60, plateY+plateH-10, `θ=${$('#theta').value}°`, {anchor:'end', size:12, fill:'#9ec3ff'});
+
+        // e
+        const ePix = clamp(e / Math.max(b,1) * plateH * 0.6, 12, plateH*0.35);
+        add('line',{x1:plateX+plateW+15,y1:plateY,x2:plateX+plateW+15,y2:plateY+ePix,stroke:'#9ec3ff','stroke-width':2});
+        add('line',{x1:plateX+plateW+10,y1:plateY,x2:plateX+plateW+20,y2:plateY,stroke:'#9ec3ff'});
+        add('line',{x1:plateX+plateW+10,y1:plateY+ePix,x2:plateX+plateW+20,y2:plateY+ePix,stroke:'#9ec3ff'});
+        label(plateX+plateW+28, plateY+ePix/2+5, `e`, {anchor:'start', fill:'#9ec3ff'});
       }
     }
 
     // ===== Основной расчёт
+    function buildTable(title,note,rows){
+      const thead = `<thead>
+        <tr>
+          <th>Зона</th>
+          <th>Описание</th>
+          <th>c<sup>top</sup></th>
+          <th>c<sup>bot</sup></th>
+          <th>c<sub>net</sub>=top−bot</th>
+          <th>w<sub>net</sub>=c<sub>net</sub>·q<sub>p</sub>·(c<sub>s</sub>c<sub>d</sub>)</th>
+        </tr>
+      </thead>`;
+      const desc = (z)=>({
+        F:'Кромка (F)',
+        G:'Краевые (G)',
+        H:'Центр (H)',
+        I:'Подветренная половина (I)'
+      }[z] || `Зона ${z}`);
+      const tbody = `<tbody>${
+        rows.map(r => `<tr>
+          <td><b>${r.zone}</b></td>
+          <td style="text-align:left">${desc(r.zone)}</td>
+          <td>${fmt(r.cTop,2)}</td>
+          <td>${fmt(r.cBot,2)}</td>
+          <td>${fmt(r.cNet,2)}</td>
+          <td>${fmt(r.wnet,0)}</td>
+        </tr>`).join('')
+      }</tbody>`;
+      return `<div class="card" style="margin-top:12px"><div class="hd"><h2>${title}</h2><span class="pill">${note}</span></div><div class="bd"><table>${thead+tbody}</table></div></div>`;
+    }
+
+    function getCscd(apply){
+      const m=$('#cscdMode').value;
+      if(!apply) return 1.0;
+      if(m==='manual') return Math.max(0.5, parseFloat($('#cscd').value)||1);
+      return 1.0;
+    }
+
+    function headerReport(ctx){
+      const {b,L,H,roofType,alpha,flowDir,theta,region,vb0,cdir,cseason,terrain,z0,zmin,co,ze,rho,ki,vb,ext,mode,cscd,A,e}=ctx;
+      const lines=[];
+      lines.push('— ВХОДНЫЕ ДАННЫЕ —');
+      lines.push(`Геометрия: b=${fmt(b,2)} м; L=${fmt(L,2)} м; h=${fmt(H,2)} м; e=${fmt(e,2)} м`);
+      const rt = roofType==='flat'?'плоский':(roofType==='mono'?`односкатный (α=${fmt(alpha,1)}°; ${flowDir==='up'?'ветер вверх ската':'ветер вниз ската'})`:`двускатный (α=${fmt(alpha,1)}°, θ=${theta}°)`);
+      lines.push(`Тип: ${rt}`);
+      lines.push(`Регион=${region}; v_b,0=${fmt(vb0,1)} м/с; c_dir=${fmt(cdir,2)}; c_season=${fmt(cseason,2)}; v_b=${fmt(vb,2)} м/с`);
+      lines.push(`Местность: ${terrain} → z₀=${z0} м; z_min=${zmin} м; cₒ=${fmt(co,2)}; ρ=${fmt(rho,2)}; k_i=${fmt(ki,2)}`);
+      lines.push(`z_e=${fmt(ze,2)} м; A=${fmt(A,2)} м²; режим: ${mode}; c_s c_d=${fmt(cscd,2)}`);
+      lines.push('\n— ПРОФИЛЬ СКОРОСТИ И ПИКОВОЕ ДАВЛЕНИЕ —');
+      lines.push(`c_r(z_e)=${fmt(cr(ze,z0),4)}; v_m=c_r·cₒ·v_b=${fmt(ext.vm,3)} м/с; I_v=${fmt(ext.iv,4)}; q_p=0.5·ρ·v_m²·(1+7I_v)=${fmt(ext.qp,0)} Па`);
+      return lines;
+    }
+
+    function rowsReport(title, rows, qp, cscd){
+      const lines=[`\n— ${title} —`];
+      rows.forEach(r=>{
+        lines.push(`\nЗона ${r.zone}: c_top=${fmt(r.cTop,2)}, c_bot=${fmt(r.cBot,2)}, c_net=${fmt(r.cNet,2)}`);
+        lines.push(`w_net = c_net · q_p · (c_s c_d) = ${fmt(r.cNet,2)} · ${fmt(qp,0)} · ${fmt(cscd,2)} = ${fmt(r.wnet,0)} Па`);
+      });
+      return lines;
+    }
+
     function calc(){
       // Геометрия / тип
       const b=parseFloat($('#b').value);
@@ -684,11 +797,11 @@
         const s=setsGable(Aelem, alpha, $('#theta').value); Z=s.zones; TOP=s.top; BOT=s.bot;
       }
 
-      // Строки таблицы
+      // Строки
       const rows = Z.map((zn,i)=>{
         const cTop=TOP[i], cBot=BOT[i];
-        const cNet=cTop-cBot;              // чистое давление: top − bot
-        const wnet=cNet*ext.qp*cscd;
+        const cNet=cTop-cBot;              // чистое давление панели = верх − низ
+        const wnet=cNet*ext.qp*cscd;       // знак «+» — вниз на панель
         return {zone:zn, cTop, cBot, cNet, wnet};
       });
 
@@ -704,12 +817,12 @@
       // Легенда
       const leg=$('#legend');
       leg.innerHTML = (roofType==='flat')
-        ? `<div class="item">Плоский: зоны <b>F</b> — кромка; <b>G</b> — краевые; <b>H</b> — центр. Нагрузка панели: (c_top−c_bot)·q_p.</div>`
+        ? `<div class="item">Плоский: зоны <b>F</b> — кромка; <b>G</b> — краевые; <b>H</b> — центр. Нагрузка: (c_top−c_bot)·q_p.</div>`
         : (roofType==='mono')
-        ? `<div class="item">Односкатный: <b>F</b> кромка; <b>G</b> краевые; <b>H</b> центр. Направление: ${flowDir==='up'?'снизу-вверх по скату':'сверху-вниз по скату'}.</div>`
-        : `<div class="item">Двускатный: θ=${$('#theta').value}°. Зоны <b>F/G/H/I</b> — по таблицам. Нагрузка: (c_top−c_bot)·q_p.</div>`;
+        ? `<div class="item">Односкатный: <b>F</b> кромка; <b>G</b> краевые; <b>H</b> центр. Направление: ${flowDir==='up'?'снизу-вверх':'сверху-вниз'} по скату.</div>`
+        : `<div class="item">Двускатный: θ=${$('#theta').value}°. Зоны <b>F/G/H/I</b>. Нагрузка: (c_top−c_bot)·q_p.</div>`;
 
-      // Схема
+      // Обновить схему
       drawScheme();
 
       // Отчёт
@@ -734,22 +847,14 @@
       $('#thetaRow').style.display = (rt==='gable') ? '' : 'none';
     }
 
-    $('#btn-calc').addEventListener('click', ()=>{ calc(); });
+    $('#btn-calc').addEventListener('click', calc);
     $('#btn-print').addEventListener('click', ()=> window.print());
     $('#btn-copy').addEventListener('click', ()=>{ const t=$('#report').innerText.trim(); if(!t) return; navigator.clipboard.writeText(t) });
 
-    // пересчёт/перерисовка схемы при изменениях
-    document.addEventListener('input', (e)=>{
-      if(e.target.closest('.bd')){ calc(); }
-    });
-    ['change','input'].forEach(ev=>{
-      $('#roofType').addEventListener(ev, ()=>{ toggleRows(); calc(); });
-      $('#theta')    .addEventListener(ev, ()=>{ calc(); });
-      $('#flowDir')  .addEventListener(ev, ()=>{ calc(); });
-      $('#alpha')    .addEventListener(ev, ()=>{ calc(); });
-      $('#simpleScheme').addEventListener(ev, ()=>{ drawScheme(); });
-      $('#zeMode')?.addEventListener(ev, e=>{ $('#zeManualRow').style.display = e.target.value==='manual' ? '' : 'none'; calc(); });
-    });
+    $('#roofType').addEventListener('change', ()=>{ toggleRows(); calc(); });
+    $('#zeMode')?.addEventListener('change', e=>{ $('#zeManualRow').style.display = e.target.value==='manual' ? '' : 'none'; calc(); });
+
+    let t; document.querySelectorAll('.bd input, .bd select').forEach(el=> el.addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(calc,150) }));
 
     window.addEventListener('load', ()=>{ toggleRows(); calc(); });
   </script>
