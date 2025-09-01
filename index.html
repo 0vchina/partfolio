@@ -36,51 +36,218 @@
       margin:0; font-family:'Inter',sans-serif; color:#111;
       background:url('a2.webp') center / cover no-repeat fixed;
       overflow-x:hidden;
-      will-change: background-position;
+      will-change: background-position; /* параллакс */
     }
 
-    header{background:url('file_0000000030986246a48be624a539648a.webp') center/cover;position:sticky;top:0;z-index:1000;padding:14px 16px;text-align:center;border-bottom:1px solid var(--panel-brd);backdrop-filter: blur(6px);}
-    header h1{font-family:'Montserrat',sans-serif;margin:0;font-size:2.2rem;font-weight:800;text-shadow:0 1px 2px rgba(255,255,255,.95);position:relative;display:inline-block;}
-    header h1::after{content:"";position:absolute;left:50%;bottom:-6px;width:0;height:3px;background:linear-gradient(90deg,var(--accent),#7AD7F0);border-radius:6px;transform:translateX(-50%);animation: underline 1.2s .2s ease forwards;}
+    /* HEADER */
+    header{
+      background:url('file_0000000030986246a48be624a539648a.webp') center/cover;
+      position:sticky; top:0; z-index:1000;
+      padding:14px 16px; text-align:center;
+      border-bottom:1px solid var(--panel-brd);
+      backdrop-filter: blur(6px);
+    }
+    header h1{
+      font-family:'Montserrat',sans-serif;
+      margin:0; font-size:2.2rem; font-weight:800;
+      text-shadow:0 1px 2px rgba(255,255,255,.95);
+      position:relative; display:inline-block;
+    }
+    header h1::after{
+      content:""; position:absolute; left:50%; bottom:-6px; width:0; height:3px;
+      background:linear-gradient(90deg,var(--accent),#7AD7F0);
+      border-radius:6px; transform:translateX(-50%);
+      animation: underline 1.2s .2s ease forwards;
+    }
     @keyframes underline{ to{ width:62%; } }
 
-    header p{margin:.25rem 0 0;font-size:1.05rem;text-shadow:0 1px 2px rgba(255,255,255,.95);}
-    nav a{color:#0d0d0d;margin:0 .7rem;text-decoration:none;font-weight:600;border-bottom:2px solid transparent;padding-bottom:2px;transition:border-color .2s, color .2s;}
-    nav a:hover{border-color:var(--accent);color:#000;}
+    header p{
+      margin:.25rem 0 0; font-size:1.05rem;
+      text-shadow:0 1px 2px rgba(255,255,255,.95);
+    }
+    nav a{
+      color:#0d0d0d; margin:0 .7rem; text-decoration:none; font-weight:600;
+      border-bottom:2px solid transparent; padding-bottom:2px; transition:border-color .2s, color .2s;
+    }
+    nav a:hover{ border-color:var(--accent); color:#000; }
 
-    section{padding:1.8rem 1.2rem;max-width:1100px;margin:1.2rem auto;background:var(--panel-bg);border:1px solid var(--panel-brd);border-radius:14px;box-shadow:var(--panel-shadow);transform:translateY(var(--reveal-y));opacity:0;transition: transform var(--reveal-dur) ease, opacity var(--reveal-dur) ease, box-shadow .25s ease;}
-    section.reveal-in{transform:translateY(0);opacity:1;}
-    section[id]::before{content:"";display:block;height:var(--header-offset);margin-top:calc(-1*var(--header-offset));visibility:hidden}
+    /* SECTIONS */
+    section{
+      padding:1.8rem 1.2rem; max-width:1100px; margin:1.2rem auto;
+      background:var(--panel-bg); border:1px solid var(--panel-brd);
+      border-radius:14px; box-shadow:var(--panel-shadow);
+      transform:translateY(var(--reveal-y)); opacity:0;
+      transition: transform var(--reveal-dur) ease, opacity var(--reveal-dur) ease, box-shadow .25s ease;
+    }
+    section.reveal-in{ transform:translateY(0); opacity:1; }
+    section[id]::before{content:""; display:block; height:var(--header-offset); margin-top:calc(-1*var(--header-offset)); visibility:hidden}
 
-    h2{font-family:'Montserrat',sans-serif;font-size:1.4rem;line-height:1.3;font-weight:700;margin:0 0 .8rem;position:relative;display:inline-block;}
-    h2::after{content:"";position:absolute;left:0;bottom:-6px;height:2px;width:56px;background:linear-gradient(90deg,var(--accent),transparent);border-radius:8px;transform-origin:left;transform:scaleX(.2);opacity:.6;transition: transform .6s ease .05s;}
-    section.reveal-in h2::after{transform:scaleX(1);}
+    h2{
+      font-family:'Montserrat',sans-serif; font-size:1.4rem; line-height:1.3; font-weight:700; margin:0 0 .8rem;
+      position:relative; display:inline-block;
+    }
+    h2::after{
+      content:""; position:absolute; left:0; bottom:-6px; height:2px; width:56px;
+      background:linear-gradient(90deg,var(--accent),transparent);
+      border-radius:8px; transform-origin:left; transform:scaleX(.2); opacity:.6;
+      transition: transform .6s ease .05s;
+    }
+    section.reveal-in h2::after{ transform:scaleX(1); }
 
-    p{line-height:1.7;}
+    p{ line-height:1.7; }
 
-    .experience-badges{display:flex;flex-wrap:wrap;gap:.5rem;margin:.75rem 0 0;}
-    .experience-badge{display:inline-block;padding:.35rem .6rem;border:1px solid var(--panel-brd);border-radius:999px;font-size:.9rem;background:#fff8;backdrop-filter:blur(4px);transition: transform .2s ease, box-shadow .2s ease;}
-    .experience-badge:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.1);}
-    .experience-list{margin:.8rem 0 0;padding-left:1.1rem;}
-    .experience-list li{margin:.35rem 0;}
+    .experience-badges{ display:flex; flex-wrap:wrap; gap:.5rem; margin:.75rem 0 0; }
+    .experience-badge{
+      display:inline-block; padding:.35rem .6rem; border:1px solid var(--panel-brd);
+      border-radius:999px; font-size:.9rem; background:#fff8; backdrop-filter:blur(4px);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .experience-badge:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.1); }
+    .experience-list{ margin:.8rem 0 0; padding-left:1.1rem; }
+    .experience-list li{ margin:.35rem 0; }
 
-    .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:1rem;}
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:700;border:1px solid var(--panel-brd);background:#fff;transition: transform .18s ease, box-shadow .2s ease, background .2s ease;}
-    .btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(0,0,0,.14);background:#fff;}
+    .cta{ display:flex; gap:12px; flex-wrap:wrap; margin-top:1rem; }
+    .btn{
+      display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px;
+      text-decoration:none; font-weight:700; border:1px solid var(--panel-brd); background:#fff;
+      transition: transform .18s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .btn:hover{ transform:translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,.14); background:#fff; }
 
-    footer{text-align:center;background:#0d0d0d;color:#fff;padding:24px;margin-top:28px;transform:translateY(var(--reveal-y));opacity:0;transition:transform var(--reveal-dur) ease, opacity var(--reveal-dur) ease;}
-    footer.reveal-in{transform:translateY(0);opacity:1;}
+    footer{
+      text-align:center; background:#0d0d0d; color:#fff; padding:24px; margin-top:28px;
+      transform:translateY(var(--reveal-y)); opacity:0; transition:transform var(--reveal-dur) ease, opacity var(--reveal-dur) ease;
+    }
+    footer.reveal-in{ transform:translateY(0); opacity:1; }
 
+    /* Бейдж «создан нами с тобой» */
     .credit { margin-top: 8px; }
-    .credit-badge{display:inline-flex;align-items:center;gap:10px;padding:8px 12px;border-radius:999px;background:#fff;border:1px solid var(--panel-brd);box-shadow:0 8px 22px rgba(0,0,0,.15);font-weight:800;color:#0d0d0d;}
-    .credit-badge .pill{padding:4px 10px;border-radius:999px;background:linear-gradient(90deg, #1CAAD9, #7AD7F0);color:#001018;}
-    .credit-badge .x{opacity:.7;font-weight:900;}
+    .credit-badge{
+      display:inline-flex; align-items:center; gap:10px;
+      padding:8px 12px; border-radius:999px;
+      background:#fff; border:1px solid var(--panel-brd);
+      box-shadow:0 8px 22px rgba(0,0,0,.15);
+      font-weight:800; color:#0d0d0d;
+    }
+    .credit-badge .pill{
+      padding:4px 10px; border-radius:999px;
+      background:linear-gradient(90deg, #1CAAD9, #7AD7F0);
+      color:#001018;
+    }
+    .credit-badge .x{ opacity:.7; font-weight:900; }
 
-    .contact-fab{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:10px;z-index:1001;}
-    .fab-btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;background:#fff;border:1px solid var(--panel-brd);box-shadow:0 10px 24px rgba(0,0,0,.16);padding:10px 14px;border-radius:999px;font-weight:700;color:#111;backdrop-filter:blur(6px);transition: transform .18s ease, box-shadow .22s ease;}
-    .fab-btn:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 14px 30px rgba(0,0,0,.2);}
+    /* FAB */
+    .contact-fab{
+      position:fixed; right:16px; bottom:16px; display:flex; flex-direction:column; gap:10px; z-index:1001;
+    }
+    .fab-btn{
+      display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+      background:#fff; border:1px solid var(--panel-brd); box-shadow:0 10px 24px rgba(0,0,0,.16);
+      padding:10px 14px; border-radius:999px; font-weight:700; color:#111; backdrop-filter:blur(6px);
+      transition: transform .18s ease, box-shadow .22s ease;
+    }
+    .fab-btn:hover{ transform:translateY(-2px) scale(1.02); box-shadow:0 14px 30px rgba(0,0,0,.2); }
 
-    @media (max-width:600px){header h1{font-size:1.7rem}header p{font-size:.98rem}nav a{margin:0 .5rem;font-size:.96rem}}
+    @media (max-width:600px){
+      header h1{font-size:1.7rem}
+      header p{font-size:.98rem}
+      nav a{margin:0 .5rem; font-size:.96rem}
+    }
+
+    /* ===== Модалка для формы ===== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      backdrop-filter: blur(6px);
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-content {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-brd);
+      border-radius: 14px;
+      box-shadow: var(--panel-shadow);
+      max-width: 880px;
+      width: 92%;
+      max-height: 92vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: zoomIn .35s ease;
+    }
+    @keyframes zoomIn {
+      from { transform: scale(.85); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 14px; background: #fff; border-bottom: 1px solid var(--panel-brd);
+    }
+    .modal-title { font-weight: 700; }
+    .modal-actions { display:flex; gap:10px; }
+    .modal-actions a{
+      text-decoration:none; font-weight:700; border:1px solid var(--panel-brd);
+      padding:6px 10px; border-radius:8px; background:#fff; color:#111;
+    }
+    .modal-close{
+      background:#fff; border:1px solid var(--panel-brd); border-radius:8px;
+      padding:6px 10px; cursor:pointer; font-weight:700;
+    }
+    .modal-body { background:#fff; }
+    .modal-iframe{
+      width: 100%; height: 76vh; border: 0; display: block; background: #fff;
+    }
+    @media (max-width: 600px){ .modal-iframe{ height: 82vh; } }
+
+    .open-form-btn{
+      display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px;
+      text-decoration:none; font-weight:700; border:1px solid var(--panel-brd); background:#fff;
+      transition: transform .18s ease, box-shadow .2s ease;
+      cursor:pointer;
+    }
+    .open-form-btn:hover{ transform:translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,.14); }
+    .form-note{ font-size:.95rem; opacity:.85; margin-top:.75rem; }
+
+    /* ——— Мягкий, ненавязчивый блок 3D ——— */
+    .model-wrap{
+      position:relative;
+      margin:8px auto 0;
+      width:min(60vw, 820px); /* спокойная ширина на ПК */
+      background:transparent;
+      border:0; box-shadow:none;
+      /* Сильная растушёвка краёв: к границе полностью прозрачно */
+      -webkit-mask-image: radial-gradient(130% 120% at 50% 50%, #000 48%, rgba(0,0,0,0) 72%);
+              mask-image: radial-gradient(130% 120% at 50% 50%, #000 48%, rgba(0,0,0,0) 72%);
+    }
+    .model-frame{
+      width:100%;
+      aspect-ratio:16/9;       /* мобильные/планшеты */
+      border-radius:0;         /* без видимого прямоугольника */
+      overflow:visible;
+    }
+    .model-frame iframe{
+      width:100%; height:100%;
+      border:0; display:block;
+      background:transparent;  /* важно для прозрачного фона */
+    }
+    /* тонкий «скелетон», без анимации */
+    .model-skeleton{
+      position:absolute; inset:0; pointer-events:none;
+      background:rgba(0,0,0,.02);
+    }
+    /* ещё мягче на широких экранах */
+    @media (min-width:1024px){
+      .model-frame{ aspect-ratio:21/9; }
+      .model-wrap{
+        -webkit-mask-image: radial-gradient(140% 125% at 50% 50%, #000 44%, rgba(0,0,0,0) 70%);
+                mask-image: radial-gradient(140% 125% at 50% 50%, #000 44%, rgba(0,0,0,0) 70%);
+      }
+    }
   </style>
 </head>
 <body>
@@ -94,6 +261,7 @@
       <a href="real.html">Реальные объекты</a>
       <a href="calc.html">Расчёты</a>
       <a href="tools.html">Инструменты</a>
+      <!-- добавлена ссылка на раздел с калькуляторами -->
       <a href="#calc">Калькуляторы</a>
       <a href="#contact">Контакты</a>
     </nav>
@@ -103,27 +271,44 @@
     <section id="about">
       <h2>Обо мне</h2>
       <p>Я инженер-проектировщик. Работаю с ArchiCAD, ЛИРА-САПР + SAPFIR, SolidWorks, Ansys (база) и др. Совмещаю расчёты с визуализацией и BIM.</p>
+
+      <!-- Мягкий прозрачный блок 3D (с автоспином) -->
       <div class="model-wrap" aria-label="3D модель">
         <div class="model-frame">
-          <iframe title="REC1 — before" loading="lazy" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/c1acacb3474141c9ac23797a881d75c5/embed?transparent=1&ui_theme=dark&ui_controls=0&ui_infos=0&ui_annotations=0&autostart=1&autospin=0.3"></iframe>
+          <iframe
+            title="REC1 — before"
+            loading="lazy"
+            allowfullscreen
+            mozallowfullscreen="true"
+            webkitallowfullscreen="true"
+            allow="autoplay; fullscreen; xr-spatial-tracking"
+            xr-spatial-tracking
+            execution-while-out-of-viewport
+            execution-while-not-rendered
+            web-share
+            src="https://sketchfab.com/models/c1acacb3474141c9ac23797a881d75c5/embed?transparent=1&ui_theme=dark&ui_controls=0&ui_infos=0&ui_annotations=0&autostart=1&autospin=0.3">
+          </iframe>
         </div>
         <div class="model-skeleton" aria-hidden="true"></div>
       </div>
+
       <p>Опыт работы прорабом помогает проектировать решения, которые удобно реализовывать на стройке.</p>
       <div class="cta">
         <a class="btn" href="models.html">Посмотреть 3D и рендеры →</a>
         <a class="btn" href="real.html">Реальные объекты</a>
         <a class="btn" href="calc.html">Расчёты</a>
         <a class="btn" href="tools.html">Fix для Sketchfab →</a>
+        <!-- из этого блока убрали ссылки на калькуляторы -->
       </div>
     </section>
 
+    <!-- НОВЫЙ отдельный блок для калькуляторов -->
     <section id="calc">
       <h2>Калькуляторы</h2>
       <div class="cta">
-        <a class="btn" href="thermal.html">🧮 Калькулятор теплотехники — РБ</a>
-        <a class="btn" href="veter.html">🌬️ Калькулятор ветровой нагрузки в РБ</a>
-        <a class="btn" href="veter_naves.html">🏗️ Калькулятор ветровой нагрузки на навес в РБ</a>
+        <a class="btn" href="thermal.html">Калькулятор теплотехники — РБ</a>
+        <a class="btn" href="veter.html">Калькулятор ветровой нагрузки в РБ</a>
+        <a class="btn" href="veter_naves.html">Калькулятор ветровой нагрузки на навес в РБ</a>
       </div>
     </section>
 
@@ -135,6 +320,18 @@
         <li>Усиление балок и плит (в т.ч. углеволокно).</li>
         <li>BIM-модели, рабочая документация, визуализации.</li>
       </ul>
+    </section>
+
+    <section id="stack">
+      <h2>Инструменты и ПО</h2>
+      <div class="experience-badges">
+        <span class="experience-badge">ArchiCAD</span>
+        <span class="experience-badge">ЛИРА-САПР + SAPFIR</span>
+        <span class="experience-badge">SolidWorks</span>
+        <span class="experience-badge">Ansys (база)</span>
+        <span class="experience-badge">Sketchfab</span>
+        <span class="experience-badge">BIM / IFC</span>
+      </div>
     </section>
 
     <section id="experience">
@@ -172,9 +369,15 @@
     <section id="contact">
       <h2>Контакты</h2>
       <p>Можно написать напрямую:</p>
-      <p>Email: <a href="mailto:vitaliy.structengineer@gmail.com">vitaliy.structengineer@gmail.com</a><br>Telegram: <a href="https://t.me/VitaliPro" target="_blank" rel="noopener">@VitaliPro</a></p>
+      <p>
+        Email: <a href="mailto:vitaliy.structengineer@gmail.com">vitaliy.structengineer@gmail.com</a><br>
+        Telegram: <a href="https://t.me/VitaliPro" target="_blank" rel="noopener">@VitaliPro</a>
+      </p>
+
       <button class="open-form-btn" id="openFormBtn" type="button">📝 Обратная связь</button>
-      <p class="form-note">Если модалка не открывается — <a href="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform?usp=sharing&ouid=105433062778816674270" target="_blank" rel="noopener">открыть форму в новом окне</a>.</p>
+      <p class="form-note">
+        Если модалка не открывается — <a href="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform?usp=sharing&ouid=105433062778816674270" target="_blank" rel="noopener">открыть форму в новом окне</a>.
+      </p>
     </section>
   </main>
 
@@ -189,9 +392,94 @@
     </div>
   </footer>
 
+  <!-- FAB -->
   <div class="contact-fab" aria-label="Быстрые контакты">
     <a class="fab-btn" href="#contact">💬 Telegram</a>
     <a class="fab-btn" href="#contact">✉️ Email</a>
   </div>
+
+  <!-- ===== Модалка формы ===== -->
+  <div class="modal-overlay" id="formModal" aria-hidden="true" aria-labelledby="formTitle" role="dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" id="formTitle">Форма обратной связи</div>
+        <div class="modal-actions">
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform?usp=sharing&ouid=105433062778816674270" target="_blank" rel="noopener">Открыть в новом окне</a>
+          <button class="modal-close" id="closeFormBtn" type="button" aria-label="Закрыть форму">✕</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <iframe
+          class="modal-iframe"
+          src="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform?usp=sharing&ouid=105433062778816674270?embedded=true"
+          title="Форма обратной связи">
+        </iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Параллакс-фон (лёгкий)
+    (function(){
+      let ticking=false;
+      const onScroll=()=>{
+        if(ticking) return; ticking=true;
+        requestAnimationFrame(()=>{
+          const y=window.scrollY||0;
+          document.body.style.backgroundPositionY = `${-y*0.06}px`; // фикс: шаблонная строка
+          ticking=false;
+        });
+      };
+      window.addEventListener('scroll', onScroll, {passive:true});
+    })();
+
+    // Scroll-reveal
+    (function(){
+      const io = new IntersectionObserver((entries)=>{
+        entries.forEach(entry=>{
+          if(entry.isIntersecting){ entry.target.classList.add('reveal-in'); io.unobserve(entry.target); }
+        });
+      },{threshold:.12});
+      document.querySelectorAll('section, footer').forEach(el=>io.observe(el));
+    })();
+
+    // ===== Модалка формы
+    (function(){
+      const modal = document.getElementById('formModal');
+      const openBtn = document.getElementById('openFormBtn');
+      const closeBtn = document.getElementById('closeFormBtn');
+
+      function openModal(){
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden','false');
+        document.body.style.overflow='hidden';
+        closeBtn.focus({preventScroll:true});
+      }
+      function closeModal(){
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden','true');
+        document.body.style.overflow='';
+        openBtn.focus({preventScroll:true});
+      }
+
+      openBtn.addEventListener('click', openModal);
+      closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
+      window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModal(); });
+    })();
+
+    // Скелетон для 3D — скрыть после загрузки
+    (function(){
+      const wrap = document.querySelector('.model-wrap');
+      if(!wrap) return;
+      const iframe = wrap.querySelector('iframe');
+      const skeleton = wrap.querySelector('.model-skeleton');
+      const hide = ()=>{ if(skeleton) skeleton.style.display='none'; };
+      if(iframe){
+        iframe.addEventListener('load', hide, {once:true});
+        setTimeout(hide, 6000); // подстраховка
+      }
+    })();
+  </script>
 </body>
 </html>
