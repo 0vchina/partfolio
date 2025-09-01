@@ -192,11 +192,11 @@
     <section class="grid md:grid-cols-3 gap-4 fade-up fade-delay-3">
       <div class="card rounded-2xl p-4 bg-white ring-1 ring-black/5 shadow-sm">
         <h3 class="font-semibold mb-2">Схема зон стен</h3>
-        <div id="schemeWalls" class="h-40"> </div>
+        <div id="schemeWalls" class="h-64"> </div>
       </div>
       <div class="card rounded-2xl p-4 bg-white ring-1 ring-black/5 shadow-sm">
         <h3 class="font-semibold mb-2">Схема зон кровли</h3>
-        <div id="schemeRoof" class="h-40"> </div>
+        <div id="schemeRoof" class="h-64"> </div>
       </div>
       <div class="card rounded-2xl p-4 bg-white ring-1 ring-black/5 shadow-sm">
         <h3 class="font-semibold mb-2">Подсказки</h3>
@@ -372,11 +372,125 @@
   const el = (id)=>document.getElementById(id);
   const kPa = (x)=> (x/1000).toFixed(3);
 
-  function updateSchemes(roofType){
-    el('schemeWalls').innerHTML = el('tplWalls').innerHTML;
-    const map = {flat:'tplFlat', mono:'tplMono', duo:'tplDuo'}; const t = map[roofType] || 'tplFlat';
-    el('schemeRoof').innerHTML = el(t).innerHTML;
+  function updateSchemes(roofType){ /* deprecated in favor of drawAxonometric */ }
+
+// ==== 3D аксонометрия здания с точными зонами ====
+function drawAxonometric(inp, e){
+  const ax = Math.cos(Math.PI/6), ay = Math.sin(Math.PI/6);
+  const P = (x,y,z)=>({x:(x-y)*ax, y:(x+y)*ay - z});
+  // Корпус здания (8 вершин)
+  const V = {
+    A: P(0,0,0), B: P(inp.L,0,0), C: P(inp.L,inp.B,0), D: P(0,inp.B,0),
+    E: P(0,0,inp.h), F: P(inp.L,0,inp.h), G: P(inp.L,inp.B,inp.h), H: P(0,inp.B,inp.h)
+  };
+  // Границы для авто-масштаба
+  const pts = Object.values(V);
+  let minX=Math.min(...pts.map(p=>p.x)), maxX=Math.max(...pts.map(p=>p.x));
+  let minY=Math.min(...pts.map(p=>p.y)), maxY=Math.max(...pts.map(p=>p.y));
+  const pad=20; const vw = (maxX-minX)+2*pad, vh=(maxY-minY)+2*pad;
+  const tx = -minX+pad, ty = -minY+pad;
+  const mapPt = p=>`${(p.x+tx).toFixed(1)},${(p.y+ty).toFixed(1)}`;
+  const poly = arr=>arr.map(mapPt).join(' ');
+
+  // Вектор ветра в плане и выбор наветренной/подветренной стен
+  const r = inp.windToLongAxis*Math.PI/180;
+  const w = {x: Math.cos(r), y: Math.sin(r)};
+  const dots = { x0: -w.x, x1: w.x, y0: -w.y, y1: w.y };
+  const windward = Object.entries(dots).reduce((m,[k,v])=> v<m.v?{k,v}:{...m},{k:'x0',v:1e9}).k;
+  const leeward = Object.entries(dots).reduce((m,[k,v])=> v>m.v?{k,v}:{...m},{k:'x0',v:-1e9}).k;
+
+  // Хелперы построения саб-полигонов для стен
+  function faceSubPoly(face, u0,u1,v0,v1){
+    // face: 'x0','x1','y0','y1'
+    let Q1,Q2,Q3,Q4;
+    if(face==='x0'){
+      Q1=P(0,u0,v0); Q2=P(0,u1,v0); Q3=P(0,u1,v1); Q4=P(0,u0,v1);
+    }else if(face==='x1'){
+      Q1=P(inp.L,u0,v0); Q2=P(inp.L,u1,v0); Q3=P(inp.L,u1,v1); Q4=P(inp.L,u0,v1);
+    }else if(face==='y0'){
+      Q1=P(u0,0,v0); Q2=P(u1,0,v0); Q3=P(u1,0,v1); Q4=P(u0,0,v1);
+    }else{ // y1
+      Q1=P(u0,inp.B,v0); Q2=P(u1,inp.B,v0); Q3=P(u1,inp.B,v1); Q4=P(u0,inp.B,v1);
+    }
+    return [Q1,Q2,Q3,Q4];
   }
+
+  // Крыша: полосы по e на 4-х кромках
+  const roofEdgePoly = {
+    left:  [ [0,0],[0,inp.B],[e,inp.B-e],[e,e] ],
+    right: [ [inp.L,0],[inp.L,inp.B],[inp.L-e,inp.B-e],[inp.L-e,e] ],
+    bottom:[ [0,0],[inp.L,0],[inp.L-e,e],[e,e] ],
+    top:   [ [0,inp.B],[inp.L,inp.B],[inp.L-e,inp.B-e],[e,inp.B-e] ],
+  };
+  function roofPoly(arr){ return arr.map(([x,y])=>P(x,y,inp.h)); }
+
+  // Назначение зон крыши F/G/H/I по направлению ветра
+  const roofZones = {};
+  let up='left', down='right', side1='bottom', side2='top';
+  if(windward==='x1'){ up='right'; down='left'; side1='bottom'; side2='top'; }
+  if(windward==='y1'){ up='top'; down='bottom'; side1='right'; side2='left'; }
+  if(windward==='y0'){ up='bottom'; down='top'; side1='right'; side2='left'; }
+  roofZones['F']=roofPoly(roofEdgePoly[up]);
+  roofZones['H']=roofPoly(roofEdgePoly[down]);
+  roofZones['G']=roofPoly(roofEdgePoly[side1]);
+  roofZones['I']=roofPoly(roofEdgePoly[side2]);
+
+  // Подготовка SVG
+  const svgParts = [];
+  svgParts.push(`<svg viewBox="0 0 ${vw.toFixed(1)} ${vh.toFixed(1)}" class="w-full h-full">`);
+  // Тень крыши для объёма
+  svgParts.push(`<polygon points="${poly([V.E,V.F,V.G,V.H])}" fill="rgba(0,0,0,0.03)" stroke="#111" stroke-opacity="0.15"/>`);
+
+  // Стены: раскраска зон A/B/D на наветренной стене, C на боковой, E на подветренной
+  const colors = {A:'#ef4444',B:'#f59e0b',C:'#eab308',D:'#10b981',E:'#3b82f6',F:'#8b5cf6',G:'#14b8a6',H:'#a855f7',I:'#22c55e',J:'#6366f1'};
+  function fill(polyPts, key, alpha=0.55){ svgParts.push(`<polygon points="${poly(polyPts)}" fill="${colors[key]}${alpha<1?'' : ''}" fill-opacity="${alpha}" stroke="#111" stroke-opacity="0.15"/>`); }
+  function label(pt, txt){ svgParts.push(`<text x="${(pt.x+tx).toFixed(1)}" y="${(pt.y+ty).toFixed(1)}" font-size="10" fill="#111">${txt}</text>`); }
+
+  // Какие из двух видимых граней: x1 и y1
+  const visibleFaces = ['x1','y1'];
+  for(const face of visibleFaces){
+    if(face===windward){
+      // A — вертикальные полосы по краям, B — верхняя горизонтальная, D — центр
+      const U = (face==='x1') ? inp.B : inp.L;
+      const A1 = faceSubPoly(face, 0, Math.min(e,U), 0, inp.h);
+      const A2 = faceSubPoly(face, Math.max(U-e,0), U, 0, inp.h);
+      const B  = faceSubPoly(face, Math.min(e,U), Math.max(U-e,0), Math.max(inp.h-e,0), inp.h);
+      const D  = faceSubPoly(face, Math.min(e,U), Math.max(U-e,0), 0, Math.max(inp.h-e,0));
+      fill(A1,'A'); fill(A2,'A'); fill(B,'B'); fill(D,'D');
+    } else if(face===leeward){
+      // Подветренная — E целиком
+      const U = (face==='x1') ? inp.B : inp.L;
+      const Eface = faceSubPoly(face, 0, U, 0, inp.h);
+      fill(Eface,'E',0.35);
+    } else {
+      // Боковая — C целиком
+      const U = (face==='x1') ? inp.B : inp.L;
+      const Cface = faceSubPoly(face, 0, U, 0, inp.h);
+      fill(Cface,'C',0.35);
+    }
+  }
+
+  // Крыша: F/G/H/I
+  for(const [k,polyPts] of Object.entries(roofZones)) fill(polyPts,k,0.5);
+
+  // Рёбра корпуса сверху
+  svgParts.push(`<polyline points="${poly([V.A,V.B,V.C,V.D,V.A])}" fill="none" stroke="#111" stroke-opacity="0.2"/>`);
+  svgParts.push(`<polyline points="${poly([V.E,V.F,V.G,V.H,V.E])}" fill="none" stroke="#111" stroke-opacity="0.4"/>`);
+  svgParts.push(`<line x1="${mapPt(V.A).split(',')[0]}" y1="${mapPt(V.A).split(',')[1]}" x2="${mapPt(V.E).split(',')[0]}" y2="${mapPt(V.E).split(',')[1]}" stroke="#111" stroke-opacity="0.2"/>`);
+  svgParts.push(`<line x1="${mapPt(V.B).split(',')[0]}" y1="${mapPt(V.B).split(',')[1]}" x2="${mapPt(V.F).split(',')[0]}" y2="${mapPt(V.F).split(',')[1]}" stroke="#111" stroke-opacity="0.2"/>`);
+  svgParts.push(`<line x1="${mapPt(V.C).split(',')[0]}" y1="${mapPt(V.C).split(',')[1]}" x2="${mapPt(V.G).split(',')[0]}" y2="${mapPt(V.G).split(',')[1]}" stroke="#111" stroke-opacity="0.2"/>`);
+  svgParts.push(`<line x1="${mapPt(V.D).split(',')[0]}" y1="${mapPt(V.D).split(',')[1]}" x2="${mapPt(V.H).split(',')[0]}" y2="${mapPt(V.H).split(',')[1]}" stroke="#111" stroke-opacity="0.2"/>`);
+
+  // Легенда зон
+  const legendY = vh - 60; let legendX = 12; const items=['A','B','C','D','E','F','G','H','I'];
+  for(const k of items){ svgParts.push(`<rect x="${legendX}" y="${legendY}" width="14" height="10" fill="${colors[k]}" fill-opacity="0.6" rx="2"/>`);
+    svgParts.push(`<text x="${legendX+18}" y="${legendY+9}" font-size="10" fill="#111">${k}</text>`); legendX+=40; }
+
+  svgParts.push('</svg>');
+  document.getElementById('schemeWalls').innerHTML = svgParts.join('
+');
+  document.getElementById('schemeRoof').innerHTML = '';
+}
 
   function readInputs(){
     return {
@@ -450,7 +564,7 @@
     el('terrainVal').textContent = inp.terrain; el('z0Val').textContent = z0; el('krVal').textContent = KR(z0).toFixed(3);
 
     // Schemes
-    updateSchemes(inp.roof);
+    drawAxonometric(inp, e);
 
     // Tables
     buildWallsTable(qp, cpis, wall);
