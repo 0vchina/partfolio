@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Калькулятор ветровой нагрузки · СН 2.01.05‑2019 (FULL + скрытые справки)</title>
-  <meta name="description" content="Калькулятор ветровых нагрузок по СН 2.01.05‑2019: стены и кровля, два направления ветра, учёт cscd/cpi и площадей элементов. Подробный отчёт с формулами — только при печати/PDF. Подсказки и скрытые справки под всеми полями." />
+  <title>Калькулятор ветровой нагрузки · СН 2.01.05-2019 (FULL + скрытые справки)</title>
+  <meta name="description" content="Калькулятор ветровых нагрузок по СН 2.01.05-2019: стены и кровля, два направления ветра, учёт cscd/cpi и площадей элементов. Подробный отчёт с формулами — только при печати/PDF. Подсказки и скрытые справки под всеми полями." />
   <style>
-    :root{ --bg:#0b1020; --card:#111730; --ink:#eaf1ff; --muted:#b7c4e0; --line:#263166; --acc:#8ab4ff; --ok:#1cc29f; --warn:#ffb74d; --radius:16px; --shadow:0 8px 22px rgba(0,0,0,.35); --col-left:540px; --gap:18px; --max:1240px }
+    :root{ --bg:#0b1020; --card:#111730; --ink:#eaf1ff; --muted:#b7c4e0; --line:#263166; --acc:#8ab4ff; --radius:16px; --shadow:0 8px 22px rgba(0,0,0,.35); --col-left:540px; --gap:18px; --max:1240px }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{margin:0; font-family:Inter,system-ui,Arial,sans-serif; background:var(--bg); color:var(--ink)}
@@ -17,6 +17,7 @@
     .actions{display:flex; gap:8px}
     button{appearance:none; border:1px solid var(--line); background:#1a2340; color:var(--ink); padding:10px 14px; border-radius:10px; cursor:pointer}
     button:hover{background:#213058}
+
     .grid{display:grid; grid-template-columns: var(--col-left) 1fr; gap:var(--gap); margin-top:14px}
     @media (max-width: 1000px){ .grid{grid-template-columns: 1fr} }
 
@@ -72,7 +73,7 @@
     <header style="margin-bottom:6px">
       <div>
         <h1>Калькулятор ветровой нагрузки</h1>
-        <div class="badge">СН 2.01.05‑2019 / EN 1991‑1‑4</div>
+        <div class="badge">СН 2.01.05-2019 / EN 1991-1-4</div>
       </div>
       <div class="actions">
         <button id="btn-calc">Рассчитать</button>
@@ -93,7 +94,7 @@
               <input type="number" step="0.01" id="L" value="60">
               <div class="hint">Горизонтальный размер вдоль длинной стороны здания.</div>
               <details class="help"><summary>Справка: Геометрия L</summary>
-                <div class="help-body">Используется при определении ширины краевых полос на стенах/кровле при ветре вдоль короткой стороны (см. <span class="kbd">e</span> ниже). Влияние на <span class="kbd">e</span> для кровли — через параметр <span class="kbd">b</span>, перпендикулярный ветру.</div>
+                <div class="help-body">Влияет на определение ширины краевых полос при ветре на короткую грань. Для кровли участвует через поперечный размер <span class="kbd">b</span>.</div>
               </details>
             </div>
             <div>
@@ -101,7 +102,7 @@
               <input type="number" step="0.01" id="B" value="24">
               <div class="hint">Горизонтальный размер поперёк длинной стороны.</div>
               <details class="help"><summary>Справка: Геометрия B</summary>
-                <div class="help-body">При ветре на длинную грань поперечным размером для кровли считается <span class="kbd">b=B</span>; при ветре на короткую грань — <span class="kbd">b=L</span>. Ширина краевой полосы кровли: <span class="kbd">e = k·min(b, 2h)</span>.</div>
+                <div class="help-body">Для кровли поперечный к ветру размер <span class="kbd">b</span>: при ветре на длинную грань <span class="kbd">b=B</span>, на короткую — <span class="kbd">b=L</span>.</div>
               </details>
             </div>
           </div>
@@ -110,7 +111,7 @@
               <label>h, м (высота до карниза/аттика)</label>
               <input type="number" step="0.01" id="H" value="12">
               <details class="help"><summary>Справка: Высота h</summary>
-                <div class="help-body">Высота отсчёта для профиля скорости и для <span class="kbd">z_e</span> по умолчанию. Минимальная расчётная высота зависит от категории местности (<span class="kbd">z_min</span>).</div>
+                <div class="help-body">Высота отсчёта для профиля скорости и <span class="kbd">z_e</span> по умолчанию (не ниже <span class="kbd">z_min</span> для категории местности).</div>
               </details>
             </div>
             <div>
@@ -118,7 +119,7 @@
               <select id="roofType"><option value="flat">Плоская</option><option value="gable">Двускатная</option></select>
               <div class="hint">Для двускатной укажите уклон α и направление к коньку θ.</div>
               <details class="help"><summary>Справка: Тип кровли</summary>
-                <div class="help-body">Плоская кровля использует зоны F/G/H. Двускатная: при <span class="kbd">θ=90°</span> зоны F/G/H/I, при <span class="kbd">θ=0°</span> — F/G/H/I/J. Для промежуточных уклонов выполняется линейная интерполяция табличных <span class="kbd">c<sub>pe</sub></span>.</div>
+                <div class="help-body">Плоская: зоны F/G/H. Двускатная: при <span class="kbd">θ=90°</span> — F/G/H/I, при <span class="kbd">θ=0°</span> — F/G/H/I/J.</div>
               </details>
             </div>
           </div>
@@ -127,14 +128,14 @@
               <label>Уклон α, °</label>
               <input type="number" step="0.5" id="slope" value="15">
               <details class="help"><summary>Справка: Уклон α</summary>
-                <div class="help-body">Интерполирует наборы <span class="kbd">c<sub>pe</sub></span> для двускатной кровли между табличными значениями (15°→30°→45°).</div>
+                <div class="help-body">Интерполяция табличных <span class="kbd">c_pe</span> между 15°—30°—45°.</div>
               </details>
             </div>
             <div>
               <label>Угол к коньку θ</label>
               <select id="theta"><option value="90" selected>90° (⊥ коньку)</option><option value="0">0° (∥ коньку)</option></select>
               <details class="help"><summary>Справка: θ</summary>
-                <div class="help-body">Определяет ориентацию зон кровли: при <span class="kbd">θ=90°</span> ветер перпендикулярен коньку; при <span class="kbd">θ=0°</span> параллелен.</div>
+                <div class="help-body">Ориентация ветра относительно конька: 90° — перпендикулярно, 0° — параллельно.</div>
               </details>
             </div>
           </div>
@@ -150,7 +151,7 @@
                 <input type="number" step="0.1" id="vb0" value="24">
               </div>
               <details class="help"><summary>Справка: v<sub>b,0</sub> и районы</summary>
-                <div class="help-body">Подстановочные значения по карте ветровых районов редактируются в блоке ниже. Расчётная базовая скорость: <span class="kbd">v_b = v_b,0 · c_dir · c_season</span>.</div>
+                <div class="help-body">Расчётная базовая скорость: <span class="kbd">v_b = v_b,0 · c_dir · c_season</span>. Значения для I/II/III редактируются ниже.</div>
               </details>
             </div>
             <div>
@@ -160,7 +161,7 @@
                 <input type="number" step="0.01" id="cseason" value="1.0">
               </div>
               <details class="help"><summary>Справка: c<sub>dir</sub>, c<sub>season</sub></summary>
-                <div class="help-body"><span class="kbd">c_dir</span> учитывает направленность (розу ветров), <span class="kbd">c_season</span> — сезонность. При отсутствии данных допускается 1.00.</div>
+                <div class="help-body"><span class="kbd">c_dir</span> — направленность (роза ветров), <span class="kbd">c_season</span> — сезонность. При отсутствии данных примите 1.00.</div>
               </details>
             </div>
           </div>
@@ -170,22 +171,14 @@
               <label>Категория местности</label>
               <select id="terrain"><option value="0">0 — вода/берег</option><option value="I">I — открытая</option><option value="II" selected>II — сельхоз</option><option value="III">III — пригород/лес</option><option value="IV">IV — центр города</option></select>
               <details class="help"><summary>Справка: Категория местности</summary>
-                <div class="help-body">Категория задаёт шероховатость <span class="kbd">z₀</span> и минимальную высоту <span class="kbd">z_min</span> для профиля скорости. Типичные значения:
-                  <div class="help-grid">
-                    <div>0: z₀=0.003; z_min=1 м</div>
-                    <div>I: z₀=0.01; z_min=1 м</div>
-                    <div>II: z₀=0.05; z_min=2 м</div>
-                    <div>III: z₀=0.3; z_min=5 м</div>
-                    <div>IV: z₀=1.0; z_min=10 м</div>
-                  </div>
-                </div>
+                <div class="help-body">Категория задаёт шероховатость <span class="kbd">z₀</span> и минимальную высоту <span class="kbd">z_min</span>. Пример: II → z₀=0.05, z_min=2 м.</div>
               </details>
             </div>
             <div>
               <label>Ороография cₒ(z)</label>
               <input type="number" step="0.01" id="co" value="1.0">
               <details class="help"><summary>Справка: cₒ(z)</summary>
-                <div class="help-body">Коэффициент ускорения потока на склонах/уступах. На равнине обычно 1.00. При наличии оро-графии уточняется по СН.</div>
+                <div class="help-body">Ускорение потока на склонах/уступах. На равнине — 1.00.</div>
               </details>
             </div>
           </div>
@@ -198,14 +191,14 @@
                 <input type="number" step="0.05" id="cpi" value="0.3">
               </div>
               <details class="help"><summary>Справка: c<sub>pi</sub></summary>
-                <div class="help-body">Автовыбор задаёт модуль <span class="kbd">±c_pi</span>. В каждой зоне берётся неблагоприятный знак. Ручной ввод используйте, если есть расчёт по проницаемости/отверстиям.</div>
+                <div class="help-body">Задаётся модуль <span class="kbd">±c_pi</span>. В таблицах выводятся обе комбинации знаков.</div>
               </details>
             </div>
             <div>
               <label>ρ, кг/м³</label>
               <input type="number" step="0.01" id="rho" value="1.25">
               <details class="help"><summary>Справка: Плотность ρ</summary>
-                <div class="help-body">По умолчанию 1.25 кг/м³. Корректируйте при нетипичных температуре/давлении, если требуется нормативом.</div>
+                <div class="help-body">По умолчанию 1.25 кг/м³. Корректируйте при нетипичных условиях.</div>
               </details>
             </div>
           </div>
@@ -218,14 +211,14 @@
                 <input type="number" step="0.01" id="cscd" value="1.00">
               </div>
               <details class="help"><summary>Справка: c_s c_d</summary>
-                <div class="help-body">Учитывает порывистость и динамический отклик. Для жёстких низких зданий — 1.00. Для гибких/высотных задаётся по динамическому расчёту. В режимах «Ограждения» обычно не применяется.</div>
+                <div class="help-body">Порывистость и динамический отклик. Для MWFRS можно задать вручную; для «Ограждений» обычно не применяется.</div>
               </details>
             </div>
             <div>
               <label>Режим расчёта</label>
               <select id="mode"><option value="mwfrs" selected>Главная система (MWFRS)</option><option value="cladding">Ограждения/крепёж</option></select>
               <details class="help"><summary>Справка: Режим</summary>
-                <div class="help-body">MWFRS — нагрузки на несущую систему (учёт <span class="kbd">c_sc_d</span>). Ограждения — локальные давления для панелей/крепежа, с поправками для малых площадей элементов.</div>
+                <div class="help-body">MWFRS — нагрузки на несущую систему (учёт <span class="kbd">c_sc_d</span>). «Ограждения» — локальные давления (с поправками по площади элемента).</div>
               </details>
             </div>
           </div>
@@ -238,7 +231,7 @@
                 <input type="number" step="0.1" id="Aelem" value="20">
               </div>
               <details class="help"><summary>Справка: Площадь элемента</summary>
-                <div class="help-body">Малые площади подвергаются более неблагоприятным локальным давлениям. Поправки к <span class="kbd">c_pe</span> задаются ниже.</div>
+                <div class="help-body">Меньшая площадь → более неблагоприятные локальные давления. Поправки к <span class="kbd">c_pe</span> ниже.</div>
               </details>
             </div>
             <div>
@@ -248,7 +241,7 @@
                 <input type="number" step="0.1" id="deltaPe1" value="-0.4">
               </div>
               <details class="help"><summary>Справка: Δc<sub>pe</sub></summary>
-                <div class="help-body">При выборе классов ≤10 или ≤1 м² эти значения автоматически добавляются к базовым <span class="kbd">c_pe</span>. Уточняйте по таблицам вашей редакции СН.</div>
+                <div class="help-body">При выборе классов ≤10 или ≤1 м² значения автоматически добавляются к базовым <span class="kbd">c_pe</span>.</div>
               </details>
             </div>
           </div>
@@ -261,7 +254,7 @@
                   <label>Ширина краевых полос стен: e = min(0.2·b, 0.2·h)</label>
                   <input type="number" step="0.01" id="eFactor" value="0.2">
                   <details class="help"><summary>Справка: e для стен</summary>
-                    <div class="help-body">Для стен: <span class="kbd">b</span> — размер фронта поперёк ветра. Полосы шириной <span class="kbd">e</span> используют иные <span class="kbd">c_pe</span> по СН.</div>
+                    <div class="help-body"><span class="kbd">b</span> — размер фронта поперёк ветра. Полосы шириной <span class="kbd">e</span> используют иные <span class="kbd">c_pe</span>.</div>
                   </details>
                 </div>
                 <div>
@@ -279,23 +272,21 @@
                   <div>
                     <label>Наветренная (D)</label>
                     <input id="cpeWallWindward" value="0.8" />
-                    <div class="hint">Коэф. внешнего давления на наветренную стену.</div>
+                    <div class="hint">Внешнее давление на наветренную стену.</div>
                   </div>
                   <div>
                     <label>Боковые (A/B/C)</label>
                     <input id="cpeWallSide" value="-0.7,-0.7,-0.7" />
-                    <div class="hint">Коэф. для боковых зон A/B/C.</div>
+                    <div class="hint">Коэффициенты для боковых зон A/B/C.</div>
                   </div>
                 </div>
                 <div class="row">
                   <div>
                     <label>Подветренная (E)</label>
                     <input id="cpeWallLeeward" value="-0.5" />
-                    <div class="hint">Коэф. внешнего давления на подветренную стену.</div>
+                    <div class="hint">Внешнее давление на подветренную стену.</div>
                   </div>
-                  <div>
-                    <label class="hint">Значения по умолчанию ориентировочные — сверьте по СН 2.01.05‑2019.</label>
-                  </div>
+                  <div><label class="hint">Значения по умолчанию ориентировочные — сверьте по вашей редакции СН.</label></div>
                 </div>
               </details>
 
@@ -362,7 +353,7 @@
                   <div><label>z_e,int (внутреннее), м</label><input type="number" step="0.1" id="zeInt" value="12"></div>
                 </div>
                 <details class="help"><summary>Справка: z<sub>e</sub></summary>
-                  <div class="help-body">Высота отсчёта профиля скорости для внешнего и внутреннего давлений. По умолчанию равна <span class="kbd">h</span> и не ниже <span class="kbd">z_min</span> для категории местности.</div>
+                  <div class="help-body">Высота отсчёта профиля скорости для внешнего и внутреннего давлений. По умолчанию равна <span class="kbd">h</span> и не ниже <span class="kbd">z_min</span>.</div>
                 </details>
               </details>
             </div>
@@ -420,21 +411,124 @@
 
     // ===== Наименования зон
     function wallZoneDesc(z){ const map={A:'Боковая стена — полоса A',B:'Боковая стена — полоса B',C:'Боковая стена — полоса C',D:'Наветренная стена (D)',E:'Подветренная стена (E)'}; return map[z]||`Зона ${z}`; }
-    function roofZoneDesc(z, roofType, theta){ if(roofType==='flat'){ const mapF={F:'Плоская кровля — наветренная кромка (F)', G:'Плоская кровля — боковые/подветренная (G)', H:'Плоская кровля — центральная зона (H)'}; return mapF[z]||`Зона ${z}`; } else if(Number(theta)===90){ const map90={F:'Двускатная θ=90° — краевая наветренного (F)', G:'Двускатная θ=90° — краевая подветренного/боковых (G)', H:'Двускатная θ=90° — средняя наветренного (H)', I:'Двускатная θ=90° — средняя подветренного (I)'}; return map90[z]||`Зона ${z}`; } else { const map0={F:'Двускатная θ=0° — фронтонная наветренная кромка (F)', G:'Двускатная θ=0° — продольные краевые (G)', H:'Двускатная θ=0° — центр наветренного (H)', I:'Двускатная θ=0° — центр подветренного (I)', J:'Двускатная θ=0° — у конька/кромки (J)'}; return map0[z]||`Зона ${z}`; } }
+    function roofZoneDesc(z, roofType, theta){
+      if(roofType==='flat'){
+        const mapF={F:'Плоская кровля — наветренная кромка (F)', G:'Плоская кровля — боковые/подветренная (G)', H:'Плоская кровля — центральная зона (H)'};
+        return mapF[z]||`Зона ${z}`;
+      } else if(Number(theta)===90){
+        const map90={F:'Двускатная θ=90° — краевая наветренного (F)', G:'Двускатная θ=90° — краевая подветренного/боковых (G)', H:'Двускатная θ=90° — средняя наветренного (H)', I:'Двускатная θ=90° — средняя подветренного (I)'};
+        return map90[z]||`Зона ${z}`;
+      } else {
+        const map0={F:'Двускатная θ=0° — фронтонная наветренная кромка (F)', G:'Двускатная θ=0° — продольные краевые (G)', H:'Двускатная θ=0° — центр наветренного (H)', I:'Двускатная θ=0° — центр подветренного (I)', J:'Двускатная θ=0° — у конька/кромки (J)'};
+        return map0[z]||`Зона ${z}`;
+      }
+    }
 
     // ===== Вспомогательные функции
     function getCpiAbs(){ const m=$('#cpiMode').value; if(m==='manual') return Math.abs(parseFloat($('#cpi').value)||0); if(m==='autoSmall') return 0.2; if(m==='autoMedium') return 0.3; return 0.5 }
     function getCscd(apply){ const m=$('#cscdMode').value; if(!apply) return 1.0; if(m==='manual') return Math.max(0.5, parseFloat($('#cscd').value)||1); return 1.0 }
     function areaDelta(){ if($('#mode').value!=='cladding') return 0; const c=$('#areaClass').value; if(c==='<=1') return parseFloat($('#deltaPe1').value)||0; if(c==='<=10') return parseFloat($('#deltaPe10').value)||0; return 0 }
-    function netPressure(cpeBase, qpExt, qpInt, applyCscd){ const d=areaDelta(); const cpe=(Number.isFinite(cpeBase)?cpeBase:0)+d; const cscd=getCscd(applyCscd); const we=cpe*qpExt*cscd; const cpi=getCpiAbs(); const wplus=we + cpi*qpInt; const wminus=we - cpi*qpInt; const wnet=Math.abs(wplus)>=Math.abs(wminus)?wplus:wminus; const picked=Math.abs(wplus)>=Math.abs(wminus)?'+':'-'; return{zone:'', cpeBase:cpeBase, cpePrime:cpe, we, wnet, cscd, cpi, delta:d, qpExt, qpInt, picked} }
+
+    // Возвращает обе комбинации знаков (+ и −), без выбора «неблагоприятного»
+    function netPressuresBothSigns(cpeBase, qpExt, qpInt, applyCscd){
+      const d = areaDelta();
+      const cpePrime = (Number.isFinite(cpeBase)?cpeBase:0) + d; // c_pe'
+      const cscd = getCscd(applyCscd);
+      const we = cpePrime * qpExt * cscd;
+      const cpi = getCpiAbs();
+      const wplus  = we + cpi*qpInt;
+      const wminus = we - cpi*qpInt;
+      return { cpeBase, cpePrime, delta:d, cscd, cpi, qpExt, qpInt, we, wplus, wminus };
+    }
 
     // ===== Таблицы/блоки UI
-    function buildTable(title,note,rows, ctx){ const thead=`<thead><tr><th>Зона</th><th>Описание</th><th>c<sub>pe</sub> (с учётом Δ)</th><th>w<sub>e</sub>=c<sub>pe</sub>·q<sub>p,ext</sub>·(c<sub>s</sub>c<sub>d</sub>)</th><th>w<sub>net</sub>=w<sub>e</sub>±c<sub>pi</sub>·q<sub>p,int</sub></th></tr></thead>`; const descFor=(z)=> ctx?.kind==='wall'?wallZoneDesc(z):roofZoneDesc(z, ctx?.roofType, ctx?.theta); const tbody=`<tbody>${rows.map(r=>`<tr><td><b>${r.zone}</b></td><td style="text-align:left">${descFor(r.zone)}</td><td>${fmt(r.cpePrime,2)}</td><td>${fmt(r.we,0)}</td><td>${fmt(r.wnet,0)}</td></tr>`).join('')}</tbody>`; return `<div class="card" style="margin-top:12px"><div class="hd"><h2>${title}</h2><span class="pill">${note}</span></div><div class="bd"><table>${thead+tbody}</table></div></div>` }
-    function buildCaseBlock(name, wallData, roofData, ctx){ return `<div class="card" style="margin-top:12px"><div class="hd"><h2>${name}</h2><span class="pill">Стены: e=${fmt(wallData.e,2)} м, фронт=${fmt(wallData.across,2)} м</span></div><div class="bd"> <div class="row"> <div>${buildTable('Наветренная стена','D',wallData.windward,{kind:'wall'})}</div> <div>${buildTable('Боковые стены','A/B/C',wallData.side,{kind:'wall'})}</div> </div> <div style="height:8px"></div> <div>${buildTable('Подветренная стена','E',wallData.leeward,{kind:'wall'})}</div> <div style="height:8px"></div> <div>${buildTable(roofData.title, roofData.note, roofData.rows,{kind:'roof', roofType:ctx.roofType, theta:ctx.theta})}</div> </div></div>` }
+    function buildTable(title,note,rows, ctx){
+      const thead = `<thead>
+        <tr>
+          <th>Зона</th>
+          <th>Описание</th>
+          <th>c<sub>pe</sub>’</th>
+          <th>w<sub>e</sub>=c<sub>pe</sub>’·q<sub>p,ext</sub>·(c<sub>s</sub>c<sub>d</sub>)</th>
+          <th>w<sub>net,+</sub>=w<sub>e</sub>+c<sub>pi</sub>·q<sub>p,int</sub></th>
+          <th>w<sub>net,−</sub>=w<sub>e</sub>−c<sub>pi</sub>·q<sub>p,int</sub></th>
+        </tr>
+      </thead>`;
+      const descFor = (z)=> ctx?.kind==='wall' ? wallZoneDesc(z) : roofZoneDesc(z, ctx?.roofType, ctx?.theta);
+      const tbody = `<tbody>${
+        rows.map(r => `<tr>
+          <td><b>${r.zone}</b></td>
+          <td style="text-align:left">${descFor(r.zone)}</td>
+          <td>${fmt(r.cpePrime,2)}</td>
+          <td>${fmt(r.we,0)}</td>
+          <td>${fmt(r.wplus,0)}</td>
+          <td>${fmt(r.wminus,0)}</td>
+        </tr>`).join('')
+      }</tbody>`;
+      return `<div class="card" style="margin-top:12px"><div class="hd"><h2>${title}</h2><span class="pill">${note}</span></div><div class="bd"><table>${thead+tbody}</table></div></div>`;
+    }
+
+    function buildCaseBlock(name, wallData, roofData, ctx){
+      return `<div class="card" style="margin-top:12px">
+        <div class="hd"><h2>${name}</h2><span class="pill">Стены: e=${fmt(wallData.e,2)} м, фронт=${fmt(wallData.across,2)} м</span></div>
+        <div class="bd">
+          <div class="row">
+            <div>${buildTable('Наветренная стена','D', wallData.windward, {kind:'wall'})}</div>
+            <div>${buildTable('Боковые стены','A/B/C', wallData.side, {kind:'wall'})}</div>
+          </div>
+          <div style="height:8px"></div>
+          <div>${buildTable('Подветренная стена','E', wallData.leeward, {kind:'wall'})}</div>
+          <div style="height:8px"></div>
+          <div>${buildTable(roofData.title, roofData.note, roofData.rows, {kind:'roof', roofType:ctx.roofType, theta:ctx.theta})}</div>
+        </div>
+      </div>`;
+    }
 
     // ===== Отчёт (для печати)
-    function headerReport(ctx){ const {L,B,H,roofType,slope,theta,region,vb0,cdir,cseason,terrain,z0,zmin,co,zeExt,zeInt,rho,vb,ext,intp,mode}=ctx; const lines=[]; lines.push('— ВХОДНЫЕ ДАННЫЕ —'); lines.push(`Геометрия: L=${fmt(L,2)} м; B=${fmt(B,2)} м; h=${fmt(H,2)} м; кровля=${roofType==='flat'?'плоская':`двускатная (α=${fmt(slope,1)}°, θ=${theta}°)`}`); lines.push(`Регион=${region}; v_b,0=${fmt(vb0,1)} м/с; c_dir=${fmt(cdir,2)}; c_season=${fmt(cseason,2)}`); lines.push(`v_b = v_b,0 · c_dir · c_season = ${fmt(vb0,1)} · ${fmt(cdir,2)} · ${fmt(cseason,2)} = ${fmt(vb,2)} м/с`); lines.push(`Местность: ${terrain} → z₀=${z0} м; z_min=${zmin} м; cₒ(z)=${fmt(co,2)}; ρ=${fmt(rho,2)} кг/м³`); lines.push(`z_e,ext=${fmt(zeExt,2)} м; z_e,int=${fmt(zeInt,2)} м`); lines.push('\n— ПРОФИЛЬ СКОРОСТИ И ПИКОВОЕ ДАВЛЕНИЕ —'); const k=kCoef(z0); lines.push(`k_r = 0.19 · (z₀ / 0.05)^0.07 = ${fmt(k,4)}`); lines.push(`c_r(z_e,ext) = ${fmt(cr(zeExt,z0),4)}; v_m(ext) = c_r·cₒ·v_b = ${fmt(cr(zeExt,z0),4)} · ${fmt(co,2)} · ${fmt(vb,2)} = ${fmt(ext.vm,3)} м/с`); lines.push(`I_v(ext) = 1/ln(z_e/z₀)·(z₀/0.05)^0.07 = ${fmt(ext.iv,4)}`); lines.push(`q_p(ext) = 0.5·ρ·v_m²·(1+7I_v) = 0.5·${fmt(rho,2)}·${fmt(ext.vm,3)}²·(1+7·${fmt(ext.iv,4)}) = ${fmt(ext.qp,0)} Па`); lines.push(`c_r(z_e,int) = ${fmt(cr(zeInt,z0),4)}; v_m(int) = ${fmt(intp.vm,3)} м/с; I_v(int) = ${fmt(intp.iv,4)}; q_p(int) = ${fmt(intp.qp,0)} Па`); lines.push('\n— ПАРАМЕТРЫ РЕЖИМА —'); const cpiTxt=(function(){const m=$('#cpiMode').value; if(m==='manual') return `c_pi = ${fmt(Math.abs(parseFloat($('#cpi').value)||0),2)}`; if(m==='autoSmall') return 'c_pi = ±0.20'; if(m==='autoMedium') return 'c_pi = ±0.30'; return 'c_pi = ±0.50'}) (); lines.push(`Режим: ${($('#mode').value==='mwfrs')?'MWFRS (учёт c_s c_d)':'Cladding (без c_s c_d)'}`); lines.push(`Внутреннее давление: ${cpiTxt}`); const cscdTxt = ($('#mode').value==='mwfrs')?`c_s c_d = ${fmt(getCscd(true),2)}`:'c_s c_d = 1.00 (не учитывается)'; lines.push(cscdTxt); if($('#mode').value==='cladding'){ lines.push(`Класс площади: ${$('#areaClass').value}; Δc_pe(≤10)=${fmt(parseFloat($('#deltaPe10').value)||0,2)}; Δc_pe(≤1)=${fmt(parseFloat($('#deltaPe1').value)||0,2)}`); } return lines; }
-    function zoneReportDetailed(title, rows){ const lines=[`\n— ${title} —`]; rows.forEach(r=>{ const signWord = r.picked==='+' ? 'неблагоприятная (+)' : 'неблагоприятная (−)'; lines.push(`\nЗона ${r.zone} — ${( ['A','B','C','D','E'].includes(r.zone)?wallZoneDesc(r.zone):roofZoneDesc(r.zone, $('#roofType').value, $('#theta').value) )}`); lines.push(`1) c_pe' = c_pe + Δ = ${fmt(r.cpeBase,2)} + ${fmt(r.delta,2)} = ${fmt(r.cpePrime,2)}`); lines.push(`2) w_e = c_pe' · q_p,ext · (c_s c_d) = ${fmt(r.cpePrime,2)} · ${fmt(r.qpExt,0)} · ${fmt(r.cscd,2)} = ${fmt(r.we,0)} Па`); const wplus = r.we + r.cpi*r.qpInt; const wminus= r.we - r.cpi*r.qpInt; lines.push(`3) w_net,+ = w_e + c_pi · q_p,int = ${fmt(r.we,0)} + ${fmt(r.cpi,2)}·${fmt(r.qpInt,0)} = ${fmt(wplus,0)} Па`); lines.push(`   w_net,− = w_e − c_pi · q_p,int = ${fmt(r.we,0)} − ${fmt(r.cpi,2)}·${fmt(r.qpInt,0)} = ${fmt(wminus,0)} Па`); lines.push(`   Принята ${signWord}: w_net = ${fmt(r.wnet,0)} Па`); }); return lines; }
+    function headerReport(ctx){
+      const {L,B,H,roofType,slope,theta,region,vb0,cdir,cseason,terrain,z0,zmin,co,zeExt,zeInt,rho,vb,ext,intp,mode}=ctx;
+      const lines=[];
+      lines.push('— ВХОДНЫЕ ДАННЫЕ —');
+      lines.push(`Геометрия: L=${fmt(L,2)} м; B=${fmt(B,2)} м; h=${fmt(H,2)} м; кровля=${roofType==='flat'?'плоская':`двускатная (α=${fmt(slope,1)}°, θ=${theta}°)`}`);
+      lines.push(`Регион=${region}; v_b,0=${fmt(vb0,1)} м/с; c_dir=${fmt(cdir,2)}; c_season=${fmt(cseason,2)}`);
+      lines.push(`v_b = v_b,0 · c_dir · c_season = ${fmt(vb0,1)} · ${fmt(cdir,2)} · ${fmt(cseason,2)} = ${fmt(vb,2)} м/с`);
+      lines.push(`Местность: ${terrain} → z₀=${z0} м; z_min=${zmin} м; cₒ(z)=${fmt(co,2)}; ρ=${fmt(rho,2)} кг/м³`);
+      lines.push(`z_e,ext=${fmt(zeExt,2)} м; z_e,int=${fmt(zeInt,2)} м`);
+
+      lines.push('\n— ПРОФИЛЬ СКОРОСТИ И ПИКОВОЕ ДАВЛЕНИЕ —');
+      const k=kCoef(z0);
+      lines.push(`k_r = 0.19 · (z₀ / 0.05)^0.07 = ${fmt(k,4)}`);
+      lines.push(`c_r(z_e,ext) = ${fmt(cr(zeExt,z0),4)}; v_m(ext) = c_r·cₒ·v_b = ${fmt(cr(zeExt,z0),4)} · ${fmt(co,2)} · ${fmt(vb,2)} = ${fmt(ext.vm,3)} м/с`);
+      lines.push(`I_v(ext) = 1/ln(z_e/z₀)·(z₀/0.05)^0.07 = ${fmt(ext.iv,4)}`);
+      lines.push(`q_p(ext) = 0.5·ρ·v_m²·(1+7I_v) = 0.5·${fmt(rho,2)}·${fmt(ext.vm,3)}²·(1+7·${fmt(ext.iv,4)}) = ${fmt(ext.qp,0)} Па`);
+      lines.push(`c_r(z_e,int) = ${fmt(cr(zeInt,z0),4)}; v_m(int) = ${fmt(intp.vm,3)} м/с; I_v(int) = ${fmt(intp.iv,4)}; q_p(int) = ${fmt(intp.qp,0)} Па`);
+
+      lines.push('\n— ПАРАМЕТРЫ РЕЖИМА —');
+      const cpiTxt=(function(){const m=$('#cpiMode').value; if(m==='manual') return `c_pi = ${fmt(Math.abs(parseFloat($('#cpi').value)||0),2)}`; if(m==='autoSmall') return 'c_pi = ±0.20'; if(m==='autoMedium') return 'c_pi = ±0.30'; return 'c_pi = ±0.50'}) ();
+      lines.push(`Режим: ${($('#mode').value==='mwfrs')?'MWFRS (учёт c_s c_d)':'Cladding (без c_s c_d)'}`);
+      lines.push(`Внутреннее давление: ${cpiTxt}`);
+      const cscdTxt = ($('#mode').value==='mwfrs')?`c_s c_d = ${fmt(getCscd(true),2)}`:'c_s c_d = 1.00 (не учитывается)';
+      lines.push(cscdTxt);
+      if($('#mode').value==='cladding'){
+        lines.push(`Класс площади: ${$('#areaClass').value}; Δc_pe(≤10)=${fmt(parseFloat($('#deltaPe10').value)||0,2)}; Δc_pe(≤1)=${fmt(parseFloat($('#deltaPe1').value)||0,2)}`);
+      }
+      return lines;
+    }
+
+    // Блок по зонам — без выбора «неблагоприятного»
+    function zoneReportDetailed(title, rows){
+      const lines=[`\n— ${title} —`];
+      rows.forEach(r=>{
+        const desc = (['A','B','C','D','E'].includes(r.zone))
+          ? wallZoneDesc(r.zone)
+          : roofZoneDesc(r.zone, $('#roofType').value, $('#theta').value);
+        lines.push(`\nЗона ${r.zone} — ${desc}`);
+        lines.push(`1) c_pe' = c_pe + Δ = ${fmt(r.cpeBase,2)} + ${fmt(r.delta,2)} = ${fmt(r.cpePrime,2)}`);
+        lines.push(`2) w_e = c_pe' · q_p,ext · (c_s c_d) = ${fmt(r.cpePrime,2)} · ${fmt(r.qpExt,0)} · ${fmt(r.cscd,2)} = ${fmt(r.we,0)} Па`);
+        lines.push(`3) w_net,+ = w_e + c_pi·q_p,int = ${fmt(r.we,0)} + ${fmt(r.cpi,2)}·${fmt(r.qpInt,0)} = ${fmt(r.wplus,0)} Па`);
+        lines.push(`   w_net,− = w_e − c_pi·q_p,int = ${fmt(r.we,0)} − ${fmt(r.cpi,2)}·${fmt(r.qpInt,0)} = ${fmt(r.wminus,0)} Па`);
+      });
+      return lines;
+    }
 
     // ===== Основной расчёт
     function calc(){
@@ -443,37 +537,71 @@
       const roofType=$('#roofType').value; const slope=parseFloat($('#slope').value||'0'); const theta=parseFloat($('#theta').value||'90');
 
       // Регион / скорость
-      const region=$('#region').value; const [rI,rII,rIII]=parseList($('#regionsMap').value,3); if(region!=='custom'){ const map={I:rI, II:rII, III:rIII}; $('#vb0').value = map[region] ?? $('#vb0').value }
+      const region=$('#region').value; const [rI,rII,rIII]=parseList($('#regionsMap').value,3);
+      if(region!=='custom'){ const map={I:rI, II:rII, III:rIII}; $('#vb0').value = map[region] ?? $('#vb0').value }
       const vb0=parseFloat($('#vb0').value); const cdir=parseFloat($('#cdir').value); const cseason=parseFloat($('#cseason').value);
 
       // Местность / плотность / высоты
-      const terrain=$('#terrain').value; const co=parseFloat($('#co').value); const rho=Math.max(0.5, parseFloat($('#rho').value)||RHO_DEF); const eFactor=parseFloat($('#eFactor').value);
+      const terrain=$('#terrain').value; const co=parseFloat($('#co').value);
+      const rho=Math.max(0.5, parseFloat($('#rho').value)||RHO_DEF);
+      const eFactor=parseFloat($('#eFactor').value);
       const z0=Z0_MAP[terrain]; const zmin=ZMIN_MAP[terrain];
-      const zeMode=$('#zeMode')?.value||'auto'; const zeExtRaw=zeMode==='manual'?parseFloat($('#zeExt').value):H; const zeIntRaw=zeMode==='manual'?parseFloat($('#zeInt').value):H; const zeExt=Math.max(zeExtRaw,zmin); const zeInt=Math.max(zeIntRaw,zmin);
+      const zeMode=$('#zeMode')?.value||'auto';
+      const zeExtRaw=zeMode==='manual'?parseFloat($('#zeExt').value):H;
+      const zeIntRaw=zeMode==='manual'?parseFloat($('#zeInt').value):H;
+      const zeExt=Math.max(zeExtRaw,zmin); const zeInt=Math.max(zeIntRaw,zmin);
 
       // Базовая скорость и qp
-      const vb=cdir*cseason*vb0; const ext=peakPressure(rho, vb, zeExt, z0, co); const intp=peakPressure(rho, vb, zeInt, z0, co);
+      const vb=cdir*cseason*vb0;
+      const ext=peakPressure(rho, vb, zeExt, z0, co);
+      const intp=peakPressure(rho, vb, zeInt, z0, co);
 
       // KPI
-      $('#kpi-vb0').textContent = fmt(vb0,1)+' м/с'; $('#kpi-vb').textContent = fmt(vb,1)+' м/с'; $('#kpi-iv').textContent = fmt(ext.iv,3); $('#kpi-qp').textContent = fmt(ext.qp,0);
+      $('#kpi-vb0').textContent = fmt(vb0,1)+' м/с';
+      $('#kpi-vb').textContent  = fmt(vb,1)+' м/с';
+      $('#kpi-iv').textContent  = fmt(ext.iv,3);
+      $('#kpi-qp').textContent  = fmt(ext.qp,0);
 
       // Наборы cpe для стен/кровли
       const cpeWallWindward = parseList($('#cpeWallWindward').value,1); // D
       const cpeWallSide     = parseList($('#cpeWallSide').value,3);     // A,B,C
       const cpeWallLeeward  = parseList($('#cpeWallLeeward').value,1);  // E
+
       const cpeFlat = parseList($('#cpeFlat').value,3); // F,G,H
-      const g15 = parseList($('#cpeGable15').value,4), g30=parseList($('#cpeGable30').value,4), g45=parseList($('#cpeGable45').value,4);
-      const g0_15 = parseList($('#cpeGable0_15').value,5), g0_30=parseList($('#cpeGable0_30').value,5);
+      const g15=parseList($('#cpeGable15').value,4), g30=parseList($('#cpeGable30').value,4), g45=parseList($('#cpeGable45').value,4);
+      const g0_15=parseList($('#cpeGable0_15').value,5), g0_30=parseList($('#cpeGable0_30').value,5);
 
       const casesEl=$('#cases'); casesEl.innerHTML='';
       const mode=$('#mode').value; const applyCscd=(mode==='mwfrs');
 
-      function buildWalls(caseType){ const z=zonesForWalls(L,B,H,eFactor,caseType); const wind=[{zone:'D', ...netPressure(cpeWallWindward[0], ext.qp, intp.qp, applyCscd)}]; const side=['A','B','C'].map((zn,i)=>({zone:zn, ...netPressure(cpeWallSide[i], ext.qp, intp.qp, applyCscd)})); const lee=[{zone:'E', ...netPressure(cpeWallLeeward[0], ext.qp, intp.qp, applyCscd)}]; return { ...z, windward:wind, side, leeward:lee } }
+      function buildWalls(caseType){
+        const z=zonesForWalls(L,B,H,eFactor,caseType);
+        const wind=[{zone:'D', ...netPressuresBothSigns(cpeWallWindward[0], ext.qp, intp.qp, applyCscd)}];
+        const side=['A','B','C'].map((zn,i)=>({zone:zn, ...netPressuresBothSigns(cpeWallSide[i], ext.qp, intp.qp, applyCscd)}));
+        const lee=[{zone:'E', ...netPressuresBothSigns(cpeWallLeeward[0], ext.qp, intp.qp, applyCscd)}];
+        return { ...z, windward:wind, side, leeward:lee }
+      }
       function interp(a,setA,aA,setB,aB){ const t=clamp((a-aA)/(aB-aA),0,1); return setA.map((v,i)=> v + (setB[i]-v)*t ) }
-      function buildRoof(caseType){ const eR=eRoofFor(caseType,L,B,H); if(roofType==='flat'){ const rows=['F','G','H'].map((z,i)=>({zone:z, ...netPressure(cpeFlat[i], ext.qp, intp.qp, applyCscd)})); return { title:'Покрытие (плоское)', note:`e=${fmt(eR,2)} м`, rows } } else { if(theta===90){ const set=(slope<=22.5)?interp(slope,g15,15,g30,30):interp(slope,g30,30,g45,45); const rows=['F','G','H','I'].map((z,i)=>({zone:z, ...netPressure(set[i], ext.qp, intp.qp, applyCscd)})); return { title:`Покрытие (двускатное, θ=90°, α=${fmt(slope,1)}°)`, note:`e=${fmt(eR,2)} м`, rows } } else { const set0=(slope<=22.5)?g0_15:g0_30; const rows=['F','G','H','I','J'].map((z,i)=>({zone:z, ...netPressure(set0[i], ext.qp, intp.qp, applyCscd)})); return { title:`Покрытие (двускатное, θ=0°, α=${fmt(slope,1)}°)`, note:`e=${fmt(eR,2)} м`, rows } } } }
+      function buildRoof(caseType){
+        const eR=eRoofFor(caseType,L,B,H);
+        if(roofType==='flat'){
+          const rows=['F','G','H'].map((z,i)=>({zone:z, ...netPressuresBothSigns(cpeFlat[i], ext.qp, intp.qp, applyCscd)}));
+          return { title:'Покрытие (плоское)', note:`e=${fmt(eR,2)} м`, rows }
+        } else {
+          if(theta===90){
+            const set=(slope<=22.5)?interp(slope,g15,15,g30,30):interp(slope,g30,30,g45,45);
+            const rows=['F','G','H','I'].map((z,i)=>({zone:z, ...netPressuresBothSigns(set[i], ext.qp, intp.qp, applyCscd)}));
+            return { title:`Покрытие (двускатное, θ=90°, α=${fmt(slope,1)}°)`, note:`e=${fmt(eR,2)} м`, rows }
+          } else {
+            const set0=(slope<=22.5)?g0_15:g0_30;
+            const rows=['F','G','H','I','J'].map((z,i)=>({zone:z, ...netPressuresBothSigns(set0[i], ext.qp, intp.qp, applyCscd)}));
+            return { title:`Покрытие (двускатное, θ=0°, α=${fmt(slope,1)}°)`, note:`e=${fmt(eR,2)} м`, rows }
+          }
+        }
+      }
 
       const wallsLong=buildWalls('long'); const wallsShort=buildWalls('short');
-      const roofLong=buildRoof('long'); const roofShort=buildRoof('short');
+      const roofLong=buildRoof('long');  const roofShort=buildRoof('short');
 
       const ctx={roofType, theta};
       casesEl.insertAdjacentHTML('beforeend',
@@ -484,7 +612,7 @@
       // Легенда
       updateLegend();
 
-      // Отчёт для печати (с формулами)
+      // Отчёт (формулы, без выбора «неблагоприятного»)
       const ctxRep={L,B,H,roofType,slope,theta,region,vb0,cdir,cseason,terrain,z0,zmin,co,zeExt,zeInt,rho,vb,ext,intp,mode};
       const lines=[...headerReport(ctxRep)];
       lines.push('\n— СЛУЧАЙ A — ВЕТЕР НА ДЛИННУЮ ГРАНЬ —');
@@ -493,12 +621,24 @@
       lines.push('\n— СЛУЧАЙ B — ВЕТЕР НА КОРОТКУЮ ГРАНЬ —');
       lines.push(...zoneReportDetailed('Стены (A/B/C, D, E)', [].concat(wallsShort.windward,wallsShort.side,wallsShort.leeward)));
       lines.push(...zoneReportDetailed(roofShort.title, roofShort.rows));
-      lines.push('\nПримечание: c_pe по умолчанию ориентировочные; для окончательного расчёта используйте табличные значения вашей редакции СН 2.01.05‑2019 и локальные коэффициенты для малых площадей элементов.');
+      lines.push('\nПримечание: базовые c_pe ориентировочные; сверьте со своей редакцией СН 2.01.05-2019 и локальными коэффициентами для малых площадей.');
       $('#report').textContent = lines.join('\n');
     }
 
     // ===== Динамическая легенда
-    function updateLegend(){ const roofType=$('#roofType').value; const theta=parseFloat($('#theta').value||'90'); const el=$('#legend'); if(!el) return; if(roofType==='flat'){ el.innerHTML=`<div class="item">Зоны стен: <b>D</b> — наветренная; <b>E</b> — подветренная; <b>A/B/C</b> — боковые полосы.</div> <div class="item">Плоская кровля: <b>F</b> — наветренная кромка; <b>G</b> — боковые и подветренная; <b>H</b> — центр.</div>`; } else if(theta===90){ el.innerHTML=`<div class="item">Зоны стен: <b>D</b> — наветренная; <b>E</b> — подветренная; <b>A/B/C</b> — боковые полосы.</div> <div class="item">Двускатная (θ=90°): <b>F</b> — краевая наветренного; <b>G</b> — краевая подветренного/боковых; <b>H</b> — средняя наветренного; <b>I</b> — средняя подветренного.</div>`; } else { el.innerHTML=`<div class="item">Зоны стен: <b>D</b> — наветренная; <b>E</b> — подветренная; <b>A/B/C</b> — боковые полосы.</div> <div class="item">Двускатная (θ=0°): <b>F</b> — фронтонная наветренная кромка; <b>G</b> — продольные краевые; <b>H</b> — центр наветренного; <b>I</b> — центр подветренного; <b>J</b> — у конька/кромки.</div>`; } }
+    function updateLegend(){
+      const roofType=$('#roofType').value; const theta=parseFloat($('#theta').value||'90'); const el=$('#legend'); if(!el) return;
+      if(roofType==='flat'){
+        el.innerHTML=`<div class="item">Зоны стен: <b>D</b> — наветренная; <b>E</b> — подветренная; <b>A/B/C</b> — боковые полосы.</div>
+                      <div class="item">Плоская кровля: <b>F</b> — наветренная кромка; <b>G</b> — боковые и подветренная; <b>H</b> — центр.</div>`;
+      } else if(theta===90){
+        el.innerHTML=`<div class="item">Зоны стен: <b>D</b> — наветренная; <b>E</b> — подветренная; <b>A/B/C</b> — боковые полосы.</div>
+                      <div class="item">Двускатная (θ=90°): <b>F</b> — краевая наветренного; <b>G</b> — краевая подветренного/боковых; <b>H</b> — средняя наветренного; <b>I</b> — средняя подветренного.</div>`;
+      } else {
+        el.innerHTML=`<div class="item">Зоны стен: <b>D</b> — наветренная; <b>E</b> — подветренная; <b>A/B/C</b> — боковые полосы.</div>
+                      <div class="item">Двускатная (θ=0°): <b>F</b> — фронтонная наветренная кромка; <b>G</b> — продольные краевые; <b>H</b> — центр наветренного; <b>I</b> — центр подветренного; <b>J</b> — у конька/кромки.</div>`;
+      }
+    }
 
     // ===== Служебные события
     $('#btn-calc').addEventListener('click', calc);
