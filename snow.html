@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Снеговая нагрузка · РБ (основная + заносы + PDF)</title>
+  <meta name="description" content="Калькулятор снеговой нагрузки по РБ: базовая, форма кровли, заносы у перепадов/парапетов, мини-схемы и экспорт PDF.">
+  <style>
+    :root{
+      --bg:#0b1020; --card:#111730; --ink:#eaf1ff; --muted:#b7c4e0; --line:#263166; --acc:#8ab4ff;
+      --radius:16px; --shadow:0 8px 22px rgba(0,0,0,.35);
+      --col-left:420px; --gap:16px; --max:1500px
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%; overflow-x:hidden}
+    body{margin:0; font-family:Inter,system-ui,Arial,sans-serif; background:var(--bg); color:var(--ink)}
+    .container{max-width:var(--max); margin:auto; padding:14px}
+    header{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+    h1{margin:0; font-size:22px}
+    .badge{font-size:12px; color:var(--muted)}
+    .actions{display:flex; gap:8px; flex-wrap:wrap}
+    .btn, button{
+      appearance:none; border:1px solid var(--line); background:#1a2340; color:var(--ink);
+      padding:10px 14px; border-radius:10px; cursor:pointer; text-decoration:none; display:inline-block
+    }
+    .btn:hover, button:hover{background:#213058}
+
+    .grid{
+      display:grid;
+      grid-template-columns: minmax(0,var(--col-left)) minmax(0,1.5fr);
+      gap:var(--gap); margin-top:14px
+    }
+    @media (max-width: 1000px){ .grid{grid-template-columns: 1fr} }
+
+    .card{background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); margin-bottom:16px; box-shadow:var(--shadow)}
+    .card h2{margin:0; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.08)}
+    .card .bd{padding:14px}
+    .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+    @media (max-width:640px){ .row{grid-template-columns:1fr} }
+
+    label{font-size:12px; color:var(--muted); display:block; margin:4px 0}
+    input, select, textarea{width:100%; padding:10px 12px; border-radius:10px; background:#0f1532; color:var(--ink); border:1px solid #2a3564; outline:none}
+    input:focus, select:focus, textarea:focus{border-color:#3b55b9; box-shadow:0 0 0 3px rgba(138,180,255,.18)}
+    .hint{font-size:11px; color:var(--muted); margin-top:6px; line-height:1.45}
+
+    table{width:100%; border-collapse:collapse; font-size:14px; table-layout:fixed}
+    th,td{padding:7px; border-bottom:1px dashed rgba(255,255,255,.08); text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+    th:first-child, td:first-child{text-align:left}
+    #results table th, #results table td{
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    .pill{display:inline-block; padding:4px 8px; border-radius:999px; background:#16203a; border:1px solid var(--line); font-size:12px}
+    .legend{display:grid; gap:6px; margin-bottom:6px}
+    .legend .item{font-size:12px; color:var(--muted)}
+
+    .kpi{display:grid; grid-template-columns: repeat(4,1fr); gap:10px}
+    @media (max-width:900px){ .kpi{grid-template-columns: repeat(2,1fr)} }
+    .kpi .itm{background:#0f1532; border:1px solid #2a3564; border-radius:12px; padding:10px}
+    .kpi .v{font-size:20px; font-weight:700}
+    .kpi .t{font-size:12px; color:var(--muted)}
+
+    .print-only{display:none}
+    @media print{
+      .print-only{display:block}
+      button,header,details.help{display:none!important}
+      body{background:#fff;color:#000}
+      .card{background:#fff;border:1px solid #ccc;box-shadow:none;break-inside:avoid}
+      .report{white-space:pre-wrap; font-family:Consolas, monospace; font-size:12px; line-height:1.45}
+      h2{break-after:avoid}
+      table, tr, td, th{break-inside:avoid}
+    }
+
+    /* мини-схемы */
+    .sketch{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    .sketch .box{background:#0f1532;border:1px solid #2a3564;border-radius:12px;padding:10px}
+    canvas{max-width:100%}
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+  <div class="container">
+    <header style="margin-bottom:6px">
+      <div>
+        <h1>Снеговая нагрузка — РБ</h1>
+        <div class="badge">Основная · форма кровли · заносы у перепада/парапета · схемы · PDF</div>
+      </div>
+      <div class="actions">
+        <a class="btn" href="https://0vchina.github.io/partfolio/">На главную</a>
+        <button id="btn-calc">Рассчитать</button>
+        <button id="btn-pdf">Экспорт PDF</button>
+        <button id="btn-print">Печать / PDF</button>
+        <button id="btn-copy">Копия отчёта</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Левая панель: ввод -->
+      <section class="card" aria-labelledby="inputs-h2">
+        <h2 id="inputs-h2">Входные данные</h2>
+        <div class="bd">
+          <!-- Геометрия/кровля -->
+          <div class="row">
+            <div>
+              <label>Тип кровли</label>
+              <select id="roofType">
+                <option value="flat" selected>Плоская</option>
+                <option value="mono">Односкатная</option>
+                <option value="gable">Двускатная</option>
+              </select>
+            </div>
+            <div id="slopeBox">
+              <label>Уклон α, °</label>
+              <input type="number" step="0.5" id="alpha" value="5">
+              <div class="hint">Для формы снега μ выполняется линейная интерполяция по α.</div>
+            </div>
+          </div>
+          <div class="row" id="thetaRow" style="display:none">
+            <div>
+              <label>Ориентация к коньку θ (двускатная)</label>
+              <select id="theta"><option value="90" selected>90° (ветер ⟂ коньку)</option><option value="0">0° (ветер ∥ коньку)</option></select>
+            </div>
+            <div></div>
+          </div>
+
+          <hr style="border:none; border-top:1px solid #223; margin:12px 0">
+
+          <!-- Климат / коэффициенты -->
+          <div class="row">
+            <div>
+              <label>Снеговой район / s<sub>k,0</sub>, кПа</label>
+              <div class="row">
+                <select id="region"><option value="custom">Вручную</option><option value="I">I</option><option value="II" selected>II</option><option value="III">III</option></select>
+                <input type="number" step="0.01" id="sk0" value="1.0">
+              </div>
+              <div class="hint">Нормативное значение на земле. Карту можно скорректировать ниже.</div>
+            </div>
+            <div>
+              <label>Коэффициенты C<sub>e</sub> / C<sub>t</sub> / γ<sub>f</sub></label>
+              <div class="row">
+                <input type="number" step="0.01" id="Ce" value="1.0">
+                <input type="number" step="0.01" id="Ct" value="1.0">
+                <input type="number" step="0.01" id="gammaF" value="1.4">
+              </div>
+              <div class="hint">Экспозиция / температурный / надежности по нагрузке (если нужен расчётный эффект).</div>
+            </div>
+          </div>
+
+          <!-- Размеры -->
+          <div class="row">
+            <div>
+              <label>b, м (поперёк ветра)</label>
+              <input type="number" step="0.1" id="b" value="12">
+            </div>
+            <div>
+              <label>L, м (вдоль фронта ветра)</label>
+              <input type="number" step="0.1" id="L" value="24">
+            </div>
+          </div>
+
+          <!-- Расширенные -->
+          <details style="margin-top:8px">
+            <summary>Расширенные настройки</summary>
+            <div class="bd" style="padding:10px 0 0">
+              <div class="row">
+                <div>
+                  <label>Карта снеговых районов (s<sub>k,0</sub>, кПа) — I/II/III</label>
+                  <input id="regionsMap" value="0.8,1.0,1.2">
+                </div>
+                <div>
+                  <label>Пределы μ (плоская / α≤30° / α≥60°)</label>
+                  <input id="muLimits" value="0.8,0.8,0.0">
+                  <div class="hint">Для плоской — μ=0.8; для скатов: μ(≤30°)=0.8 → μ(≥60°)=0.0, линейно между.</div>
+                </div>
+              </div>
+              <div class="row">
+                <div>
+                  <label>Занос у перепада: l<sub>d</sub>=k·Δh (м); k</label>
+                  <input id="driftLenK" type="number" step="0.1" value="5">
+                  <div class="hint">Автодлина заноса на нижней кровле. Часто берут 4–6.</div>
+                </div>
+                <div>
+                  <label>Пиковый коэффициент заноса μ<sub>d,max</sub></label>
+                  <input id="driftMuMax" type="number" step="0.1" value="4.0">
+                  <div class="hint">Ограничение по нормативу/методике (редактируемо).</div>
+                </div>
+              </div>
+              <div class="row">
+                <div>
+                  <label>Занос у парапета: l<sub>p</sub>=k·h<sub>par</sub> (м); k</label>
+                  <input id="parapLenK" type="number" step="0.1" value="3">
+                </div>
+                <div>
+                  <label>μ<sub>p,max</sub> (парапет/стена)</label>
+                  <input id="parapMuMax" type="number" step="0.1" value="2.5">
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <!-- Заносы -->
+          <div class="card" style="margin-top:12px">
+            <h2 style="font-size:16px">Заносы</h2>
+            <div class="bd">
+              <div class="row">
+                <div>
+                  <label>Перепад кровель (нижняя кровля): Δh, м</label>
+                  <input type="number" step="0.1" id="dH" value="1.2">
+                  <div class="hint">Высота надстройки/высшей части относительно нижней кровли.</div>
+                </div>
+                <div>
+                  <label>Ограничить длину заноса l<sub>d</sub>, м (0 = авто)</label>
+                  <input type="number" step="0.1" id="dLen" value="0">
+                  <div class="hint">Авто: l<sub>d</sub>=k·Δh (k из «Расширенных»).</div>
+                </div>
+              </div>
+              <div class="row">
+                <div>
+                  <label>Парапет/стена на кровле: h<sub>par</sub>, м</label>
+                  <input type="number" step="0.1" id="hPar" value="0.6">
+                </div>
+                <div>
+                  <label>Ограничить длину у парапета l<sub>p</sub>, м (0 = авто)</label>
+                  <input type="number" step="0.1" id="pLen" value="0">
+                </div>
+              </div>
+
+              <!-- Схемы -->
+              <div class="sketch" style="margin-top:8px">
+                <div class="box">
+                  <div class="hint" style="margin-bottom:6px">Схема заноса у перепада (нижняя кровля)</div>
+                  <canvas id="cvStep" width="520" height="180" aria-label="Схема заноса у перепада"></canvas>
+                </div>
+                <div class="box">
+                  <div class="hint" style="margin-bottom:6px">Схема заноса у парапета</div>
+                  <canvas id="cvParap" width="520" height="180" aria-label="Схема заноса у парапета"></canvas>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Правая панель: результаты -->
+      <section class="card" aria-labelledby="results-h2">
+        <h2 id="results-h2">Результаты</h2>
+        <div class="bd" id="results">
+          <div class="legend" id="legend"></div>
+
+          <div class="kpi">
+            <div class="itm"><div class="t">s<sub>k,0</sub>, кПа</div><div class="v" id="kpi-sk0">—</div></div>
+            <div class="itm"><div class="t">μ (форма)</div><div class="v" id="kpi-mu">—</div></div>
+            <div class="itm"><div class="t">S<sub>norm</sub>, кПа</div><div class="v" id="kpi-snorm">—</div></div>
+            <div class="itm"><div class="t">S<sub>d</sub>, кПа</div><div class="v" id="kpi-sd">—</div></div>
+          </div>
+
+          <div style="height:10px"></div>
+          <div id="tables"></div>
+
+          <div class="print-only" style="margin-top:10px">
+            <h2 style="margin:0 0 6px">Подробный отчёт (формулы)</h2>
+            <div id="report" class="report">—</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    // ===== Утилиты
+    const fmt=(v,d=2)=>Number.isFinite(v)?Number(v).toFixed(d):'—';
+    const clamp=(v,min,max)=>Math.min(Math.max(v,min),max);
+    const $=s=>document.querySelector(s);
+    function parseList(str,expect){ const arr=String(str).split(/[,;\s]+/).filter(Boolean).map(Number); while(arr.length<expect) arr.push(arr[arr.length-1] ?? 0); return arr.slice(0,expect); }
+
+    // ===== Форма μ
+    function muBySlope(roofType, alphaDeg, limits){
+      const [muFlat, mu30, mu60] = limits; // по умолчанию 0.8 / 0.8 / 0.0
+      if(roofType==='flat') return muFlat;
+      const a = alphaDeg;
+      if(a<=30) return mu30;
+      if(a>=60) return mu60;
+      // линейная между 30° и 60°
+      const t=(a-30)/(60-30);
+      return mu30 + (mu60-mu30)*t;
+    }
+
+    // ===== Таблица базовых значений
+    function buildBasicTable(title, rows){
+      const thead = `<thead>
+        <tr>
+          <th>Позиция</th>
+          <th>Описание</th>
+          <th>μ</th>
+          <th>S<sub>norm</sub>=μ·C<sub>e</sub>·C<sub>t</sub>·s<sub>k,0</sub>, кПа</th>
+          <th>S<sub>d</sub>=γ<sub>f</sub>·S<sub>norm</sub>, кПа</th>
+        </tr>
+      </thead>`;
+      const tbody = `<tbody>${
+        rows.map(r=>`<tr>
+          <td><b>${r.pos}</b></td>
+          <td style="text-align:left">${r.desc}</td>
+          <td>${fmt(r.mu,2)}</td>
+          <td>${fmt(r.Sn,2)}</td>
+          <td>${fmt(r.Sd,2)}</td>
+        </tr>`).join('')
+      }</tbody>`;
+      return `<div class="card" style="margin-top:12px"><div class="bd"><h3 style="margin:0 0 8px">${title}</h3><table>${thead+tbody}</table></div></div>`;
+    }
+
+    // ===== Таблица заносов (треугольник)
+    function buildDriftTable(title, rows){
+      const thead = `<thead>
+        <tr>
+          <th>Случай</th>
+          <th>Тип</th>
+          <th>l, м</th>
+          <th>μ<sub>max</sub></th>
+          <th>S<sub>max,norm</sub>, кПа</th>
+          <th>S<sub>max,d</sub>, кПа</th>
+          <th>Примечание</th>
+        </tr>
+      </thead>`;
+      const tbody = `<tbody>${
+        rows.map(r=>`<tr>
+          <td><b>${r.pos}</b></td>
+          <td style="text-align:left">${r.kind}</td>
+          <td>${fmt(r.l,2)}</td>
+          <td>${fmt(r.muMax,2)}</td>
+          <td>${fmt(r.SmaxNorm,2)}</td>
+          <td>${fmt(r.SmaxDesign,2)}</td>
+          <td style="text-align:left">${r.note||''}</td>
+        </tr>`).join('')
+      }</tbody>`;
+      return `<div class="card" style="margin-top:12px"><div class="bd"><h3 style="margin:0 0 8px">${title}</h3><table>${thead+tbody}</table></div></div>`;
+    }
+
+    // ===== Рисование схем заносов
+    function drawTriangle(ctx, x0, yBase, Lpx, Hpx, labelL, labelH, title){
+      ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+      ctx.font='12px Inter, system-ui, Arial';
+      ctx.fillStyle='#b7c4e0';
+      ctx.fillText(title, 10, 18);
+      // оси
+      ctx.strokeStyle='#2a3564';
+      ctx.lineWidth=1;
+      ctx.beginPath();
+      ctx.moveTo(x0, yBase); ctx.lineTo(x0+Lpx+10, yBase); // x
+      ctx.moveTo(x0, yBase); ctx.lineTo(x0, yBase-Hpx-10); // y
+      ctx.stroke();
+      // треугольник
+      ctx.fillStyle='rgba(138,180,255,0.25)';
+      ctx.strokeStyle='#8ab4ff';
+      ctx.beginPath();
+      ctx.moveTo(x0, yBase);
+      ctx.lineTo(x0, yBase-Hpx);
+      ctx.lineTo(x0+Lpx, yBase);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      // размерные подписи
+      ctx.fillStyle='#eaf1ff';
+      ctx.fillText(labelL, x0+Lpx/2-20, yBase-6);
+      ctx.save();
+      ctx.translate(x0-8, yBase-Hpx/2); ctx.rotate(-Math.PI/2);
+      ctx.fillText(labelH, -20, 0);
+      ctx.restore();
+    }
+
+    function redrawSketches(state){
+      const { l_d, mu_d, SmaxNorm_d, l_p, mu_p, SmaxNorm_p } = state;
+      // масштабы (пик = 100px высота)
+      const kH = 80; // px на 1 кПа (примерно)
+      const kL = 40; // px на 1 м (примерно)
+      const cv1 = $('#cvStep').getContext('2d');
+      const cv2 = $('#cvParap').getContext('2d');
+      // если нет данных — пишем подсказку
+      if(!(l_d>0 && mu_d>0)){
+        cv1.clearRect(0,0,cv1.canvas.width,cv1.canvas.height);
+        cv1.fillStyle='#b7c4e0';
+        cv1.font='12px Inter, system-ui, Arial';
+        cv1.fillText('Укажите Δh и длину l_d (или авто через k·Δh)', 12, 24);
+      } else {
+        drawTriangle(cv1, 50, 150, Math.min(380, l_d*kL), Math.min(110, SmaxNorm_d*kH), `l = ${fmt(l_d,2)} м`, `Smax = ${fmt(SmaxNorm_d,2)} кПа`, 'Перепад кровель');
+      }
+      if(!(l_p>0 && mu_p>0)){
+        cv2.clearRect(0,0,cv2.canvas.width,cv2.canvas.height);
+        cv2.fillStyle='#b7c4e0';
+        cv2.font='12px Inter, system-ui, Arial';
+        cv2.fillText('Укажите h_par и длину l_p (или авто через k·h_par)', 12, 24);
+      } else {
+        drawTriangle(cv2, 50, 150, Math.min(380, l_p*kL), Math.min(110, SmaxNorm_p*kH), `l = ${fmt(l_p,2)} м`, `Smax = ${fmt(SmaxNorm_p,2)} кПа`, 'Парапет');
+      }
+    }
+
+    // ===== Отчёт (строки)
+    function reportHeader(ctx){
+      const {region, sk0, Ce, Ct, gammaF, roofType, alpha, theta, b, L, mu, Snorm, Sd} = ctx;
+      const lines=[];
+      lines.push('— ВХОДНЫЕ ДАННЫЕ —');
+      lines.push(`Тип кровли: ${roofType==='flat'?'плоская':roofType==='mono'?'односкатная':`двускатная (θ=${theta}°)`}; α=${fmt(alpha,1)}°`);
+      lines.push(`Геометрия: b=${fmt(b,2)} м; L=${fmt(L,2)} м`);
+      lines.push(`Район=${region}; s_k,0=${fmt(sk0,2)} кПа; C_e=${fmt(Ce,2)}; C_t=${fmt(Ct,2)}; γ_f=${fmt(gammaF,2)}`);
+      lines.push('\n— ОСНОВНАЯ НАГРУЗКА —');
+      lines.push(`μ(форма) = ${fmt(mu,2)}`);
+      lines.push(`S_norm = μ · C_e · C_t · s_k,0 = ${fmt(mu,2)} · ${fmt(Ce,2)} · ${fmt(Ct,2)} · ${fmt(sk0,2)} = ${fmt(Snorm,2)} кПа`);
+      lines.push(`S_d = γ_f · S_norm = ${fmt(gammaF,2)} · ${fmt(Snorm,2)} = ${fmt(Sd,2)} кПа`);
+      return lines;
+    }
+
+    function reportDrift(driftRows, sk0, Ce, Ct, gammaF){
+      const lines=['\n— ЗАНОСЫ (треугольное распределение) —'];
+      driftRows.forEach(r=>{
+        lines.push(`\n${r.pos}) ${r.kind}: l=${fmt(r.l,2)} м; μ_max=${fmt(r.muMax,2)}`);
+        lines.push(`S_max,norm = μ_max · C_e · C_t · s_k,0 = ${fmt(r.muMax,2)} · ${fmt(Ce,2)} · ${fmt(Ct,2)} · ${fmt(sk0,2)} = ${fmt(r.SmaxNorm,2)} кПа`);
+        lines.push(`S_max,d    = γ_f · S_max,norm = ${fmt(gammaF,2)} · ${fmt(r.SmaxNorm,2)} = ${fmt(r.SmaxDesign,2)} кПа`);
+      });
+      lines.push('\nПримечание: формулы и пределы для μ_max и длины заноса (k·Δh, k·h_par) редактируются в «Расширенных настройках».');
+      return lines;
+    }
+
+    // ===== Основной расчёт
+    function calc(){
+      // Тип/уклон
+      const roofType=$('#roofType').value;
+      const alpha=parseFloat($('#alpha').value)||0;
+      const theta=parseFloat($('#theta').value||'90');
+
+      // Район/коэфы
+      const region=$('#region').value;
+      const [mI,mII,mIII]=parseList($('#regionsMap').value,3);
+      if(region!=='custom'){ const map={I:mI, II:mII, III:mIII}; $('#sk0').value = map[region] ?? $('#sk0').value; }
+      const sk0=Math.max(0, parseFloat($('#sk0').value)||1.0);
+      const Ce=Math.max(0.5, parseFloat($('#Ce').value)||1.0);
+      const Ct=Math.max(0.3, parseFloat($('#Ct').value)||1.0);
+      const gammaF=Math.max(1.0, parseFloat($('#gammaF').value)||1.4);
+
+      // Геометрия
+      const b=Math.max(0, parseFloat($('#b').value)||0);
+      const L=Math.max(0, parseFloat($('#L').value)||0);
+
+      // Форма μ
+      const limits=parseList($('#muLimits').value,3);
+      const mu = muBySlope(roofType, alpha, limits);
+
+      // Основная нагрузка
+      const Snorm = mu * Ce * Ct * sk0;
+      const Sd    = gammaF * Snorm;
+
+      // KPI
+      $('#kpi-sk0').textContent = fmt(sk0,2);
+      $('#kpi-mu').textContent  = fmt(mu,2);
+      $('#kpi-snorm').textContent = fmt(Snorm,2);
+      $('#kpi-sd').textContent  = fmt(Sd,2);
+
+      // Таблица основной (для двускатной покажем обе половины при θ=90)
+      const baseRows=[];
+      if(roofType==='gable' && theta===90){
+        baseRows.push({pos:'H1', desc:'Двускатная — наветренная половина', mu, Sn:Snorm, Sd:Sd});
+        baseRows.push({pos:'H2', desc:'Двускатная — подветренная половина', mu, Sn:Snorm, Sd:Sd});
+      } else {
+        baseRows.push({pos:'R', desc: roofType==='flat'?'Плоская кровля':'Скат кровли', mu, Sn:Snorm, Sd:Sd});
+      }
+
+      // Заносы
+      const kLen = Math.max(0, parseFloat($('#driftLenK').value)||5);
+      const muDmax = Math.max(0, parseFloat($('#driftMuMax').value)||4);
+      const dH = Math.max(0, parseFloat($('#dH').value)||0);
+      const dLenIn = Math.max(0, parseFloat($('#dLen').value)||0);
+      const l_d = dLenIn>0 ? dLenIn : (kLen * dH);
+
+      const kPar = Math.max(0, parseFloat($('#parapLenK').value)||3);
+      const muPmax = Math.max(0, parseFloat($('#parapMuMax').value)||2.5);
+      const hPar = Math.max(0, parseFloat($('#hPar').value)||0);
+      const pLenIn = Math.max(0, parseFloat($('#pLen').value)||0);
+      const l_p = pLenIn>0 ? pLenIn : (kPar * hPar);
+
+      const mu_d = clamp( 2.0 * dH, 0, muDmax );   // авто-оценка
+      const mu_p = clamp( 1.5 * hPar, 0, muPmax ); // авто-оценка
+
+      const SmaxNorm_d = mu_d * Ce * Ct * sk0;
+      const SmaxDesign_d = gammaF * SmaxNorm_d;
+      const SmaxNorm_p = mu_p * Ce * Ct * sk0;
+      const SmaxDesign_p = gammaF * SmaxNorm_p;
+
+      // Сборка таблиц
+      const tablesEl=$('#tables'); tablesEl.innerHTML='';
+      tablesEl.insertAdjacentHTML('beforeend', buildBasicTable('Основная снеговая нагрузка', baseRows));
+
+      const driftRows=[];
+      if(dH>0 && l_d>0){
+        driftRows.push({pos:'D', kind:'Занос у перепада (нижняя кровля)', l:l_d, muMax:mu_d, SmaxNorm:SmaxNorm_d, SmaxDesign:SmaxDesign_d, note:'Треугольник: от пика у перепада до 0 на длине l_d.'});
+      }
+      if(hPar>0 && l_p>0){
+        driftRows.push({pos:'P', kind:'Занос у парапета/стены на кровле', l:l_p, muMax:mu_p, SmaxNorm:SmaxNorm_p, SmaxDesign:SmaxDesign_p, note:'Треугольник: от пика у парапета до 0 на длине l_p.'});
+      }
+      if(driftRows.length){
+        tablesEl.insertAdjacentHTML('beforeend', buildDriftTable('Заносы (локальные максимумы и длины)', driftRows));
+      }
+
+      // Легенда
+      const leg=$('#legend');
+      leg.innerHTML = `<div class="item">Основная нагрузка: S = μ · C<sub>e</sub> · C<sub>t</sub> · s<sub>k,0</sub> (кПа); расчётная: S<sub>d</sub> = γ<sub>f</sub> · S.</div>
+                       <div class="item">Заносы: треугольное распределение; пик у препятствия, длина l — по автооценке или вручную. Коэффициенты ограничиваются μ<sub>max</sub>.</div>`;
+
+      // Отчёт
+      const ctx={region, sk0, Ce, Ct, gammaF, roofType, alpha, theta, b, L, mu, Snorm, Sd};
+      const lines=[...reportHeader(ctx)];
+      if(driftRows.length) lines.push(...reportDrift(driftRows, sk0, Ce, Ct, gammaF));
+      lines.push('\nПримечание: значения s_k,0 по районам и пределы μ можно скорректировать под вашу редакцию норм РБ; по умолчанию взята типовая схема, близкая EN 1991-1-3.');
+      $('#report').textContent = lines.join('\n');
+
+      // Схемы
+      redrawSketches({ l_d, mu_d, SmaxNorm_d, l_p, mu_p, SmaxNorm_p });
+
+      // Вернуть состояния для PDF
+      return { baseRows, driftRows, ctx, l_d, mu_d, SmaxNorm_d, l_p, mu_p, SmaxNorm_p };
+    }
+
+    // ===== Экспорт PDF (jsPDF)
+    function hex(c){return c.toString(16).padStart(2,'0')}
+    function rgbFromCss(css){ // '#rrggbb' -> {r,g,b}
+      const m = String(css||'#8ab4ff').replace('#','');
+      const v = m.length===3 ? m.split('').map(s=>s+s).join('') : m;
+      const n = parseInt(v,16); return { r:(n>>16)&255, g:(n>>8)&255, b:(n)&255 };
+    }
+
+    async function exportPDF(){
+      const { jsPDF } = window.jspdf;
+      // Пересчитаем актуальные значения
+      const state = calc();
+      const { baseRows, driftRows, ctx, l_d, mu_d, SmaxNorm_d, l_p, mu_p, SmaxNorm_p } = state;
+
+      const doc = new jsPDF({ unit:'mm', format:'a4' });
+      let x=14, y=16, pageW=210, pageH=297, right=pageW-14;
+
+      doc.setFontSize(14); doc.text('Снеговая нагрузка (РБ) — отчёт', x, y); y+=6;
+      doc.setFontSize(10);
+      const now = new Date(); const hdr = `Тип: ${ctx.roofType==='flat'?'плоская':ctx.roofType==='mono'?'односкатная':`двускатная (θ=${ctx.theta}°)`}; α=${fmt(ctx.alpha,1)}° • ${now.toLocaleString()}`;
+      doc.text(hdr, x, y); y+=5;
+      doc.text(`Район=${ctx.region}; s_k,0=${fmt(ctx.sk0,2)} кПа; C_e=${fmt(ctx.Ce,2)}; C_t=${fmt(ctx.Ct,2)}; γ_f=${fmt(ctx.gammaF,2)}`, x, y); y+=5;
+
+      // Основная таблица
+      doc.setFont(undefined, 'bold'); doc.text('Основная нагрузка', x, y); doc.setFont(undefined, 'normal'); y+=4;
+      let cx=x;
+      const cols=[18, 86, 18, 30, 30];
+      const head=['Позиция','Описание','μ','S_norm','S_d'];
+      head.forEach((t,i)=>{ doc.text(t, cx+1, y); cx+=cols[i]; });
+      y+=2; doc.setDrawColor(160); doc.line(x,y,right,y); y+=4;
+      baseRows.forEach(r=>{
+        cx=x;
+        [r.pos, r.desc, fmt(r.mu,2), fmt(r.Sn,2), fmt(r.Sd,2)].forEach((t,i)=>{ doc.text(String(t), cx+1, y); cx+=cols[i]; });
+        y+=5; if(y>270){ doc.addPage(); y=16; }
+      });
+
+      // Заносы таблица
+      if(driftRows.length){
+        y+=2; doc.line(x,y,right,y); y+=6;
+        doc.setFont(undefined, 'bold'); doc.text('Заносы (локальные максимумы)', x, y); doc.setFont(undefined, 'normal'); y+=4;
+        const colsD=[12, 72, 18, 22, 28, 28];
+        let cx2=x; ['Случай','Тип','l, м','μ_max','Smax,norm','Smax,d'].forEach((t,i)=>{ doc.text(t, cx2+1, y); cx2+=colsD[i]; });
+        y+=2; doc.line(x,y,right,y); y+=4;
+        driftRows.forEach(r=>{
+          cx2=x;
+          [r.pos, r.kind, fmt(r.l,2), fmt(r.muMax,2), fmt(r.SmaxNorm,2), fmt(r.SmaxDesign,2)].forEach((t,i)=>{ doc.text(String(t), cx2+1, y); cx2+=colsD[i]; });
+          y+=5; if(y>270){ doc.addPage(); y=16; }
+        });
+      }
+
+      // Схемы треугольников (нарисуем в PDF)
+      function drawTrianglePdf(px, py, Lm, HkPa, title){
+        doc.setFontSize(10); doc.text(title, px, py-2);
+        const Lpx = Math.min(70, Lm*7); // 7 px на метр
+        const Hpx = Math.min(30, HkPa*15); // 15 px на кПа
+        doc.setDrawColor(138,180,255);
+        doc.setFillColor(138,180,255); doc.setLineWidth(0.3);
+        // оси
+        doc.setDrawColor(160);
+        doc.line(px, py, px+Lpx+4, py); // x
+        doc.line(px, py, px, py-Hpx-4); // y
+        // треугольник
+        const col = rgbFromCss('#8ab4ff'); doc.setFillColor(col.r,col.g,col.b);
+        doc.setDrawColor(col.r,col.g,col.b);
+        doc.triangle(px,py, px,py-Hpx, px+Lpx,py, 'FD');
+        doc.setTextColor(20);
+        doc.text(`l=${fmt(Lm,2)} м`, px+Lpx/2-8, py-2);
+        doc.text(`Smax=${fmt(HkPa,2)} кПа`, px-2, py-Hpx-2);
+      }
+
+      y+=4;
+      doc.setFont(undefined, 'bold'); doc.text('Схемы заносов (пики и длины)', x, y); doc.setFont(undefined, 'normal'); y+=6;
+      let px=x, py=y+38;
+      if(l_d>0 && mu_d>0){
+        drawTrianglePdf(px, py, l_d, SmaxNorm_d, 'Перепад кровель');
+      }
+      if(l_p>0 && mu_p>0){
+        drawTrianglePdf(px+95, py, l_p, SmaxNorm_p, 'Парапет/стена');
+      }
+      y = py + 10;
+      if(y>270){ doc.addPage(); y=16; }
+
+      // Текстовый отчёт
+      y+=4; doc.setFont(undefined,'bold'); doc.text('Подробный отчёт (формулы)', x, y); doc.setFont(undefined,'normal'); y+=4;
+      const reportText = document.getElementById('report').innerText || '';
+      const lines = doc.splitTextToSize(reportText, right-x);
+      lines.forEach(line=>{
+        doc.text(line, x, y);
+        y+=5; if(y>285){ doc.addPage(); y=16; }
+      });
+
+      doc.save('snow_calc_rb.pdf');
+    }
+
+    // ===== События
+    $('#btn-calc').addEventListener('click', calc);
+    $('#btn-print').addEventListener('click', ()=> window.print());
+    $('#btn-copy').addEventListener('click', ()=>{ const t=$('#report').innerText.trim(); if(!t) return; navigator.clipboard.writeText(t) });
+    $('#btn-pdf').addEventListener('click', exportPDF);
+
+    $('#roofType').addEventListener('change', ()=>{
+      const rt=$('#roofType').value;
+      $('#slopeBox').style.display = (rt==='flat') ? '' : '';
+      $('#thetaRow').style.display = (rt==='gable') ? '' : 'none';
+      calc();
+    });
+    $('#theta').addEventListener('change', calc);
+    document.querySelectorAll('.bd input, .bd select').forEach(el=> el.addEventListener('input', ()=>{ clearTimeout(window.__t); window.__t=setTimeout(calc,150) }));
+
+    // init
+    window.addEventListener('load', calc);
+  </script>
+</body>
+</html>
