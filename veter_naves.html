@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Калькулятор ветровой нагрузки для навесов · СН 2.01.05-2019</title>
+  <meta name="description" content="Ветровые нагрузки на навесы (односкатные/плоские): верх и низ покрытия, интерполяция cpe по площади и уклону, два направления ветра по скату. Печать/PDF с формулами.">
+  <style>
+    :root{
+      --bg:#0b1020; --card:#111730; --ink:#eaf1ff; --muted:#b7c4e0; --line:#263166; --acc:#8ab4ff;
+      --radius:16px; --shadow:0 8px 22px rgba(0,0,0,.35);
+      --col-left:420px;
+      --gap:16px;
+      --max:1500px
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%; overflow-x:hidden}
+    body{margin:0; font-family:Inter,system-ui,Arial,sans-serif; background:var(--bg); color:var(--ink)}
+    .container{max-width:var(--max); margin:auto; padding:14px 14px}
+    header{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+    h1{margin:0; font-size:22px}
+    .badge{font-size:12px; color:var(--muted)}
+    .actions{display:flex; gap:8px}
+    button{appearance:none; border:1px solid var(--line); background:#1a2340; color:var(--ink); padding:10px 14px; border-radius:10px; cursor:pointer}
+    button:hover{background:#213058}
+
+    .grid{
+      display:grid;
+      grid-template-columns: minmax(0,var(--col-left)) minmax(0,1.5fr);
+      gap:var(--gap); margin-top:14px
+    }
+    @media (max-width: 1000px){ .grid{grid-template-columns: 1fr} }
+
+    .card{background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); margin-bottom:16px; box-shadow:var(--shadow)}
+    .card h2{margin:0; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.08)}
+    .card .bd{padding:14px}
+    .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+    @media (max-width:640px){ .row{grid-template-columns:1fr} }
+    .card, .bd, .row > * { min-width:0 }
+
+    label{font-size:12px; color:var(--muted); display:block; margin:4px 0}
+    input, select, textarea{width:100%; padding:10px 12px; border-radius:10px; background:#0f1532; color:var(--ink); border:1px solid #2a3564; outline:none}
+    input:focus, select:focus, textarea:focus{border-color:#3b55b9; box-shadow:0 0 0 3px rgba(138,180,255,.18)}
+    .hint{font-size:11px; color:var(--muted); margin-top:6px; line-height:1.45}
+
+    table{width:100%; border-collapse:collapse; font-size:14px; table-layout:fixed}
+    th,td{padding:7px; border-bottom:1px dashed rgba(255,255,255,.08); text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+    th:first-child, td:first-child{text-align:left}
+    #results table th, #results table td{
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    .pill{display:inline-block; padding:4px 8px; border-radius:999px; background:#16203a; border:1px solid var(--line); font-size:12px}
+    .legend{display:grid; gap:6px; margin-bottom:6px}
+    .legend .item{font-size:12px; color:var(--muted)}
+
+    .kpi{display:grid; grid-template-columns: repeat(4,1fr); gap:10px}
+    @media (max-width:900px){ .kpi{grid-template-columns: repeat(2,1fr)} }
+    .kpi .itm{background:#0f1532; border:1px solid #2a3564; border-radius:12px; padding:10px}
+    .kpi .v{font-size:20px; font-weight:700}
+    .kpi .t{font-size:12px; color:var(--muted)}
+
+    details.help{margin-top:8px; border:1px dashed rgba(255,255,255,.16); border-radius:10px; background:#0e1735}
+    details.help[open]{background:#0e183b}
+    details.help>summary{cursor:pointer; padding:8px 10px; color:var(--acc); list-style:none}
+    details.help>summary::-webkit-details-marker{display:none}
+    details.help .help-body{padding:0 12px 10px 12px; color:var(--muted); font-size:12px; line-height:1.5}
+
+    .print-only{display:none}
+    @media print{
+      .print-only{display:block}
+      button,header,details.help{display:none!important}
+      body{background:#fff;color:#000}
+      .card{background:#fff;border:1px solid #ccc;box-shadow:none}
+      .report{white-space:pre-wrap; font-family:Consolas, monospace; font-size:12px; line-height:1.45}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header style="margin-bottom:6px">
+      <div>
+        <h1>Калькулятор ветровой нагрузки — Навес</h1>
+        <div class="badge">СН 2.01.05-2019 / EN 1991-1-4 · верх/низ покрытия, интерполяция по A и α</div>
+      </div>
+      <div class="actions">
+        <button id="btn-calc">Рассчитать</button>
+        <button id="btn-print">Печать / PDF</button>
+        <button id="btn-copy">Копия отчёта</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Левая панель -->
+      <section class="card" aria-labelledby="inputs-h2">
+        <h2 id="inputs-h2">Входные данные</h2>
+        <div class="bd">
+          <!-- Геометрия навеса -->
+          <div class="row">
+            <div>
+              <label>Пролёт b, м (поперёк ветра)</label>
+              <input type="number" step="0.01" id="span" value="10">
+              <div class="hint">Перпендикулярно направлению ветра (ширина навеса).</div>
+            </div>
+            <div>
+              <label>Длина L, м (вдоль ветра)</label>
+              <input type="number" step="0.01" id="length" value="24">
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Высота h, м (до верхней кромки)</label>
+              <input type="number" step="0.01" id="H" value="5">
+            </div>
+            <div>
+              <label>Тип покрытия</label>
+              <select id="roofType">
+                <option value="flat">Плоское</option>
+                <option value="mono" selected>Односкатное</option>
+              </select>
+              <div class="hint">Для односкатного укажите уклон α.</div>
+            </div>
+          </div>
+          <div class="row" id="slopeRow">
+            <div>
+              <label>Уклон α, °</label>
+              <input type="number" step="0.5" id="slope" value="10">
+            </div>
+            <div>
+              <label>Направление ветра по скату</label>
+              <select id="flowDir">
+                <option value="up" selected>Снизу вверх (к высокой кромке)</option>
+                <option value="down">Сверху вниз (к низкой кромке)</option>
+              </select>
+            </div>
+          </div>
+
+          <hr style="border:none; border-top:1px solid #223; margin:12px 0">
+
+          <!-- Климат -->
+          <div class="row">
+            <div>
+              <label>Ветровой район / v<sub>b,0</sub>, м/с</label>
+              <div class="row">
+                <select id="region"><option value="custom">Вручную</option><option value="I">I</option><option value="II" selected>II</option><option value="III">III</option></select>
+                <input type="number" step="0.1" id="vb0" value="24">
+              </div>
+            </div>
+            <div>
+              <label>c<sub>dir</sub> / c<sub>season</sub></label>
+              <div class="row">
+                <input type="number" step="0.01" id="cdir" value="1.0">
+                <input type="number" step="0.01" id="cseason" value="1.0">
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Категория местности</label>
+              <select id="terrain"><option value="0">0 — вода/берег</option><option value="I">I — открытая</option><option value="II" selected>II — сельхоз</option><option value="III">III — пригород/лес</option><option value="IV">IV — центр города</option></select>
+            </div>
+            <div>
+              <label>Ороография cₒ(z)</label>
+              <input type="number" step="0.01" id="co" value="1.0">
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>ρ, кг/м³</label>
+              <input type="number" step="0.01" id="rho" value="1.25">
+            </div>
+            <div>
+              <label>k<sub>i</sub> (коэф. турбулентности)</label>
+              <input type="number" step="0.01" id="ki" value="1.00">
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>c<sub>s</sub>c<sub>d</sub> (структурный фактор)</label>
+              <div class="row">
+                <select id="cscdMode">
+                  <option value="1">Не учитывать (1.0)</option>
+                  <option value="auto" selected>Авто (1.0 для низких навесов)</option>
+                  <option value="manual">Задать вручную</option>
+                </select>
+                <input type="number" step="0.01" id="cscd" value="1.00">
+              </div>
+            </div>
+            <div>
+              <label>Режим</label>
+              <select id="mode"><option value="mwfrs" selected>Главная система (MWFRS)</option><option value="cladding">Ограждения/крепёж</option></select>
+            </div>
+          </div>
+
+          <!-- Площадь элемента -->
+          <div class="row">
+            <div>
+              <label>Площадь элемента A, м² (для ограждений)</label>
+              <input type="number" step="0.1" id="Aelem" value="20">
+              <div class="hint">Интерполяция c<sub>pe</sub>(A) по логарифму между 1 и 10 м².</div>
+            </div>
+            <div>
+              <label>Интерполяция по A</label>
+              <select id="areaInterp"><option value="on" selected>Включена</option><option value="off">Выкл.</option></select>
+            </div>
+          </div>
+
+          <details>
+            <summary>Расширенные настройки коэффициентов</summary>
+            <div class="bd" style="padding:10px 0 0">
+              <div class="row">
+                <div>
+                  <label>Ширина краевых полос: e = 0.2·min(b, 2h)</label>
+                  <input type="number" step="0.01" id="eRoofFactor" value="0.2">
+                </div>
+                <div>
+                  <label>Трение кровли (доп.) — c<sub>fr</sub></label>
+                  <input type="number" step="0.01" id="cfr" value="0.02">
+                  <div class="hint"><input type="checkbox" id="frictionOn" /> Учитывать суммарное трение (оценка)</div>
+                </div>
+              </div>
+
+              <!-- Базовые таблицы cpe для A=10 и A=1 м² -->
+              <details>
+                <summary>c<sub>pe</sub> покрытия (ПЛОСКОЕ) — верх/низ</summary>
+                <div class="row">
+                  <div>
+                    <label>Плоское — верх F,G,H (A=10 м²)</label>
+                    <input id="flatTop10" value="-1.5,-1.0,-0.7">
+                  </div>
+                  <div>
+                    <label>Плоское — верх F,G,H (A=1 м²)</label>
+                    <input id="flatTop1" value="-1.9,-1.3,-0.9">
+                  </div>
+                </div>
+                <div class="row">
+                  <div>
+                    <label>Плоское — НИЗ F,G,H (A=10 м²)</label>
+                    <input id="flatBot10" value="-0.5,-0.3,-0.2">
+                  </div>
+                  <div>
+                    <label>Плоское — НИЗ F,G,H (A=1 м²)</label>
+                    <input id="flatBot1" value="-0.7,-0.5,-0.3">
+                  </div>
+                </div>
+                <div class="hint">«Низ» учитывает подсос под навесом при обдуве снизу. Подкорректируйте под вашу методику.</div>
+              </details>
+
+              <details>
+                <summary>c<sub>pe</sub> покрытия (ОДНОСКАТНОЕ) — по уклонам α и верх/низ</summary>
+                <div class="row">
+                  <div>
+                    <label>α=5° — верх F,G,H (A=10/1 м²)</label>
+                    <input id="mono5Top10" value="-1.1,-0.9,-0.6">
+                    <input id="mono5Top1"  value="-1.4,-1.1,-0.8">
+                  </div>
+                  <div>
+                    <label>α=10° — верх F,G,H (A=10/1 м²)</label>
+                    <input id="mono10Top10" value="-1.2,-1.0,-0.7">
+                    <input id="mono10Top1"  value="-1.5,-1.2,-0.9">
+                  </div>
+                </div>
+                <div class="row">
+                  <div>
+                    <label>α=15° — верх F,G,H (A=10/1 м²)</label>
+                    <input id="mono15Top10" value="-1.4,-1.1,-0.8">
+                    <input id="mono15Top1"  value="-1.7,-1.4,-1.0">
+                  </div>
+                  <div>
+                    <label>α=30° — верх F,G,H (A=10/1 м²)</label>
+                    <input id="mono30Top10" value="-1.8,-1.4,-1.0">
+                    <input id="mono30Top1"  value="-2.1,-1.7,-1.2">
+                  </div>
+                </div>
+                <div class="row">
+                  <div>
+                    <label>α=5° — НИЗ F,G,H (A=10/1 м²)</label>
+                    <input id="mono5Bot10" value="-0.5,-0.3,-0.2">
+                    <input id="mono5Bot1"  value="-0.7,-0.5,-0.3">
+                  </div>
+                  <div>
+                    <label>α=10° — НИЗ F,G,H (A=10/1 м²)</label>
+                    <input id="mono10Bot10" value="-0.6,-0.4,-0.3">
+                    <input id="mono10Bot1"  value="-0.8,-0.6,-0.4">
+                  </div>
+                </div>
+                <div class="row">
+                  <div>
+                    <label>α=15° — НИЗ F,G,H (A=10/1 м²)</label>
+                    <input id="mono15Bot10" value="-0.7,-0.5,-0.4">
+                    <input id="mono15Bot1"  value="-0.9,-0.7,-0.5">
+                  </div>
+                  <div>
+                    <label>α=30° — НИЗ F,G,H (A=10/1 м²)</label>
+                    <input id="mono30Bot10" value="-0.9,-0.7,-0.5">
+                    <input id="mono30Bot1"  value="-1.1,-0.9,-0.7">
+                  </div>
+                </div>
+                <div class="hint">Значения ориентировочные; при необходимости замените на табличные из вашей редакции СН/Еврокода для «свободных крыш/навесов».</div>
+              </details>
+
+              <details>
+                <summary>Карта ветровых районов (vb,0)</summary>
+                <div class="row">
+                  <div>
+                    <label>vb,0 для I/II/III (м/с)</label>
+                    <input id="regionsMap" value="22,24,26" />
+                  </div>
+                  <div><label class="hint">Подставляется при выборе района I/II/III.</label></div>
+                </div>
+              </details>
+
+              <details>
+                <summary>Высоты отсчёта z_e</summary>
+                <div class="row">
+                  <div>
+                    <label>Режим</label>
+                    <select id="zeMode"><option value="auto" selected>Авто (наружное = h)</option><option value="manual">Вручную</option></select>
+                  </div>
+                  <div></div>
+                </div>
+                <div class="row" id="zeManualRow" style="display:none">
+                  <div><label>z_e,ext (внешнее), м</label><input type="number" step="0.1" id="zeExt" value="5"></div>
+                </div>
+              </details>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Правая панель: результаты -->
+      <section class="card" aria-labelledby="results-h2">
+        <h2 id="results-h2">Результаты</h2>
+        <div class="bd" id="results">
+          <div class="legend" id="legend"></div>
+
+          <div class="kpi">
+            <div class="itm"><div class="t">vb,0</div><div class="v" id="kpi-vb0">—</div></div>
+            <div class="itm"><div class="t">vb</div><div class="v" id="kpi-vb">—</div></div>
+            <div class="itm"><div class="t">Iv(h)</div><div class="v" id="kpi-iv">—</div></div>
+            <div class="itm"><div class="t">qp(h), Па</div><div class="v" id="kpi-qp">—</div></div>
+          </div>
+
+          <div style="height:10px"></div>
+          <div id="cases"></div>
+
+          <div class="print-only" style="margin-top:10px">
+            <h2 style="margin:0 0 6px">Подробный отчёт (формулы)</h2>
+            <div id="report" class="report">—</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    // ===== Константы
+    const Z0_MAP={"0":0.003,"I":0.01,"II":0.05,"III":0.3,"IV":1.0};
+    const ZMIN_MAP={"0":1,"I":1,"II":2,"III":5,"IV":10};
+    const RHO_DEF=1.25;
+
+    // ===== Утилиты
+    const clamp=(v,min,max)=>Math.min(Math.max(v,min),max);
+    const fmt=(v,d=2)=>Number.isFinite(v)?Number(v).toFixed(d):'—';
+    const $=s=>document.querySelector(s);
+    function parseList(str,expect){ const arr=String(str).split(/[,;\s]+/).filter(Boolean).map(Number); while(arr.length<expect) arr.push(arr[arr.length-1] ?? 0); return arr.slice(0,expect); }
+    const log10=(x)=>Math.log(x)/Math.log(10);
+
+    // ===== Профиль скорости / qp
+    function kCoef(z0){return 0.19*Math.pow(z0/0.05,0.07)}
+    function cr(z,z0){ const zc=Math.max(z, 1.0001*z0); return kCoef(z0)*Math.log(zc/z0); }
+    function Iv(z,z0,co=1,ki=1){ const zc=Math.max(z, 1.0001*z0); return (ki*co/Math.log(zc/z0)) * Math.pow(z0/0.05, 0.07); }
+    function peakPressure(rho, vb, z, z0, co, ki=1){ const vm = cr(z,z0) * (co||1) * vb; const iv = Iv(z,z0, co||1, ki); const qp = 0.5 * rho * vm * vm * (1 + 7*iv); return { vm, iv, qp }; }
+
+    // ===== Геометрия зон
+    function eRoofFor(b, H){ const k=parseFloat($('#eRoofFactor').value)||0.2; return k * Math.min(b, 2*H); }
+
+    // ===== Зоны для навесов
+    function zoneDesc(z, roofType){
+      if(roofType==='flat'){
+        const map={F:'Плоская — кромка (F)', G:'Плоская — краевые (G)', H:'Плоская — центр (H)'}; return map[z];
+      }
+      const mapM={F:'Односкатная — наветр. кромка (F)', G:'Односкатная — краевые (G)', H:'Односкатная — центр (H)'}; return mapM[z];
+    }
+
+    // ===== Интерполяции cpe
+    function cpeAreaInterp(c10, c1, A){
+      if($('#areaInterp').value==='off') return c10;
+      if(!(A>0)) return c10;
+      if(A<=1) return c1;
+      if(A>=10) return c10;
+      return c1 - (c1 - c10)*log10(A);
+    }
+    function lerp(a,b,t){ return a+(b-a)*t }
+    function interpSetBySlope(alpha, sets, angles){ // sets: array of arrays [F,G,H], angles: matching degrees
+      // линейная интерполяция между ближайшими опорными углами
+      const n=angles.length;
+      if(alpha<=angles[0]) return sets[0];
+      if(alpha>=angles[n-1]) return sets[n-1];
+      for(let i=0;i<n-1;i++){
+        if(alpha>=angles[i] && alpha<=angles[i+1]){
+          const t=(alpha-angles[i])/(angles[i+1]-angles[i]);
+          return sets[i].map((v,idx)=> lerp(v, sets[i+1][idx], t));
+        }
+      }
+      return sets[n-1];
+    }
+
+    // ===== Сбор коэффициентов (верх/низ)
+    function getFlatSets(A){
+      const top10=parseList($('#flatTop10').value,3), top1=parseList($('#flatTop1').value,3);
+      const bot10=parseList($('#flatBot10').value,3), bot1=parseList($('#flatBot1').value,3);
+      const top=[0,1,2].map(i=> cpeAreaInterp(top10[i], top1[i], A));
+      const bot=[0,1,2].map(i=> cpeAreaInterp(bot10[i], bot1[i], A));
+      return {top, bot};
+    }
+    function getMonoSets(A, alphaDeg){
+      const a=[5,10,15,30];
+      const monoTop10=[ parseList($('#mono5Top10').value,3), parseList($('#mono10Top10').value,3), parseList($('#mono15Top10').value,3), parseList($('#mono30Top10').value,3) ];
+      const monoTop1 =[ parseList($('#mono5Top1').value ,3), parseList($('#mono10Top1').value ,3), parseList($('#mono15Top1').value ,3), parseList($('#mono30Top1').value ,3) ];
+      const monoBot10=[ parseList($('#mono5Bot10').value,3), parseList($('#mono10Bot10').value,3), parseList($('#mono15Bot10').value,3), parseList($('#mono30Bot10').value,3) ];
+      const monoBot1 =[ parseList($('#mono5Bot1').value ,3), parseList($('#mono10Bot1').value ,3), parseList($('#mono15Bot1').value ,3), parseList($('#mono30Bot1').value ,3) ];
+
+      const top10=interpSetBySlope(alphaDeg, monoTop10, a);
+      const top1 =interpSetBySlope(alphaDeg, monoTop1 , a);
+      const bot10=interpSetBySlope(alphaDeg, monoBot10, a);
+      const bot1 =interpSetBySlope(alphaDeg, monoBot1 , a);
+
+      const top=[0,1,2].map(i=> cpeAreaInterp(top10[i], top1[i], A));
+      const bot=[0,1,2].map(i=> cpeAreaInterp(bot10[i], bot1[i], A));
+      return {top, bot};
+    }
+
+    // ===== Режимы
+    function getCscd(apply){
+      const m=$('#cscdMode').value;
+      if(!apply) return 1.0;
+      if(m==='manual') return Math.max(0.5, parseFloat($('#cscd').value)||1);
+      return 1.0; // auto / "1"
+    }
+
+    // ===== Построение таблиц/кейсов
+    function buildTable(title,note,rows, ctx){
+      const thead = `<thead>
+        <tr>
+          <th>Зона</th>
+          <th>Описание</th>
+          <th>c<sub>pe</sub><sup>top</sup>(A)</th>
+          <th>c<sub>pe</sub><sup>bot</sup>(A)</th>
+          <th>c<sub>pe,net</sub>=top−bot</th>
+          <th>w<sub>net</sub>=c<sub>pe,net</sub>·q<sub>p</sub>·(c<sub>s</sub>c<sub>d</sub>)</th>
+        </tr>
+      </thead>`;
+      const tbody = `<tbody>${
+        rows.map(r => `<tr>
+          <td><b>${r.zone}</b></td>
+          <td style="text-align:left">${zoneDesc(r.zone, ctx.roofType)}</td>
+          <td>${fmt(r.cpeTop,2)}</td>
+          <td>${fmt(r.cpeBot,2)}</td>
+          <td>${fmt(r.cpeNet,2)}</td>
+          <td>${fmt(r.wnet,0)}</td>
+        </tr>`).join('')
+      }</tbody>`;
+      return `<div class="card" style="margin-top:12px"><div class="hd"><h2>${title}</h2><span class="pill">${note}</span></div><div class="bd"><table>${thead+tbody}</table></div></div>`;
+    }
+
+    function buildCaseBlock(name, rows, note){
+      return `<div class="card" style="margin-top:12px">
+        <div class="hd"><h2>${name}</h2><span class="pill">${note}</span></div>
+        <div class="bd">${buildTable('Покрытие навеса', 'Зоны F/G/H', rows, {roofType: $('#roofType').value})}</div>
+      </div>`;
+    }
+
+    // ===== Отчёт
+    function headerReport(ctx){
+      const {b,L,H,roofType,alpha,flowDir,region,vb0,cdir,cseason,terrain,z0,zmin,co,zeExt,rho,ki,vb,ext,mode}=ctx;
+      const lines=[];
+      lines.push('— ВХОДНЫЕ ДАННЫЕ —');
+      lines.push(`Геометрия: b=${fmt(b,2)} м; L=${fmt(L,2)} м; h=${fmt(H,2)} м; покрытие=${roofType==='flat'?'плоское':`односкатное (α=${fmt(alpha,1)}°)`}`);
+      lines.push(`Направление ветра: ${flowDir==='up'?'снизу-вверх (к высокой кромке)':'сверху-вниз (к низкой кромке)'}`);
+      lines.push(`Регион=${region}; v_b,0=${fmt(vb0,1)} м/с; c_dir=${fmt(cdir,2)}; c_season=${fmt(cseason,2)}`);
+      lines.push(`v_b = ${fmt(vb0,1)} · ${fmt(cdir,2)} · ${fmt(cseason,2)} = ${fmt(vb,2)} м/с`);
+      lines.push(`Местность: ${terrain} → z₀=${z0} м; z_min=${zmin} м; cₒ(z)=${fmt(co,2)}; ρ=${fmt(rho,2)} кг/м³; k_i=${fmt(ki,2)}`);
+      lines.push(`z_e,ext=${fmt(zeExt,2)} м`);
+
+      lines.push('\n— ПРОФИЛЬ СКОРОСТИ И ПИКОВОЕ ДАВЛЕНИЕ —');
+      const k=0.19*Math.pow(z0/0.05,0.07);
+      lines.push(`k_r = 0.19 · (z₀ / 0.05)^0.07 = ${fmt(k,4)}`);
+      lines.push(`c_r(z_e,ext) = ${fmt(cr(zeExt,z0),4)}; v_m(ext) = c_r·cₒ·v_b = ${fmt(ext.vm,3)} м/с`);
+      lines.push(`I_v(ext) = (k_i·cₒ)/ln(z_e/z₀)·(z₀/0.05)^0.07 = ${fmt(ext.iv,4)}`);
+      lines.push(`q_p(ext) = 0.5·ρ·v_m²·(1+7I_v) = ${fmt(ext.qp,0)} Па`);
+
+      lines.push('\n— ПАРАМЕТРЫ РЕЖИМА —');
+      lines.push(`Режим: ${($('#mode').value==='mwfrs')?'MWFRS (учёт c_s c_d)':'Cladding (локальные давления)'}; c_s c_d = ${fmt(getCscd($('#mode').value==='mwfrs'),2)}`);
+      if($('#frictionOn').checked){
+        lines.push(`Трение кровли: учтено с c_fr=${fmt(parseFloat($('#cfr').value)||0.02,2)} (оценка суммарной силы).`);
+      }
+      return lines;
+    }
+
+    function zoneReportDetailed(title, rows, qp, cscd){
+      const lines=[`\n— ${title} —`];
+      rows.forEach(r=>{
+        lines.push(`\nЗона ${r.zone} — ${zoneDesc(r.zone, $('#roofType').value)}`);
+        lines.push(`1) c_pe^top(A) = ${fmt(r.cpeTop,2)}; c_pe^bot(A) = ${fmt(r.cpeBot,2)}; c_pe,net = ${fmt(r.cpeNet,2)}`);
+        lines.push(`2) w_net = c_pe,net · q_p · (c_s c_d) = ${fmt(r.cpeNet,2)} · ${fmt(qp,0)} · ${fmt(cscd,2)} = ${fmt(r.wnet,0)} Па`);
+      });
+      return lines;
+    }
+
+    // ===== Основной расчёт
+    function calc(){
+      // Геометрия
+      const b=parseFloat($('#span').value);
+      const L=parseFloat($('#length').value);
+      const H=parseFloat($('#H').value);
+      const roofType=$('#roofType').value;
+      const alpha=parseFloat($('#slope').value||'0');
+      const flowDir=$('#flowDir').value;
+
+      // Климат
+      const region=$('#region').value; const [rI,rII,rIII]=parseList($('#regionsMap').value,3);
+      if(region!=='custom'){ const map={I:rI, II:rII, III:rIII}; $('#vb0').value = map[region] ?? $('#vb0').value }
+      const vb0=parseFloat($('#vb0').value); const cdir=parseFloat($('#cdir').value); const cseason=parseFloat($('#cseason').value);
+
+      const terrain=$('#terrain').value; const co=parseFloat($('#co').value);
+      const rho=Math.max(0.5, parseFloat($('#rho').value)||RHO_DEF);
+      const ki=Math.max(0.5, parseFloat($('#ki').value)||1);
+      const z0=Z0_MAP[terrain]; const zmin=ZMIN_MAP[terrain];
+      const zeMode=$('#zeMode')?.value||'auto';
+      const zeExtRaw=zeMode==='manual'?parseFloat($('#zeExt').value):H;
+      const zeExt=Math.max(zeExtRaw,zmin);
+
+      const vb=cdir*cseason*vb0;
+      const ext=peakPressure(rho, vb, zeExt, z0, co, ki);
+
+      // KPI
+      $('#kpi-vb0').textContent = fmt(vb0,1)+' м/с';
+      $('#kpi-vb').textContent  = fmt(vb,1)+' м/с';
+      $('#kpi-iv').textContent  = fmt(ext.iv,3);
+      $('#kpi-qp').textContent  = fmt(ext.qp,0);
+
+      const mode=$('#mode').value; const applyCscd=(mode==='mwfrs');
+      const cscd = getCscd(applyCscd);
+      const Aelem = Math.max(0.01, parseFloat($('#Aelem').value)||10);
+      const e = eRoofFor(b,H);
+
+      // Коэф. верх/низ для зон F,G,H
+      let top=[], bot=[];
+      if(roofType==='flat'){
+        const sets=getFlatSets(Aelem);
+        top=sets.top; bot=sets.bot;
+      } else { // mono
+        const sets=getMonoSets(Aelem, alpha);
+        top=sets.top; bot=sets.bot;
+      }
+
+      // Влияние направления по скату:
+      // «up»: сильнее подсос снизу у кромки F; «down»: перераспределение — можно задать поправочные множители.
+      // Делаем мягкую корректировку (пользователь может изменить таблицы при необходимости).
+      const dirMul = (flowDir==='up') ? {top:[1.00,1.00,1.00], bot:[1.10,1.05,1.00]} : {top:[1.05,1.00,0.95], bot:[0.95,1.00,1.05]};
+      const topAdj = top.map((v,i)=> v*dirMul.top[i]);
+      const botAdj = bot.map((v,i)=> v*dirMul.bot[i]);
+
+      function row(zoneIdx, zoneName){
+        const cpeTop = topAdj[zoneIdx];
+        const cpeBot = botAdj[zoneIdx];
+        const cpeNet = cpeTop - cpeBot; // чистое давление на покрытие
+        const wnet = cpeNet * ext.qp * cscd;
+        return { zone:zoneName, cpeTop, cpeBot, cpeNet, wnet };
+      }
+
+      const rows = [
+        row(0,'F'), // кромка
+        row(1,'G'), // краевые
+        row(2,'H')  // центр
+      ];
+
+      const casesEl=$('#cases'); casesEl.innerHTML='';
+      casesEl.insertAdjacentHTML('beforeend',
+        buildCaseBlock('Случай 1 — Основной обдув', rows, `e=${fmt(e,2)} м; A=${fmt(Aelem,2)} м²`)
+      );
+
+      // Отчёт
+      const ctxRep={b,L,H,roofType,alpha,flowDir,region,vb0,cdir,cseason,terrain,z0,zmin,co,zeExt,rho,ki,vb,ext,mode};
+      const lines=[...headerReport(ctxRep)];
+      lines.push('\n— РЕЗУЛЬТАТЫ ПО ЗОНАМ —');
+      lines.push(...zoneReportDetailed('Покрытие навеса (F/G/H)', rows, ext.qp, cscd));
+
+      // Трение (сдвигающая сила по кровле)
+      if($('#frictionOn').checked){
+        const cfr = Math.max(0, parseFloat($('#cfr').value)||0.02);
+        const tau = cfr * ext.qp;
+        const F = tau * b * L;
+        lines.push(`\n— ТРЕНИЕ КРОВЛИ (оценка) —`);
+        lines.push(`τ = c_fr · q_p(ext) = ${fmt(cfr,3)} · ${fmt(ext.qp,0)} = ${fmt(tau,0)} Па; F ≈ τ · (b·L) = ${fmt(F,0)} Н`);
+      }
+
+      lines.push('\nПримечание: коэффициенты c_pe^top/c_pe^bot заданы ориентировочно и подлежат подтверждению вашей редакцией СН/локальным документом. Для промежуточных уклонов применяется линейная интерполяция, для A — логарифмическая между 1 и 10 м².');
+      $('#report').textContent = lines.join('\n');
+
+      // Легенда
+      const el=$('#legend');
+      el.innerHTML = (roofType==='flat')
+        ? `<div class="item">Плоский навес: <b>F</b> — кромка; <b>G</b> — краевые; <b>H</b> — центр. Чистое давление: c_pe^top − c_pe^bot.</div>`
+        : `<div class="item">Односкатный навес: <b>F</b> — наветренная кромка; <b>G</b> — краевые; <b>H</b> — центр. Направление ветра: ${$('#flowDir').value==='up'?'снизу-вверх':'сверху-вниз'}.</div>`;
+    }
+
+    // ===== События
+    $('#btn-calc').addEventListener('click', calc);
+    $('#btn-print').addEventListener('click', ()=> window.print());
+    $('#btn-copy').addEventListener('click', ()=>{ const t=$('#report').innerText.trim(); if(!t) return; navigator.clipboard.writeText(t) });
+
+    $('#roofType').addEventListener('change', (e)=>{ $('#slopeRow').style.display = e.target.value==='mono' ? '' : 'none'; calc(); });
+
+    $('#zeMode')?.addEventListener('change', e=>{ $('#zeManualRow').style.display = e.target.value==='manual' ? '' : 'none'; calc(); });
+
+    let t; document.querySelectorAll('.bd input, .bd select').forEach(el=> el.addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(calc,150) }));
+
+    window.addEventListener('load', ()=>{ calc(); });
+  </script>
+</body>
+</html>
