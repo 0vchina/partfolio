@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ветровой калькулятор (РБ СН 2.01.05‑2019)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Красивые анимации */
+    @keyframes fadeUp { from {opacity:0; transform: translateY(8px)} to {opacity:1; transform: translateY(0)} }
+    .fade-up { animation: fadeUp .6s ease both }
+    .fade-delay-1 { animation-delay: .05s }
+    .fade-delay-2 { animation-delay: .1s }
+    .fade-delay-3 { animation-delay: .15s }
+    .fade-delay-4 { animation-delay: .2s }
+
+    /* Печать в PDF */
+    @media print {
+      .no-print { display: none !important; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: white !important; }
+      .page-break { page-break-after: always; }
+      .card { box-shadow: none !important; }
+      .container { max-width: 100% !important; padding: 0 12mm !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-sky-50 via-white to-indigo-50 text-gray-900">
+  <!-- Header -->
+  <header class="sticky top-0 z-30 backdrop-blur bg-white/70 border-b border-black/5">
+    <div class="container mx-auto max-w-7xl px-4 py-3 flex items-center gap-3">
+      <div class="h-9 w-9 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 shadow ring-1 ring-black/10 flex items-center justify-center text-white font-bold">W</div>
+      <div class="flex-1">
+        <h1 class="text-lg font-semibold leading-tight">Ветровой калькулятор — РБ СН 2.01.05‑2019</h1>
+        <p class="text-xs text-gray-600">Стены и покрытия · коэффициенты c<sub>pe</sub>,10 / c<sub>pe</sub>,1 · расчёт p<sub>net</sub> · экспорт в PDF</p>
+      </div>
+      <div class="flex items-center gap-2 no-print">
+        <button id="btnPrint" class="px-3 py-2 rounded-xl bg-indigo-600 text-white shadow hover:shadow-lg transition">Скачать PDF</button>
+        <button id="btnShare" class="px-3 py-2 rounded-xl bg-white ring-1 ring-gray-200 hover:bg-gray-50 transition">Поделиться</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container mx-auto max-w-7xl px-4 py-6 space-y-6">
+    <!-- Hero -->
+    <section class="rounded-2xl p-6 bg-gradient-to-br from-white to-sky-50 ring-1 ring-black/5 shadow-sm fade-up">
+      <div class="grid md:grid-cols-2 gap-6 items-center">
+        <div>
+          <h2 class="text-2xl font-bold mb-2">Быстрый расчёт ветровой нагрузки</h2>
+          <p class="text-gray-600">Введите геометрию, параметры ветра и тип кровли — получите коэффициенты по зонам и итоговые давления. Страница адаптирована для мобильных и поддерживает экспорт в PDF (печать).</p>
+          <div class="mt-4 text-xs text-gray-500">В основу положены формулы и таблицы из СН 2.01.05‑2019 (Республика Беларусь), разделы 4–7. Проверьте допущения перед применением в проекте.</div>
+        </div>
+        <div class="grid grid-cols-3 gap-3 text-center">
+          <div class="card rounded-2xl p-4 bg-white ring-1 ring-black/5 shadow-sm fade-up fade-delay-1">
+            <div class="text-sm text-gray-500">ρ воздуха</div>
+            <div class="text-2xl font-semibold">1.25</div>
+            <div class="text-xs text-gray-500">кг/м³</div>
+          </div>
+          <div class="card rounded-2xl p-4 bg-white ring-1 ring-black/5 shadow-sm fade-up fade-delay-2">
+            <div class="text-sm text-gray-500">z<sub>max</sub></div>
+            <div class="text-2xl font-semibold">200</div>
+            <div class="text-xs text-gray-500">м</div>
+          </div>
+          <div class="card rounded-2xl p-4 bg-white ring-1 ring-black/5 shadow-sm fade-up fade-delay-3">
+            <div class="text-sm text-gray-500">Экспорт</div>
+            <div class="text-2xl font-semibold">PDF</div>
+            <div class="text-xs text-gray-500">печать</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Inputs -->
+    <section id="controls" class="grid lg:grid-cols-3 gap-4 fade-up">
+      <!-- Геометрия -->
+      <div class="card rounded-2xl p-4 bg-white ring-1 ring-black/5 shadow-sm">
+        <h3 class="font-semibold mb-3">Геометрия</h3>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="text-xs text-gray-500">Длина L, м
+            <input id="L" type="number" step="0.01" value="30" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+          </label>
+          <label class="text-xs text-gray-500">Ширина B, м
+            <input id="B" type="number" step="0.01" value="18" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+          </label>
+          <label class="text-xs text-gray-500">Высота h (≈ z<sub>e</sub>), м
+            <input id="h" type="number" step="0.01" value="9" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+          </label>
+          <label class="text-xs text-gray-500">Угол ветра к оси L, °
+            <input id="windToLongAxis" type="number" step="1" value="0" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+          </label>
+        </div>
+      </div>
+
+      <!-- Ветер и местность -->
+      <div class="card rounded-2xl p-4 bg-white ring-1 ring-black/5 shadow-sm">
+        <h3 class="font-semibold mb-3">Ветер и местность</h3>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="text-xs text-gray-500">Тип местности (Табл. 4.1)
+            <select id="terrain" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option>0</option>
+              <option>I</option>
+              <option selected>II</option>
+              <option>III</option>
+              <option>IV</option>
+            </select>
+          </label>
+          <label class="text-xs text-gray-500">v<sub>b,0</sub>, м/с (по карте)
+            <input id="vb0" type="number" step="0.1" value="26" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+          </label>
+          <label class="text-xs text-gray-500">c<sub>dir</sub>
+            <input id="cdir" type="number" step="0.01" value="1" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+          </label>
+          <label class="text-xs text-gray-500">c<sub>season</sub>
+            <input id="cseason" type="number" step="0.01" value="1" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+          </label>
+          <label class="text-xs text-gray-500">c<sub>o</sub> (орография)
+            <input id="co" type="number" step="0.01" value="1" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+          </label>
+        </div>
+      </div>
+
+      <!-- Кровля -->
+      <div class="card rounded-2xl p-4 bg-white ring-1 ring-black/5 shadow-sm">
+        <h3 class="font-semibold mb-3">Кровля</h3>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="text-xs text-gray-500">Тип
+            <select id="roof" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option selected value="flat">Плоская</option>
+              <option value="mono">Односкатная</option>
+              <option value="duo">Двускатная</option>
+            </select>
+          </label>
+          <label class="text-xs text-gray-500">θ, ° (к карнизу/коньку)
+            <select id="theta" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="0" selected>0</option>
+              <option value="90">90</option>
+            </select>
+          </label>
+          <label class="text-xs text-gray-500">Уклон α, °
+            <input id="alpha" type="number" step="1" value="15" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+          </label>
+          <label id="flatPresetWrap" class="text-xs text-gray-500">Кромка
+            <select id="flatPreset" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="sharp" selected>Без парапета</option>
+              <option value="parapet">Парапет (≈5%h)</option>
+              <option value="rounded">Скругление (≈10%h)</option>
+            </select>
+          </label>
+          <label class="text-xs text-gray-500">c<sub>pi</sub> режим
+            <select id="cpiMode" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="worst" selected>Худший из +0.2 / -0.3</option>
+              <option value="custom">Задать вручную</option>
+            </select>
+          </label>
+          <label class="text-xs text-gray-500">c<sub>pi</sub> +
+            <input id="cpiPlus" type="number" step="0.01" value="0.2" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+          </label>
+          <label class="text-xs text-gray-500">c<sub>pi</sub> −
+            <input id="cpiMinus" type="number" step="0.01" value="-0.3" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Summary cards -->
+    <section class="grid md:grid-cols-3 gap-4 fade-up fade-delay-2">
+      <div class="card rounded-2xl p-4 bg-white ring-1 ring-black/5 shadow-sm">
+        <h3 class="font-semibold mb-2">Проекции и зоны</h3>
+        <div class="text-sm space-y-1">
+          <div>По ветру d = <b id="dVal">–</b> м</div>
+          <div>Поперёк b = <b id="bVal">–</b> м</div>
+          <div>h/d = <b id="hdVal">–</b></div>
+          <div>Ширина кромки e = <b id="eVal">–</b> м</div>
+        </div>
+      </div>
+      <div class="card rounded-2xl p-4 bg-white ring-1 ring-black/5 shadow-sm">
+        <h3 class="font-semibold mb-2">Скорости и напоры</h3>
+        <div class="text-sm space-y-1">
+          <div>v<sub>b</sub> = v<sub>b,0</sub>·c<sub>dir</sub>·c<sub>season</sub> = <b id="vbVal">–</b> м/с</div>
+          <div>q<sub>p</sub>(z<sub>e</sub>≈h) = <b id="qpVal">–</b> Па = <b id="qpkPa">–</b> кПа</div>
+        </div>
+      </div>
+      <div class="card rounded-2xl p-4 bg-white ring-1 ring-black/5 shadow-sm">
+        <h3 class="font-semibold mb-2">Местность</h3>
+        <div class="text-sm space-y-1">
+          <div>Тип: <b id="terrainVal">–</b>, z<sub>0</sub> = <b id="z0Val">–</b> м</div>
+          <div>k<sub>r</sub>(z<sub>0</sub>) = <b id="krVal">–</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schemes -->
+    <section class="grid md:grid-cols-3 gap-4 fade-up fade-delay-3">
+      <div class="card rounded-2xl p-4 bg-white ring-1 ring-black/5 shadow-sm">
+        <h3 class="font-semibold mb-2">Схема зон стен</h3>
+        <div id="schemeWalls" class="h-40"> </div>
+      </div>
+      <div class="card rounded-2xl p-4 bg-white ring-1 ring-black/5 shadow-sm">
+        <h3 class="font-semibold mb-2">Схема зон кровли</h3>
+        <div id="schemeRoof" class="h-40"> </div>
+      </div>
+      <div class="card rounded-2xl p-4 bg-white ring-1 ring-black/5 shadow-sm">
+        <h3 class="font-semibold mb-2">Подсказки</h3>
+        <ul class="text-xs text-gray-600 list-disc pl-5 space-y-1">
+          <li>Стены: зоны A/B/C/D/E по Табл. 7.1 с интерполяцией по h/d.</li>
+          <li>Плоская кровля: F/G/H/I (θ=0°) и F/G/H (θ=90°) — Табл. 7.2.</li>
+          <li>Односкатные и двускатные — Табл. 7.3 и 7.4 (интерп. по α).</li>
+          <li>Внутреннее давление: по умолчанию худший из +0.2 / −0.3.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Walls table -->
+    <section class="fade-up">
+      <h3 class="text-lg font-semibold mt-6 mb-2">Стены — коэффициенты и p<sub>net</sub></h3>
+      <div class="overflow-auto card rounded-2xl bg-white ring-1 ring-black/5 shadow-sm">
+        <table id="wallsTable" class="min-w-full text-sm"></table>
+      </div>
+    </section>
+
+    <!-- Roof table -->
+    <section class="fade-up">
+      <h3 class="text-lg font-semibold mt-6 mb-2">Кровля — коэффициенты и p<sub>net</sub></h3>
+      <div id="roofTables" class="space-y-4"></div>
+    </section>
+
+    <section class="text-xs text-gray-500 fade-up">
+      <div class="page-break"></div>
+      <p>Примечание: значения и схемы приведены для оперативной оценки. Для детальной проработки проверяйте примечания и рисунки разделов 4–7 СН 2.01.05‑2019 (Республика Беларусь), а также соответствующие нац. приложения.</p>
+      <p id="stamp" class="mt-1"></p>
+    </section>
+  </main>
+
+  <!-- SVG Templates -->
+  <template id="tplWalls">
+    <svg viewBox="0 0 200 120" class="w-full h-full border rounded bg-white">
+      <rect x="10" y="10" width="180" height="100" fill="none" stroke="currentColor" />
+      <rect x="10" y="10" width="30" height="30" fill="none" stroke="currentColor" stroke-dasharray="4 2"/>
+      <rect x="160" y="10" width="30" height="30" fill="none" stroke="currentColor" stroke-dasharray="4 2"/>
+      <rect x="40" y="10" width="120" height="30" fill="none" stroke="currentColor" stroke-dasharray="2 2"/>
+      <rect x="10" y="40" width="30" height="70" fill="none" stroke="currentColor" stroke-dasharray="2 2"/>
+      <rect x="160" y="40" width="30" height="70" fill="none" stroke="currentColor" stroke-dasharray="2 2"/>
+      <rect x="40" y="40" width="120" height="70" fill="none" stroke="currentColor"/>
+      <text x="15" y="25" font-size="10">A</text>
+      <text x="168" y="25" font-size="10">A</text>
+      <text x="95" y="25" font-size="10">B</text>
+      <text x="15" y="85" font-size="10">C</text>
+      <text x="175" y="85" font-size="10">C</text>
+      <text x="98" y="80" font-size="12">D</text>
+      <text x="185" y="60" font-size="10">→ ветер</text>
+    </svg>
+  </template>
+  <template id="tplFlat">
+    <svg viewBox="0 0 200 120" class="w-full h-full border rounded bg-white">
+      <rect x="20" y="20" width="160" height="80" fill="none" stroke="currentColor" />
+      <text x="25" y="25" font-size="10">F</text>
+      <text x="160" y="25" font-size="10">H</text>
+      <text x="25" y="95" font-size="10">G</text>
+      <text x="160" y="95" font-size="10">I</text>
+      <text x="5" y="60" font-size="10">→ ветер</text>
+    </svg>
+  </template>
+  <template id="tplMono">
+    <svg viewBox="0 0 200 120" class="w-full h-full border rounded bg-white">
+      <polygon points="20,80 180,80 140,40 20,40" fill="none" stroke="currentColor" />
+      <text x="25" y="45" font-size="10">F</text>
+      <text x="120" y="45" font-size="10">G</text>
+      <text x="160" y="75" font-size="10">H/I</text>
+      <text x="5" y="60" font-size="10">→ ветер</text>
+    </svg>
+  </template>
+  <template id="tplDuo">
+    <svg viewBox="0 0 200 120" class="w-full h-full border rounded bg-white">
+      <polygon points="20,80 100,40 180,80 20,80" fill="none" stroke="currentColor" />
+      <text x="35" y="70" font-size="10">F</text>
+      <text x="95" y="45" font-size="10">J</text>
+      <text x="155" y="70" font-size="10">G</text>
+      <text x="100" y="85" font-size="10">H/I</text>
+      <text x="5" y="60" font-size="10">→ ветер</text>
+    </svg>
+  </template>
+
+  <script>
+  // ===== Математика и константы =====
+  const RHO_AIR = 1.25;
+  const TERRAIN = { "0":{z0:0.003,zmin:1}, I:{z0:0.01,zmin:1}, II:{z0:0.05,zmin:2}, III:{z0:0.3,zmin:5}, IV:{z0:1.0,zmin:10} };
+  const KR = (z0) => 0.19 * Math.pow(z0/0.05, 0.07);
+  const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+  const lerp = (a,b,t)=>a+(b-a)*t;
+
+  function nearestTerrainByZ0(z0){
+    let best = { key: "II", ...TERRAIN["II"], d: Math.abs(z0-0.05)};
+    for(const [k,v] of Object.entries(TERRAIN)){
+      const d = Math.abs(z0-v.z0); if(d<best.d) best = {key:k, ...v, d};
+    }
+    return best;
+  }
+  function cr_of_z(z, z0){
+    const {zmin} = nearestTerrainByZ0(z0); const zEff = Math.max(z, zmin);
+    return KR(z0) * Math.log(zEff / z0);
+  }
+  function lv_of_z(z, z0, co=1, ki=1){
+    const {zmin} = nearestTerrainByZ0(z0); const zEff = Math.max(z, zmin);
+    return ki / (co * Math.log(zEff / z0));
+  }
+  function qp_of_z(vb, z, z0, co=1, ki=1){
+    const cr = cr_of_z(z, z0); const vm = vb * cr * co; const lv = lv_of_z(z, z0, co, ki);
+    return 0.5 * RHO_AIR * vm * vm * (1 + 7*lv);
+  }
+  function buildingAlongAcross(L,B,phi){
+    const r = phi*Math.PI/180; const d = Math.abs(L*Math.cos(r)) + Math.abs(B*Math.sin(r));
+    const b = Math.abs(L*Math.sin(r)) + Math.abs(B*Math.cos(r)); return {d,b};
+  }
+
+  // ===== Таблицы стен (7.1) =====
+  const WALL_TABLE = {
+    0.25:{ A:{c10:-1.6,c1:-2.3}, B:{c10:-1.1,c1:-1.7}, C:{c10:-0.4,c1:-0.6}, D:{c10:0.7,c1:1.0}, E:{c10:-0.3,c1:-0.5} },
+    1.0:{  A:{c10:-1.3,c1:-2.0}, B:{c10:-0.9,c1:-1.6}, C:{c10:-0.5,c1:-0.8}, D:{c10:0.8,c1:1.2}, E:{c10:-0.6,c1:-0.9} },
+    5.0:{  A:{c10:-1.2,c1:-1.8}, B:{c10:-0.8,c1:-1.4}, C:{c10:-0.5,c1:-0.8}, D:{c10:0.8,c1:1.2}, E:{c10:-0.5,c1:-0.8} },
+  };
+  function interpWall(hOverD){
+    const x = clamp(hOverD, 0.25, 5); let x0, x1; if(x<=1){x0=0.25;x1=1.0}else{x0=1.0;x1=5.0}
+    const t=(x-x0)/(x1-x0||1), zones={};
+    for(const z of ["A","B","C","D","E"]){ const a=WALL_TABLE[x0][z], b=WALL_TABLE[x1][z];
+      zones[z] = { c10: lerp(a.c10,b.c10,t), c1: lerp(a.c1,b.c1,t) };
+    }
+    return {hOverD:x, zones};
+  }
+
+  // ===== Кровля: плоская (7.2) =====
+  const FLAT_ROOF_PRESETS = {
+    sharp:{ name:"Без парапета",
+      theta0:{ min:{F:{c10:-0.7,c1:-1.0}, G:{c10:-0.7,c1:-1.0}, H:{c10:0.2,c1:0.3}, I:{c10:0.2,c1:0.3}},
+               max:{F:{c10:0.2,c1:0.3}, G:{c10:0.2,c1:0.3}, H:{c10:-0.7,c1:-1.0}, I:{c10:-0.7,c1:-1.0}} },
+      theta90:{min:{F:{c10:-1.3,c1:-1.8}, G:{c10:-1.3,c1:-1.8}, H:{c10:0.2,c1:0.3}},
+               max:{F:{c10:0.2,c1:0.3},  G:{c10:0.2,c1:0.3},  H:{c10:-1.3,c1:-1.8}}}
+    },
+    parapet:{ name:"Парапет (≈5%h)",
+      theta0:{ min:{F:{c10:-0.2,c1:-0.3}, G:{c10:-0.2,c1:-0.3}, H:{c10:0.2,c1:0.3}, I:{c10:0.2,c1:0.3}},
+               max:{F:{c10:0.2,c1:0.3},  G:{c10:0.2,c1:0.3},  H:{c10:-0.2,c1:-0.3}, I:{c10:-0.2,c1:-0.3}} },
+      theta90:{min:{F:{c10:-0.6,c1:-0.9}, G:{c10:-0.6,c1:-0.9}, H:{c10:0.2,c1:0.3}},
+               max:{F:{c10:0.2,c1:0.3},  G:{c10:0.2,c1:0.3},  H:{c10:-0.6,c1:-0.9}}}
+    },
+    rounded:{ name:"Скругление (≈10%h)",
+      theta0:{ min:{F:{c10:-0.2,c1:-0.3}, G:{c10:-0.2,c1:-0.3}, H:{c10:0.2,c1:0.3}, I:{c10:0.2,c1:0.3}},
+               max:{F:{c10:0.2,c1:0.3},  G:{c10:0.2,c1:0.3},  H:{c10:-0.2,c1:-0.3}, I:{c10:-0.2,c1:-0.3}} },
+      theta90:{min:{F:{c10:-0.8,c1:-1.2}, G:{c10:-0.8,c1:-1.2}, H:{c10:0.2,c1:0.3}},
+               max:{F:{c10:0.2,c1:0.3},  G:{c10:0.2,c1:0.3},  H:{c10:-0.8,c1:-1.2}}}
+    }
+  };
+
+  // ===== Односкатные (7.3) — cpe,10 =====
+  const MONOPITCH_0 = {5:{F:-0.6,G:-0.6,H:0.2,I:0.2},15:{F:-0.7,G:-0.7,H:0.2,I:0.2},30:{F:-0.9,G:-0.9,H:0.2,I:0.2},45:{F:-1.0,G:-1.0,H:0.2,I:0.2},60:{F:-1.1,G:-1.1,H:0.2,I:0.2},75:{F:-1.2,G:-1.2,H:0.2,I:0.2}};
+  const MONOPITCH_90 = {5:{F:-0.8,G:-0.8,H:0.2},15:{F:-1.0,G:-1.0,H:0.2},30:{F:-1.2,G:-1.2,H:0.2},45:{F:-1.3,G:-1.3,H:0.2},60:{F:-1.4,G:-1.4,H:0.2},75:{F:-1.5,G:-1.5,H:0.2}};
+
+  // ===== Двускатные (7.4) — cpe,10 =====
+  const DUOPITCH_0 = {5:{F:-0.9,G:-0.9,H:0.2,I:0.2,J:-0.2},15:{F:-1.1,G:-1.1,H:0.2,I:0.2,J:-0.2},30:{F:-1.3,G:-1.3,H:0.3,I:0.3,J:-0.2},45:{F:-1.4,G:-1.4,H:0.3,I:0.3,J:-0.2},60:{F:-1.5,G:-1.5,H:0.3,I:0.3,J:-0.2},75:{F:-1.6,G:-1.6,H:0.3,I:0.3,J:-0.2}};
+  const DUOPITCH_90 = {5:{F:-0.8,G:-0.8,H:0.2,I:0.2},15:{F:-1.0,G:-1.0,H:0.2,I:0.2},30:{F:-1.2,G:-1.2,H:0.3,I:0.3},45:{F:-1.3,G:-1.3,H:0.3,I:0.3},60:{F:-1.4,G:-1.4,H:0.3,I:0.3},75:{F:-1.5,G:-1.5,H:0.3,I:0.3}};
+
+  function interpAngles(table, alpha){
+    const keys = Object.keys(table).map(Number).sort((a,b)=>a-b);
+    const a = clamp(alpha, keys[0], keys[keys.length-1]);
+    let a0=keys[0], a1=keys[keys.length-1];
+    for(let i=0;i<keys.length-1;i++){ if(a>=keys[i] && a<=keys[i+1]){ a0=keys[i]; a1=keys[i+1]; break; } }
+    const t = (a-a0)/(a1-a0||1); const z0 = table[a0], z1 = table[a1]; const zones={};
+    for(const z of new Set([...Object.keys(z0),...Object.keys(z1)])){
+      const v0 = z0[z] ?? 0, v1 = z1[z] ?? 0; zones[z] = lerp(v0, v1, t);
+    }
+    return {alpha:a, zones};
+  }
+
+  // ===== UI helpers =====
+  const el = (id)=>document.getElementById(id);
+  const kPa = (x)=> (x/1000).toFixed(3);
+
+  function updateSchemes(roofType){
+    el('schemeWalls').innerHTML = el('tplWalls').innerHTML;
+    const map = {flat:'tplFlat', mono:'tplMono', duo:'tplDuo'}; const t = map[roofType] || 'tplFlat';
+    el('schemeRoof').innerHTML = el(t).innerHTML;
+  }
+
+  function readInputs(){
+    return {
+      L: +el('L').value, B: +el('B').value, h: +el('h').value,
+      windToLongAxis: +el('windToLongAxis').value,
+      terrain: el('terrain').value, vb0: +el('vb0').value,
+      cdir: +el('cdir').value, cseason: +el('cseason').value, co: +el('co').value,
+      roof: el('roof').value, theta: +el('theta').value, alpha: +el('alpha').value,
+      flatPreset: el('flatPreset').value, cpiMode: el('cpiMode').value,
+      cpiPlus: +el('cpiPlus').value, cpiMinus: +el('cpiMinus').value,
+    };
+  }
+
+  function buildWallsTable(qp, cpiCandidates, wall){
+    const head = `<thead class="bg-gray-50"><tr><th class='p-2 text-left'>Зона</th><th class='p-2'>cpe,10</th><th class='p-2'>cpe,1</th>${cpiCandidates.map(c=>`<th class='p-2'>p<sub>net</sub> (кПа) при cpi=${c}</th>`).join('')}</tr></thead>`;
+    const rows = ["A","B","C","D","E"].map(z=>{
+      const c = wall.zones[z];
+      const cells = cpiCandidates.map(cpi=>{ const pnet = qp*(c.c10 - cpi); return `<td class='p-2'>${kPa(pnet)}</td>`; }).join('');
+      return `<tr class='border-t'><td class='p-2 font-medium'>${z}</td><td class='p-2'>${c.c10.toFixed(2)}</td><td class='p-2'>${c.c1.toFixed(2)}</td>${cells}</tr>`;
+    }).join('');
+    el('wallsTable').innerHTML = head + `<tbody>${rows}</tbody>`;
+  }
+
+  function buildRoofTables(qp, inp){
+    const wrap = el('roofTables'); wrap.innerHTML = '';
+    if(inp.roof==='flat'){
+      const preset = FLAT_ROOF_PRESETS[inp.flatPreset]; const pack = (inp.theta===0 ? preset.theta0 : preset.theta90);
+      for(const kind of ['min','max']){
+        const obj = pack[kind];
+        const zones = Object.keys(obj);
+        const head = `<thead class='bg-gray-50'><tr><th class='p-2 text-left'>Зона</th>${zones.map(z=>`<th class='p-2'>${z}</th>`).join('')}</tr></thead>`;
+        const rowC10 = `<tr class='border-t'><td class='p-2 font-medium'>cpe,10</td>${zones.map(z=>`<td class='p-2'>${obj[z].c10.toFixed(2)}</td>`).join('')}</tr>`;
+        const rowC1  = `<tr class='border-t'><td class='p-2 font-medium'>cpe,1</td>${zones.map(z=>`<td class='p-2'>${obj[z].c1.toFixed(2)}</td>`).join('')}</tr>`;
+        const cpis = (inp.cpiMode==='custom' ? [inp.cpiPlus, inp.cpiMinus] : [0.2, -0.3]);
+        const rowsP = cpis.map((cpi,i)=> `<tr class='border-t'><td class='p-2 font-medium'>p<sub>net</sub> (кПа) при cpi=${cpi}</td>${zones.map(z=>`<td class='p-2'>${kPa(qp*(obj[z].c10 - cpi))}</td>`).join('')}</tr>`).join('');
+        const table = document.createElement('div');
+        table.className = 'card rounded-2xl bg-white ring-1 ring-black/5 shadow-sm overflow-auto';
+        table.innerHTML = `<div class='bg-gray-50 px-3 py-2 font-medium'>Худший ${kind==='min'?'по отсосу (мин.)':'по давлению (макс.)'} — θ=${inp.theta}°</div><table class='min-w-full text-sm'>${head}<tbody>${rowC10}${rowC1}${rowsP}</tbody></table>`;
+        wrap.appendChild(table);
+      }
+    }else{
+      const base = (inp.roof==='mono' ? (inp.theta===0?MONOPITCH_0:MONOPITCH_90) : (inp.theta===0?DUOPITCH_0:DUOPITCH_90));
+      const data = interpAngles(base, inp.alpha);
+      const zones = Object.keys(data.zones);
+      const head = `<thead class='bg-gray-50'><tr><th class='p-2 text-left'>Зона</th>${zones.map(z=>`<th class='p-2'>${z}</th>`).join('')}</tr></thead>`;
+      const rowC10 = `<tr class='border-t'><td class='p-2 font-medium'>cpe,10</td>${zones.map(z=>`<td class='p-2'>${data.zones[z].toFixed(2)}</td>`).join('')}</tr>`;
+      const cpis = (inp.cpiMode==='custom' ? [inp.cpiPlus, inp.cpiMinus] : [0.2, -0.3]);
+      const rowsP = cpis.map((cpi,i)=> `<tr class='border-t'><td class='p-2 font-medium'>p<sub>net</sub> (кПа) при cpi=${cpi}</td>${zones.map(z=>`<td class='p-2'>${kPa(qp*(data.zones[z] - cpi))}</td>`).join('')}</tr>`).join('');
+      const container = document.createElement('div');
+      container.className = 'card rounded-2xl bg-white ring-1 ring-black/5 shadow-sm overflow-auto';
+      container.innerHTML = `<div class='bg-gray-50 px-3 py-2 font-medium'>θ = ${inp.theta}°, интерполяция по α = ${data.alpha.toFixed(1)}°</div><table class='min-w-full text-sm'>${head}<tbody>${rowC10}${rowsP}</tbody></table>`;
+      wrap.appendChild(container);
+    }
+  }
+
+  function recalc(){
+    const inp = readInputs();
+    // Управление видимостью полей
+    el('alpha').parentElement.style.display = (inp.roof==='flat') ? 'none' : '';
+    el('flatPresetWrap').style.display = (inp.roof==='flat') ? '' : 'none';
+    const cpis = (inp.cpiMode==='custom' ? [inp.cpiPlus, inp.cpiMinus] : [0.2, -0.3]);
+
+    const z0 = TERRAIN[inp.terrain].z0; const ze = inp.h; const vb = inp.vb0 * inp.cdir * inp.cseason; const qp = qp_of_z(vb, ze, z0, inp.co, 1);
+    const {d,b} = buildingAlongAcross(inp.L, inp.B, inp.windToLongAxis);
+    const hOverD = (inp.h||1)/(d||1); const e = Math.min(b, 2*inp.h);
+    const wall = interpWall(hOverD);
+
+    // Summary
+    el('dVal').textContent = d.toFixed(2); el('bVal').textContent = b.toFixed(2); el('hdVal').textContent = hOverD.toFixed(3); el('eVal').textContent = e.toFixed(2);
+    el('vbVal').textContent = vb.toFixed(2); el('qpVal').textContent = qp.toFixed(1); el('qpkPa').textContent = kPa(qp);
+    el('terrainVal').textContent = inp.terrain; el('z0Val').textContent = z0; el('krVal').textContent = KR(z0).toFixed(3);
+
+    // Schemes
+    updateSchemes(inp.roof);
+
+    // Tables
+    buildWallsTable(qp, cpis, wall);
+    buildRoofTables(qp, inp);
+
+    // Stamp
+    const dt = new Date();
+    el('stamp').textContent = `Расчёт сформирован: ${dt.toLocaleDateString()} ${dt.toLocaleTimeString()} · По умолчанию z_e≈h, c_pi∈{+0.2, −0.3}.`;
+  }
+
+  // Events
+  const inputs = document.querySelectorAll('#controls input, #controls select');
+  inputs.forEach(i=> i.addEventListener('input', recalc));
+  inputs.forEach(i=> i.addEventListener('change', recalc));
+  el('btnPrint').addEventListener('click', ()=> window.print());
+  el('btnShare').addEventListener('click', async ()=>{
+    try{
+      const url = location.href; await navigator.clipboard.writeText(url);
+      el('btnShare').textContent = 'Ссылка скопирована'; setTimeout(()=> el('btnShare').textContent = 'Поделиться', 1400);
+    }catch(e){ alert('Скопируйте ссылку из адресной строки.'); }
+  });
+
+  // Init
+  updateSchemes('flat');
+  recalc();
+  </script>
+</body>
+</html>
