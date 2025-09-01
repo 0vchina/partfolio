@@ -3,65 +3,60 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Калькулятор ветровой нагрузки · СН 2.01.05‑2019 (FULL)</title>
-  <meta name="description" content="Полный адаптивный калькулятор ветровых нагрузок: стены (A/B/C, D, E), кровля (плоская F/G/H, двускатная θ=0°/90°), два направления ветра, подробный отчёт и печать." />
+  <title>Калькулятор ветровой нагрузки · СН 2.01.05‑2019 (FULL, без справки)</title>
+  <meta name="description" content="Калькулятор ветровых нагрузок по СН 2.01.05‑2019: стены и кровля, два направления ветра, учёт cscd/cpi и площадей элементов. Подробный отчёт с формулами выводится только при печати/PDF. Подсказки под всеми полями." />
   <style>
-    :root{ --bg:#0b1020; --card:#111730; --ink:#eaf1ff; --muted:#b7c4e0; --acc:#8ab4ff; --ok:#1cc29f; --warn:#ffb74d; --grid:12px; --radius:18px; --shadow:0 10px 30px rgba(0,0,0,.35) }
+    :root{ --bg:#0a0f1a; --card:#121826; --ink:#e7eefc; --muted:#9fb0d0; --line:#1e2740; --accent:#7aa2ff; --radius:16px; --shadow:0 8px 22px rgba(0,0,0,.35); --col-left:520px; --gap:18px; --max:1240px }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{ margin:0; font-family: Inter, system-ui, Roboto, Segoe UI, Arial, sans-serif; background:radial-gradient(1200px 800px at 20% -10%, #1a2453 0%, transparent 55%), radial-gradient(900px 600px at 120% 10%, #162048 0%, transparent 50%), var(--bg); color:var(--ink); }
-    .container{max-width:1200px; margin:0 auto; padding: 24px 28px}
-    header{display:flex; gap:16px; align-items:center; justify-content:space-between; flex-wrap:wrap}
+    body{margin:0; font-family:Inter, system-ui, Roboto, Segoe UI, Arial, sans-serif; background:var(--bg); color:var(--ink)}
+    .container{max-width:var(--max); margin:0 auto; padding:22px}
+    header{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
     .title{display:flex; align-items:center; gap:12px}
-    .logo{width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg,#90caf9,#5e35b1); display:grid; place-items:center; box-shadow:var(--shadow)}
-    .logo svg{filter:drop-shadow(0 4px 10px rgba(0,0,0,.4))}
-    h1{font-size: clamp(20px, 2.4vw, 28px); line-height:1.2; margin:0}
+    .logo{width:38px; height:38px; background:#2b375a; border-radius:10px; display:grid; place-items:center}
+    h1{margin:0; font-size:22px}
     .badge{font-size:12px; color:var(--muted)}
-    .actions{display:flex; gap:10px; flex-wrap:wrap}
-    button{appearance:none; border:none; background:#263166; color:var(--ink); padding:12px 16px; border-radius:12px; cursor:pointer; transition: transform .06s ease, background .2s ease, box-shadow .2s ease; box-shadow: 0 6px 18px rgba(26,34,80,.35)}
-    button:hover{background:#2d3a7a} button:active{transform: translateY(1px)}
-    .btn-ghost{background:transparent; border:1px solid #2b3566}
-    .grid{display:grid; grid-template-columns: 1fr 1.25fr; gap: 18px; margin-top:16px}
-    @media (max-width: 980px){ .grid{grid-template-columns: 1fr} }
+    .actions{display:flex; gap:8px}
+    .btn{appearance:none; border:1px solid var(--line); background:#1a2340; color:var(--ink); padding:10px 14px; border-radius:10px; cursor:pointer}
+    .btn:hover{background:#213058}
+    .btn.secondary{background:transparent}
 
-    .card{background:linear-gradient(180deg, rgba(255,255,255,.04), transparent 40%) ,var(--card); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); box-shadow:var(--shadow)}
-    .card h2{margin:0 0 14px; font-size: clamp(16px, 1.7vw, 20px)}
-    .card .hd{display:flex; align-items:center; justify-content:space-between; padding:16px 16px 0}
-    .card .bd{padding:16px}
+    .grid{display:grid; grid-template-columns: var(--col-left) 1fr; gap:var(--gap); margin-top:14px}
+    @media (max-width: 1000px){ .grid{grid-template-columns: 1fr} }
 
-    .row{display:grid; grid-template-columns: 1fr 1fr; gap:12px}
-    @media (max-width: 640px){ .row{grid-template-columns: 1fr} }
+    .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow)}
+    .card .hd{padding:14px 14px 0}
+    .card .bd{padding:14px}
+    .card h2{margin:0 0 10px; font-size:16px}
 
     label{font-size:12px; color:var(--muted); display:block; margin:4px 0}
-    input, select, textarea{width:100%; padding:12px 12px; border-radius:12px; border:1px solid #2a3564; background:#0f1532; color:var(--ink); outline:none; transition: box-shadow .2s ease, border-color .2s ease}
-    input:focus, select:focus, textarea:focus{box-shadow: 0 0 0 3px rgba(138,180,255,.25); border-color:#3b55b9}
+    input, select, textarea{width:100%; padding:10px 12px; border-radius:10px; background:#0f1528; color:var(--ink); border:1px solid var(--line); outline:none}
+    input:focus, select:focus, textarea:focus{border-color:#2c4ec4; box-shadow:0 0 0 3px rgba(122,162,255,.18)}
+    .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+    @media (max-width:640px){ .row{grid-template-columns:1fr} }
 
-    details{border:1px dashed #33407a; border-radius:12px; padding:8px 12px; background:#0c1435}
-    details + details{margin-top:10px}
-    summary{cursor:pointer; color:var(--acc)}
+    .hint{font-size:11px; color:var(--muted); margin-top:6px; line-height:1.45}
+    .hint code{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:11px}
 
-    .results-enter{opacity:0; transform: translateY(6px)}
-    .results-enter.active{opacity:1; transform:none; transition: opacity .35s ease, transform .35s ease}
-
-    table{width:100%; border-collapse: collapse; font-size:14px}
-    th, td{padding:10px 8px; border-bottom:1px dashed rgba(255,255,255,.08); text-align:right}
+    table{width:100%; border-collapse:collapse; font-size:13px}
+    th,td{padding:8px; border-bottom:1px dashed rgba(255,255,255,.08); text-align:right}
     th:first-child, td:first-child{text-align:left}
-    tbody tr:hover{background:rgba(255,255,255,.03)}
-    .pill{display:inline-block; padding:4px 8px; border-radius:999px; background:#1b233f; border:1px solid #2b3566; font-size:12px}
-    .kpi{display:grid; grid-template-columns: repeat(4,1fr); gap:12px}
-    @media (max-width: 780px){ .kpi{grid-template-columns: repeat(2,1fr)} }
-    .kpi .itm{background: #0f1532; border:1px solid #2a3564; border-radius: 14px; padding: 12px}
-    .kpi .v{font-size: clamp(18px, 2.2vw, 22px); font-weight:700}
+
+    .pill{display:inline-block; padding:4px 8px; border-radius:999px; background:#16203a; border:1px solid var(--line); font-size:12px}
+    .kpi{display:grid; grid-template-columns: repeat(4,1fr); gap:10px}
+    @media (max-width:900px){ .kpi{grid-template-columns: repeat(2,1fr)} }
+    .kpi .itm{background:#0f1528; border:1px solid var(--line); border-radius:12px; padding:10px}
+    .kpi .v{font-size:18px; font-weight:700}
     .kpi .t{font-size:12px; color:var(--muted)}
 
-    .footer{margin:18px 0 0; color:var(--muted); font-size:12px}
-    .floatbar{position:sticky; bottom:10px; display:flex; gap:8px; justify-content:flex-end; padding:8px}
-
+    /* Отчёт скрыт на экране, виден только при печати */
+    .print-only{display:none}
     @media print{
       body{background:#fff; color:#000}
       .card, .kpi .itm{background:#fff; border:1px solid #ddd; box-shadow:none}
-      button, .actions, .tabs { display:none !important }
-      .footer{color:#444}
+      .actions, .btn, .floatbar{display:none !important}
+      .report{white-space:pre-wrap; font-family:Consolas, monospace; font-size:12px; line-height:1.45; background:#fff; border:1px solid #ccc; border-radius:8px; padding:10px}
+      .print-only{display:block}
     }
   </style>
 </head>
@@ -69,44 +64,43 @@
   <div class="container">
     <header>
       <div class="title">
-        <div class="logo" aria-hidden="true">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 12c0-4.418 3.582-8 8-8a8 8 0 017.07 4.195c.232.41-.096.905-.565.905H17.5a.75.75 0 00-.53.22L6.22 19.595A.75.75 0 015 19.06V12z" fill="white" fill-opacity=".9"/>
-            <path d="M20 12a8 8 0 01-8 8 8 8 0 01-7.07-4.195c-.232-.41.096-.905.565-.905H6.5a.75.75 0 00.53-.22l10.75-10.75A.75.75 0 0119 4.94V12z" fill="#8ab4ff" fill-opacity=".9"/>
-          </svg>
+        <div class="logo">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 12a8 8 0 118 8V4a8 8 0 00-8 8z" fill="#7aa2ff"/></svg>
         </div>
         <div>
           <h1>Калькулятор ветровой нагрузки</h1>
-          <div class="badge">СН 2.01.05‑2019 / EN 1991‑1‑4 · FULL</div>
+          <div class="badge">СН 2.01.05‑2019 / EN 1991‑1‑4</div>
         </div>
       </div>
       <div class="actions">
-        <button id="btn-calc">Рассчитать</button>
-        <button class="btn-ghost" id="btn-print">Печать / PDF</button>
-        <button class="btn-ghost" id="btn-copy">Копия итогов</button>
+        <button class="btn" data-action="calc">Рассчитать</button>
+        <button class="btn secondary" data-action="print">Печать / PDF</button>
+        <button class="btn secondary" data-action="copy">Копия отчёта</button>
       </div>
     </header>
 
     <div class="grid">
-      <!-- Left: Inputs -->
+      <!-- Левая панель: ввод -->
       <section class="card" aria-labelledby="inputs-h2">
         <div class="hd"><h2 id="inputs-h2">Входные данные</h2></div>
         <div class="bd">
-
           <div class="row">
             <div>
-              <label>Размеры здания, м (длина L)</label>
-              <input type="number" step="0.01" id="L" value="60"/>
+              <label>L, м (длина)</label>
+              <input type="number" step="0.01" id="L" value="60">
+              <div class="hint">Горизонтальный размер вдоль длинной стороны здания.</div>
             </div>
             <div>
-              <label>Размеры здания, м (ширина B)</label>
-              <input type="number" step="0.01" id="B" value="24"/>
+              <label>B, м (ширина)</label>
+              <input type="number" step="0.01" id="B" value="24">
+              <div class="hint">Горизонтальный размер вдоль короткой стороны (поперёк длинной).</div>
             </div>
           </div>
           <div class="row">
             <div>
-              <label>Высота до карниза/аттика h, м</label>
-              <input type="number" step="0.01" id="H" value="12"/>
+              <label>h, м (высота до карниза/аттика)</label>
+              <input type="number" step="0.01" id="H" value="12">
+              <div class="hint">Расчётная высота здания до карниза/аттика (без учёта кровельных надстроек).</div>
             </div>
             <div>
               <label>Тип кровли</label>
@@ -114,309 +108,378 @@
                 <option value="flat">Плоская</option>
                 <option value="gable">Двускатная</option>
               </select>
+              <div class="hint">Для двускатной укажите уклон <code>α</code> и направление ветра к коньку <code>θ</code>: 90° — ветер ⟂ коньку; 0° — ∥ коньку.</div>
             </div>
           </div>
           <div class="row" id="slopeRow" style="display:none">
             <div>
-              <label>Угол уклона кровли, °</label>
-              <input type="number" step="0.5" id="slope" value="15"/>
+              <label>Уклон α, °</label>
+              <input type="number" step="0.5" id="slope" value="15">
+              <div class="hint">Угол ската к горизонту. Коэф. кровли интерполируются по <code>α</code>.</div>
             </div>
             <div>
-              <label>Угол атаки ветра к коньку</label>
+              <label>Угол к коньку θ</label>
               <select id="theta">
-                <option value="90" selected>θ = 90° (ветер ⟂ коньку)</option>
-                <option value="0">θ = 0° (ветер ∥ коньку)</option>
+                <option value="90" selected>90° (⊥ к коньку)</option>
+                <option value="0">0° (∥ к коньку)</option>
               </select>
+              <div class="hint">Относительное направление ветра к линии конька.</div>
             </div>
           </div>
 
-          <hr style="border:none; border-top:1px dashed rgba(255,255,255,.15); margin:12px 0"/>
+          <hr style="border:none;border-top:1px solid var(--line);margin:12px 0">
 
           <div class="row">
             <div>
-              <label>Ветровой район РБ / базовая скорость vb,0, м/с</label>
+              <label>Ветровой район / vb,0, м/с</label>
               <div class="row">
                 <select id="region">
-                  <option value="custom">Задам vb,0 вручную</option>
-                  <option value="I">Район I</option>
-                  <option value="II" selected>Район II</option>
-                  <option value="III">Район III</option>
+                  <option value="custom">Вручную</option>
+                  <option value="I">I</option>
+                  <option value="II" selected>II</option>
+                  <option value="III">III</option>
                 </select>
-                <input type="number" step="0.1" id="vb0" value="24"/>
+                <input type="number" step="0.1" id="vb0" value="24">
               </div>
+              <div class="hint">Выберите район (I/II/III) или введите базовую скорость <code>v_b,0</code> вручную. Значения районов редактируются ниже.</div>
             </div>
             <div>
-              <label>Коэффициенты направл. и сезонности (cdir, cseason)</label>
+              <label>cdir / cseason</label>
               <div class="row">
-                <input type="number" step="0.01" id="cdir" value="1.0"/>
-                <input type="number" step="0.01" id="cseason" value="1.0"/>
+                <input type="number" step="0.01" id="cdir" value="1.0">
+                <input type="number" step="0.01" id="cseason" value="1.0">
               </div>
+              <div class="hint"><code>c_dir</code> — направленность (роза ветров); <code>c_season</code> — сезонность. Если нет специальных данных — оставьте 1.00.</div>
             </div>
           </div>
 
           <div class="row">
             <div>
-              <label>Тип местности (категория)</label>
+              <label>Категория местности</label>
               <select id="terrain">
-                <option value="0">0 — Открытая вода/берег</option>
-                <option value="I">I — Открытая местность</option>
-                <option value="II" selected>II — С/х угодья</option>
-                <option value="III">III — Пригород/лес</option>
-                <option value="IV">IV — Центр города</option>
+                <option value="0">0 — вода/берег</option>
+                <option value="I">I — открытая</option>
+                <option value="II" selected>II — сельхоз</option>
+                <option value="III">III — пригород/лес</option>
+                <option value="IV">IV — центр города</option>
               </select>
+              <div class="hint">Шероховатость подстилающей поверхности (задаёт <code>z₀</code> и <code>z_min</code>). Для равнинной незастроенной местности обычно II.</div>
             </div>
             <div>
-              <label>Ороография c<sub>o</sub>(z)</label>
-              <input type="number" step="0.01" id="co" value="1.0"/>
+              <label>Ороография cₒ(z)</label>
+              <input type="number" step="0.01" id="co" value="1.0">
+              <div class="hint"><code>cₒ(z)</code> учитывает ускорение потока на склонах/уступах. На ровной местности — 1.00.</div>
             </div>
           </div>
 
           <div class="row">
             <div>
-              <label>Внутреннее давление c<sub>pi</sub> (± будет учтено)</label>
-              <input type="number" step="0.05" id="cpi" value="0.2"/>
+              <label>Внутр. давление c_pi</label>
+              <div class="row">
+                <select id="cpiMode">
+                  <option value="autoSmall">Малая проницаемость (±0.2)</option>
+                  <option value="autoMedium" selected>Средняя (±0.3)</option>
+                  <option value="autoLarge">Большая (±0.5)</option>
+                  <option value="manual">Вручную</option>
+                </select>
+                <input type="number" step="0.05" id="cpi" value="0.3">
+              </div>
+              <div class="hint">Автовыбор по проницаемости или ручной ввод по расчёту/отверстиям. В каждой зоне берётся неблагоприятный знак <code>±c_pi</code>.</div>
             </div>
             <div>
-              <label>Плотность воздуха ρ, кг/м³</label>
-              <input type="number" step="0.01" id="rho" value="1.25"/>
+              <label>ρ, кг/м³</label>
+              <input type="number" step="0.01" id="rho" value="1.25">
+              <div class="hint">Плотность воздуха. Типично 1.25 кг/м³; корректируйте при нетипичных условиях.</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>c_s c_d (структурный фактор)</label>
+              <div class="row">
+                <select id="cscdMode">
+                  <option value="1" selected>Не учитывать (1.0)</option>
+                  <option value="manual">Задать вручную</option>
+                </select>
+                <input type="number" step="0.01" id="cscd" value="1.00">
+              </div>
+              <div class="hint"><code>c_s c_d</code> — порывистость и динамический отклик. Для жёстких низких зданий обычно 1.00. Для гибких/высотных задайте по динамическому расчёту.</div>
+            </div>
+            <div>
+              <label>Режим</label>
+              <select id="mode">
+                <option value="mwfrs" selected>Главная система (MWFRS)</option>
+                <option value="cladding">Ограждения/крепёж</option>
+              </select>
+              <div class="hint">MWFRS — нагрузки на несущую систему. «Ограждения» — локальные давления на панели/крепёж (с поправками для малых площадей).</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Площадь элемента A (для ограждений), м²</label>
+              <div class="row">
+                <select id="areaClass">
+                  <option value=">=10" selected>≥ 10 м²</option>
+                  <option value="<=10">≤ 10 м²</option>
+                  <option value="<=1">≤ 1 м²</option>
+                </select>
+                <input type="number" step="0.1" id="Aelem" value="20">
+              </div>
+              <div class="hint">Класс площади влияет на локальные <code>c_pe</code>. Чем меньше элемент, тем неблагоприятнее давления (уточняйте по таблицам СН).</div>
+            </div>
+            <div>
+              <label>Поправки Δc_pe (≤10 / ≤1)</label>
+              <div class="row">
+                <input type="number" step="0.1" id="deltaPe10" value="-0.2">
+                <input type="number" step="0.1" id="deltaPe1" value="-0.4">
+              </div>
+              <div class="hint">Автоматически прибавляются к базовым <code>c_pe</code> при выборе классов ≤10 или ≤1 м².</div>
             </div>
           </div>
 
           <details>
-            <summary>Расширенные настройки (c<sub>pe</sub> зон, e‑полосы, карта районов)</summary>
-            <div class="bd" style="padding:8px 0 0">
+            <summary>Расширенные настройки</summary>
+            <div class="bd" style="padding:10px 0 0">
               <div class="row">
                 <div>
-                  <label>Ширина краевых полос стен e = min(0.2·b, 0.2·h)</label>
-                  <input type="number" step="0.01" id="eFactor" value="0.2"/>
+                  <label>Ширина краевых полос стен: e = min(0.2·b, 0.2·h)</label>
+                  <input type="number" step="0.01" id="eFactor" value="0.2">
+                  <div class="hint">Для стен: <code>e</code> по меньшему из 0.2·b (поперёк ветра) и 0.2·h. В полосах — иные <code>c_pe</code>.</div>
                 </div>
                 <div>
-                  <label>Кровля: e = 0.2·min(b, 2h) (b ⟂ ветру)</label>
-                  <input type="number" step="0.01" id="eRoofFactor" value="0.2" readonly/>
+                  <label>Кровля: e = k·min(b, 2h); k</label>
+                  <input type="number" step="0.01" id="eRoofFactor" value="0.2">
+                  <div class="hint">Для кровель: <code>b</code> — поперёк ветра. Обычно <code>k=0.2</code>.</div>
                 </div>
               </div>
 
               <details>
-                <summary>Коэф. внешнего давления для стен (c<sub>pe</sub>)</summary>
+                <summary>c_pe стен (базовые)</summary>
                 <div class="row">
                   <div>
-                    <label>Наветренная стена (зона D)</label>
-                    <input id="cpeWallWindward" value="0.8" />
+                    <label>Наветренная (D)</label>
+                    <input id="cpeWallWindward" value="0.8">
+                    <div class="hint">Коэф. внешнего давления на наветренную стену.</div>
                   </div>
                   <div>
-                    <label>Боковые стены (зоны A/B/C)</label>
-                    <input id="cpeWallSide" value="-0.7,-0.7,-0.7" />
+                    <label>Боковые (A/B/C)</label>
+                    <input id="cpeWallSide" value="-0.7,-0.7,-0.7">
+                    <div class="hint">Коэф. для боковых зон A/B/C (краевые/средние полосы).</div>
                   </div>
                 </div>
                 <div class="row">
                   <div>
-                    <label>Подветренная стена (зона E)</label>
-                    <input id="cpeWallLeeward" value="-0.5" />
+                    <label>Подветренная (E)</label>
+                    <input id="cpeWallLeeward" value="-0.5">
+                    <div class="hint">Коэф. внешнего давления на подветренную стену.</div>
                   </div>
-                  <div>
-                    <label>Примечание</label>
-                    <textarea rows="3" readonly>Зоны стен: A/B/C — боковые, D — наветренная, E — подветренная. Значения по умолчанию ориентировочные (EC‑подобные). Уточняйте по СН 2.01.05‑2019.</textarea>
-                  </div>
+                  <div><label class="hint">Значения по умолчанию ориентировочные — проверьте по вашей редакции СН 2.01.05‑2019.</label></div>
                 </div>
               </details>
 
               <details>
-                <summary>Коэф. внешнего давления для кровли (c<sub>pe</sub>)</summary>
+                <summary>c_pe кровли (базовые)</summary>
                 <div class="row">
                   <div>
-                    <label>Плоская: F (наветр. кромка), G (боковые+подветр.), H (центр)</label>
-                    <input id="cpeFlat" value="-1.5,-1.0,-0.7" />
+                    <label>Плоская (F,G,H)</label>
+                    <input id="cpeFlat" value="-1.5,-1.0,-0.7">
+                    <div class="hint">F — наветр. кромка; G — боковые/подветр.; H — центр.</div>
                   </div>
                   <div>
-                    <label>Двускатная θ=90° (перпендикулярно коньку): F,G,H,I при α=15°</label>
-                    <input id="cpeGable15" value="-0.9,-0.7,-0.5,-0.3" />
+                    <label>Двускатная θ=90° (α=15°: F,G,H,I)</label>
+                    <input id="cpeGable15" value="-0.9,-0.7,-0.5,-0.3">
+                    <div class="hint">Ветер ⟂ коньку, уклон 15°.</div>
                   </div>
                 </div>
                 <div class="row">
                   <div>
-                    <label>Двускатная θ=90°: F,G,H,I при α=30°</label>
-                    <input id="cpeGable30" value="-1.1,-0.9,-0.6,-0.4" />
+                    <label>Двускатная θ=90° (α=30°)</label>
+                    <input id="cpeGable30" value="-1.1,-0.9,-0.6,-0.4">
                   </div>
                   <div>
-                    <label>Двускатная θ=90°: F,G,H,I при α=45°</label>
-                    <input id="cpeGable45" value="-1.3,-1.0,-0.7,-0.5" />
+                    <label>Двускатная θ=90° (α=45°)</label>
+                    <input id="cpeGable45" value="-1.3,-1.0,-0.7,-0.5">
                   </div>
                 </div>
                 <div class="row">
                   <div>
-                    <label>Двускатная θ=0°: F,G,H,I,J при α=15°</label>
-                    <input id="cpeGable0_15" value="0.2,-0.6,-0.9,-0.4,-0.3" />
+                    <label>Двускатная θ=0° (α=15°: F,G,H,I,J)</label>
+                    <input id="cpeGable0_15" value="0.2,-0.6,-0.9,-0.4,-0.3">
+                    <div class="hint">Ветер ∥ коньку, уклон 15°.</div>
                   </div>
                   <div>
-                    <label>Двускатная θ=0°: F,G,H,I,J при α=30°</label>
-                    <input id="cpeGable0_30" value="0.2,-0.7,-1.0,-0.5,-0.4" />
+                    <label>Двускатная θ=0° (α=30°)</label>
+                    <input id="cpeGable0_30" value="0.2,-0.7,-1.0,-0.5,-0.4">
                   </div>
                 </div>
-                <small class="muted">Для промежуточных уклонов — линейная интерполяция по α. Значения по умолчанию ориентировочные — проверьте по СН 2.01.05‑2019.</small>
+                <div class="hint">Для промежуточных уклонов — линейная интерполяция по <code>α</code>. Табличные значения сверяйте с СН.</div>
               </details>
 
               <details>
-                <summary>Карта ветровых районов (подстановка vb,0)</summary>
+                <summary>Карта ветровых районов (vb,0)</summary>
                 <div class="row">
                   <div>
-                    <label>vb,0 для районов I/II/III (м/с)</label>
-                    <input id="regionsMap" value="22,24,26" />
+                    <label>vb,0 для I/II/III (м/с)</label>
+                    <input id="regionsMap" value="22,24,26">
                   </div>
+                  <div><label class="hint">Эти значения подставляются при выборе района I/II/III.</label></div>
+                </div>
+              </details>
+
+              <details>
+                <summary>Высоты отсчёта z_e</summary>
+                <div class="row">
                   <div>
-                    <label>Комментарий</label>
-                    <textarea rows="3" readonly>Заполните по вашей карте. При выборе района vb,0 подставится отсюда.</textarea>
+                    <label>Режим</label>
+                    <select id="zeMode">
+                      <option value="auto" selected>Авто (стены/кровля = h; внутр. = h)</option>
+                      <option value="manual">Вручную</option>
+                    </select>
+                    <div class="hint">По умолчанию <code>z_e</code> берётся на уровне <code>h</code>. При необходимости задайте отдельно внешнюю/внутреннюю высоты.</div>
                   </div>
+                  <div></div>
+                </div>
+                <div class="row" id="zeManualRow" style="display:none">
+                  <div><label>z_e,ext (внешнее), м</label><input type="number" step="0.1" id="zeExt" value="12"></div>
+                  <div><label>z_e,int (внутреннее), м</label><input type="number" step="0.1" id="zeInt" value="12"></div>
                 </div>
               </details>
             </div>
           </details>
-
         </div>
       </section>
 
-      <!-- Right: Results -->
+      <!-- Правая панель: результаты -->
       <section class="card" aria-labelledby="results-h2">
         <div class="hd">
           <h2 id="results-h2">Результаты</h2>
-          <div class="pill" id="status">Ожидание входных данных…</div>
+          <div class="pill" id="status" role="status" aria-live="polite">Готов к расчёту…</div>
         </div>
-        <div class="bd results-enter" id="results">
+        <div class="bd" id="results">
           <div class="kpi">
-            <div class="itm"><div class="t">Базовая скорость vb,0</div><div class="v" id="kpi-vb0">—</div></div>
-            <div class="itm"><div class="t">Расчётная скорость vb</div><div class="v" id="kpi-vb">—</div></div>
-            <div class="itm"><div class="t">Коэф. турбулентности Iv</div><div class="v" id="kpi-iv">—</div></div>
-            <div class="itm"><div class="t">Пиковое давление qp(z), Па</div><div class="v" id="kpi-qp">—</div></div>
+            <div class="itm"><div class="t">vb,0</div><div class="v" id="kpi-vb0">—</div></div>
+            <div class="itm"><div class="t">vb</div><div class="v" id="kpi-vb">—</div></div>
+            <div class="itm"><div class="t">Iv(h)</div><div class="v" id="kpi-iv">—</div></div>
+            <div class="itm"><div class="t">qp(h), Па</div><div class="v" id="kpi-qp">—</div></div>
           </div>
 
           <div style="height:10px"></div>
-
           <div id="cases"></div>
 
-          <div class="footer">⚠️ Для плоской кровли: F — наветренная кромка; G — боковые и подветренная; H — центр. e = 0,2·min(b, 2h), где b — поперёк ветра. Проверьте c<sub>pe</sub> по вашей редакции СН 2.01.05‑2019.</div>
+          <div style="height:10px"></div>
+          <h2 style="margin:0 0 6px">Подробный отчёт (только в PDF)</h2>
+          <div class="report print-only" id="report">—</div>
         </div>
       </section>
-    </div>
-
-    <div class="floatbar">
-      <button class="btn-ghost" id="btn-copy">Копия итогов</button>
-      <button class="btn-ghost" id="btn-print">Печать / PDF</button>
     </div>
   </div>
 
   <script>
-    // ---------- Константы ----------
-    const RHO = 1.25; // кг/м³
+    // ===== Константы
+    const RHO = 1.25;
     const Z0_MAP = { "0":0.003, "I":0.01, "II":0.05, "III":0.3, "IV":1.0 };
     const ZMIN_MAP = { "0":1, "I":1, "II":2, "III":5, "IV":10 };
 
-    // ---------- Утилиты ----------
-    const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
-    const fmt = (v, d=2) => (isFinite(v) ? Number(v).toFixed(d) : "—");
-    const $ = sel => document.querySelector(sel);
-    const $$ = sel => Array.from(document.querySelectorAll(sel));
-    function parseList(str, expect=3){ const arr=String(str).split(/[,;\s]+/).filter(Boolean).map(Number); while(arr.length<expect) arr.push(arr[arr.length-1] ?? 0); return arr.slice(0,expect); }
+    // ===== Утилиты
+    const clamp=(v,min,max)=>Math.min(Math.max(v,min),max);
+    const fmt=(v,d=2)=>Number.isFinite(v)?Number(v).toFixed(d):'—';
+    const $=s=>document.querySelector(s);
+    const $$=s=>Array.from(document.querySelectorAll(s));
+    function parseList(str,expect=3){ const a=String(str).split(/[,;\s]+/).filter(Boolean).map(Number).filter(Number.isFinite); while(a.length<expect)a.push(a[a.length-1]??0); return a.slice(0,expect); }
 
-    // ---------- Профиль скорости / пик. давление ----------
-    function cr(z, z0){ const k = 0.19 * Math.pow(z0/0.05, 0.07); const zc = Math.max(z, 1.0001*z0); return k * Math.log(zc / z0); }
-    function Iv(z, z0){ const kI = 1.0; const zc = Math.max(z, 1.0001*z0); return (kI / Math.log(zc / z0)) * Math.pow(z0/0.05, 0.07); }
-    function peakPressure(rho, vb, z, z0, co){ const vm = cr(z, z0) * (co||1) * vb; const iv = Iv(z, z0); const qp = 0.5 * rho * vm * vm * (1 + 7*iv); return { vm, iv, qp };
-    }
+    // ===== Профиль / qp
+    function kCoef(z0){return 0.19*Math.pow(z0/0.05,0.07)}
+    function cr(z,z0){const k=kCoef(z0);const zc=Math.max(z,1.0001*z0);return k*Math.log(zc/z0)}
+    function Iv(z,z0){const zc=Math.max(z,1.0001*z0);return (1/Math.log(zc/z0))*Math.pow(z0/0.05,0.07)}
+    function peakPressure(rho,vb,z,z0,co){const vm=cr(z,z0)*(co||1)*vb;const iv=Iv(z,z0);const qp=0.5*rho*vm*vm*(1+7*iv);return{vm,iv,qp}}
 
-    // ---------- Геометрия зон ----------
-    function zonesForWalls(L,B,H, eFactor, caseType){ const along=caseType==='long'?B:L; const across=caseType==='long'?L:B; const e=Math.min(eFactor*along, eFactor*H); return { e, along, across } }
-    function eRoofFor(caseType, L, B, H){ const b = (caseType==='long') ? B : L; return 0.2 * Math.min(b, 2*H); }
+    // ===== Геометрия
+    function zonesForWalls(L,B,H,eFactor,caseType){ const along=caseType==='long'?B:L; const across=caseType==='long'?L:B; const e=Math.min(eFactor*along, eFactor*H); return { e, along, across } }
+    function eRoofFor(caseType,L,B,H){ const b=(caseType==='long')?B:L; const k=parseFloat($('#eRoofFactor').value)||0.2; return k*Math.min(b,2*H) }
 
-    // ---------- UI helpers ----------
-    function status(msg, tone=""){ const el = $('#status'); el.textContent = msg; el.style.background = tone==='ok'?'rgba(28,194,159,.15)':tone==='warn'?'rgba(255,183,77,.15)':'rgba(138,180,255,.12)'; el.style.borderColor = tone==='ok'?'rgba(28,194,159,.4)':tone==='warn'?'rgba(255,183,77,.4)':'#2b3566'; }
-    function buildTable(title, note, rows){ const thead = `<thead><tr><th>Зона</th><th>c<sub>pe</sub></th><th>w<sub>e</sub>=c<sub>pe</sub>·q<sub>p</sub> (Па)</th><th>w<sub>net</sub> (учёт ±c<sub>pi</sub>) (Па)</th></tr></thead>`; const tbody = `<tbody>${rows.map(r=>`<tr><td>${r.zone}</td><td>${fmt(r.cpe,2)}</td><td>${fmt(r.we,0)}</td><td>${fmt(r.wnet,0)}</td></tr>`).join('')}</tbody>`; return `<div class="card" style="margin-top:12px"><div class="hd"><h2>${title}</h2><span class="pill">${note}</span></div><div class="bd"><table>${thead+tbody}</table></div></div>`; }
-    function buildCaseBlock(name, wallData, roofData){ const html = `
-      <div class="card" style="margin-top:12px">
-        <div class="hd"><h2>${name}</h2><span class="pill">Стены: e=${fmt(wallData.e,2)} м · Фронт=${fmt(wallData.across,2)} м · Глубина=${fmt(wallData.along,2)} м</span></div>
-        <div class="bd">
-          <div class="row">
-            <div>${buildTable('Наветренная стена','зона D',wallData.windward)}</div>
-            <div>${buildTable('Боковые стены','зоны A/B/C',wallData.side)}</div>
-          </div>
-          <div style="height:8px"></div>
-          <div>${buildTable('Подветренная стена','зона E',wallData.leeward)}</div>
-          <div style="height:8px"></div>
-          <div>${buildTable(roofData.title, roofData.note, roofData.rows)}</div>
-        </div>
-      </div>`; return html; }
-    function copyResults(){ const txt = $('#cases').innerText.trim(); if(!txt){ status('Нечего копировать','warn'); return; } navigator.clipboard.writeText(txt).then(()=> status('Итоги скопированы в буфер','ok')); }
+    // ===== Расчётные хелперы
+    function getCpiAbs(){ const m=$('#cpiMode').value; if(m==='manual') return Math.abs(parseFloat($('#cpi').value)||0); if(m==='autoSmall') return 0.2; if(m==='autoMedium') return 0.3; return 0.5 }
+    function getCscd(apply){ const m=$('#cscdMode').value; if(!apply) return 1.0; if(m==='manual') return Math.max(0.5, parseFloat($('#cscd').value)||1); return 1.0 }
+    function areaDelta(){ if($('#mode').value!=='cladding') return 0; const c=$('#areaClass').value; if(c==='<=1') return parseFloat($('#deltaPe1').value)||0; if(c==='<=10') return parseFloat($('#deltaPe10').value)||0; return 0 }
+    function netPressure(cpeBase, qpExt, qpInt, applyCscd){ const d=areaDelta(); const cpe=(Number.isFinite(cpeBase)?cpeBase:0)+d; const cscd=getCscd(applyCscd); const we=cpe*qpExt*cscd; const cpi=getCpiAbs(); const w1=we - cpi*qpInt; const w2=we + cpi*qpInt; const wnet=Math.abs(w1)>=Math.abs(w2)?w1:w2; return{zone:'', cpe,we,wnet,cscd,cpi,delta:d} }
 
-    // ---------- Основной расчёт ----------
+    // ===== Таблицы/блоки
+    function buildTable(title,note,rows){ const thead=`<thead><tr><th>Зона</th><th>c<sub>pe</sub></th><th>w<sub>e</sub>=c<sub>pe</sub>·q<sub>p,ext</sub>·(c<sub>s</sub>c<sub>d</sub>)</th><th>w<sub>net</sub>=w<sub>e</sub>±c<sub>pi</sub>·q<sub>p,int</sub></th></tr></thead>`; const tbody=`<tbody>${rows.map(r=>`<tr><td>${r.zone}</td><td>${fmt(r.cpe,2)}</td><td>${fmt(r.we,0)}</td><td>${fmt(r.wnet,0)}</td></tr>`).join('')}</tbody>`; return `<div class="card" style="margin-top:12px"><div class="hd"><h2>${title}</h2><span class="pill">${note}</span></div><div class="bd"><table>${thead+tbody}</table></div></div>` }
+    function buildCaseBlock(name,wallData,roofData){ return `<div class="card" style="margin-top:12px"><div class="hd"><h2>${name}</h2><span class="pill">Стены: e=${fmt(wallData.e,2)} м, фронт=${fmt(wallData.across,2)} м</span></div><div class="bd"><div class="row"><div>${buildTable('Наветренная','D',wallData.windward)}</div><div>${buildTable('Боковые','A/B/C',wallData.side)}</div></div><div style="height:8px"></div><div>${buildTable('Подветренная','E',wallData.leeward)}</div><div style="height:8px"></div><div>${buildTable(roofData.title,roofData.note,roofData.rows)}</div></div></div>` }
+
+    // ===== Отчёт (для печати)
+    function headerReport(ctx){ const {L,B,H,roofType,slope,theta,region,vb0,cdir,cseason,terrain,z0,zmin,co,zeExt,zeInt,rho,vb,ext,intp,mode}=ctx; const lines=[]; lines.push('— ВХОДНЫЕ ДАННЫЕ —'); lines.push(`L=${fmt(L,2)} м; B=${fmt(B,2)} м; h=${fmt(H,2)} м; кровля=${roofType==='flat'?'плоская':`двускатная (α=${fmt(slope,1)}°, θ=${theta}°)`}`); lines.push(`Регион=${region}; vb,0=${fmt(vb0,1)} м/с; cdir=${fmt(cdir,2)}; cseason=${fmt(cseason,2)}`); lines.push(`vb = vb,0·cdir·cseason = ${fmt(vb0,1)}·${fmt(cdir,2)}·${fmt(cseason,2)} = ${fmt(vb,2)} м/с`); lines.push(`Местность: ${terrain} → z0=${z0} м; zmin=${zmin} м; co=${fmt(co,2)}; ρ=${fmt(rho,2)} кг/м³`); lines.push(`z_e,ext=${fmt(zeExt,2)} м; z_e,int=${fmt(zeInt,2)} м`); lines.push('— ПРОФИЛЬ И q_p —'); const k=kCoef(z0); lines.push(`k_r=0.19·(z0/0.05)^0.07=${fmt(k,4)}`); lines.push(`cr(ext)=${fmt(cr(zeExt,z0),4)}; vm(ext)=${fmt(ext.vm,3)} м/с; Iv(ext)=${fmt(ext.iv,4)}; qp(ext)=${fmt(ext.qp,0)} Па`); lines.push(`cr(int)=${fmt(cr(zeInt,z0),4)}; vm(int)=${fmt(intp.vm,3)} м/с; Iv(int)=${fmt(intp.iv,4)}; qp(int)=${fmt(intp.qp,0)} Па`); lines.push('— РЕЖИМЫ —'); lines.push(`Режим: ${mode==='mwfrs'?'MWFRS':'Cladding'}`); const cpiTxt=(function(){const m=$('#cpiMode').value; if(m==='manual') return `c_pi=${fmt(Math.abs(parseFloat($('#cpi').value)||0),2)}`; if(m==='autoSmall') return 'c_pi=±0.20'; if(m==='autoMedium') return 'c_pi=±0.30'; return 'c_pi=±0.50'})(); lines.push(`Внутреннее: ${cpiTxt}`); const cscdTxt = (mode==='mwfrs')?`c_s c_d=${fmt(getCscd(true),2)}`:'c_s c_d=1.00 (не учитывается)'; lines.push(cscdTxt); if($('#mode').value==='cladding'){ lines.push(`Класс площади: ${$('#areaClass').value}; Δ≤10=${fmt(parseFloat($('#deltaPe10').value)||0,2)}; Δ≤1=${fmt(parseFloat($('#deltaPe1').value)||0,2)}`) } return lines }
+    function zoneReport(title,rows,qpExt,qpInt){ const lines=[`\n— ${title} —`]; rows.forEach(r=>{ const wplus=r.we + r.cpi*qpInt; const wminus=r.we - r.cpi*qpInt; const picked=Math.abs(wplus)>=Math.abs(wminus)?'w_e + c_pi·q_p,int':'w_e - c_pi·q_p,int'; lines.push(`Зона ${r.zone}: c_pe=${fmt(r.cpe,2)}; w_e=${fmt(r.we,0)} Па; w_net=${picked} = ${fmt(r.wnet,0)} Па`) }); return lines }
+
+    // ===== Основной расчёт
     function calc(){
-      const L = parseFloat($('#L').value); const B = parseFloat($('#B').value); const H = parseFloat($('#H').value);
-      const roofType = $('#roofType').value; const slope = parseFloat($('#slope').value||'0'); const theta = parseFloat($('#theta').value||'90');
-      const region = $('#region').value; const vb0 = parseFloat($('#vb0').value); const cdir = parseFloat($('#cdir').value); const cseason = parseFloat($('#cseason').value);
-      const terrain = $('#terrain').value; const co = parseFloat($('#co').value); const cpi = parseFloat($('#cpi').value); const rho = parseFloat($('#rho').value);
-      const eFactor = parseFloat($('#eFactor').value);
+      // Геометрия/кровля
+      const L=parseFloat($('#L').value); const B=parseFloat($('#B').value); const H=parseFloat($('#H').value);
+      const roofType=$('#roofType').value; const slope=parseFloat($('#slope').value||'0'); const theta=parseFloat($('#theta').value||'90');
 
-      const [rI,rII,rIII] = parseList($('#regionsMap').value,3); if(region!=='custom'){ const map = {I:rI, II:rII, III:rIII}; $('#vb0').value = map[region] ?? vb0; }
-      const z0 = Z0_MAP[terrain]; const zmin = ZMIN_MAP[terrain]; const ze = Math.max(H, zmin);
-      const vb = cdir * cseason * vb0; const {vm,iv,qp} = peakPressure(rho||RHO, vb, ze, z0, co);
+      // Регион
+      const region=$('#region').value; const [rI,rII,rIII]=parseList($('#regionsMap').value,3);
+      if(region!=='custom'){ const map={I:rI, II:rII, III:rIII}; $('#vb0').value = map[region] ?? $('#vb0').value }
+      const vb0=parseFloat($('#vb0').value);
 
-      // Стены cpe
-      const cpeWallWindward = parseList($('#cpeWallWindward').value,1); // D
-      const cpeWallSide = parseList($('#cpeWallSide').value,3); // A,B,C
-      const cpeWallLeeward = parseList($('#cpeWallLeeward').value,1); // E
+      const cdir=parseFloat($('#cdir').value); const cseason=parseFloat($('#cseason').value);
+      const terrain=$('#terrain').value; const co=parseFloat($('#co').value); const rho=Math.max(0.5, parseFloat($('#rho').value)||RHO);
+      const eFactor=parseFloat($('#eFactor').value);
 
-      // Кровля cpe
-      const cpeFlat = parseList($('#cpeFlat').value,3); // F,G,H
-      const g15 = parseList($('#cpeGable15').value,4); const g30 = parseList($('#cpeGable30').value,4); const g45 = parseList($('#cpeGable45').value,4); // θ=90° → F,G,H,I
-      const g0_15 = parseList($('#cpeGable0_15').value,5); const g0_30 = parseList($('#cpeGable0_30').value,5); // θ=0° → F,G,H,I,J
+      const z0=Z0_MAP[terrain]; const zmin=ZMIN_MAP[terrain];
+      const zeMode=$('#zeMode').value; const zeExtRaw=zeMode==='manual'?parseFloat($('#zeExt').value):H; const zeIntRaw=zeMode==='manual'?parseFloat($('#zeInt').value):H; const zeExt=Math.max(zeExtRaw,zmin); const zeInt=Math.max(zeIntRaw,zmin);
+
+      const vb=cdir*cseason*vb0;
+      const ext=peakPressure(rho,vb,zeExt,z0,co); const intp=peakPressure(rho,vb,zeInt,z0,co);
+
+      // Наборы cpe кровли
+      const cpeFlat=parseList($('#cpeFlat').value,3);
+      const g15=parseList($('#cpeGable15').value,4), g30=parseList($('#cpeGable30').value,4), g45=parseList($('#cpeGable45').value,4);
+      const g0_15=parseList($('#cpeGable0_15').value,5), g0_30=parseList($('#cpeGable0_30').value,5);
 
       // KPI
-      $('#kpi-vb0').textContent = fmt(vb0,1)+' м/с'; $('#kpi-vb').textContent = fmt(vb,1)+' м/с'; $('#kpi-iv').textContent = fmt(iv,3); $('#kpi-qp').textContent = fmt(qp,0);
-      const casesEl = $('#cases'); casesEl.innerHTML = '';
+      $('#kpi-vb0').textContent = fmt(vb0,1)+' м/с';
+      $('#kpi-vb').textContent  = fmt(vb,1)+' м/с';
+      $('#kpi-iv').textContent  = fmt(ext.iv,3);
+      $('#kpi-qp').textContent  = fmt(ext.qp,0);
 
-      function buildWalls(caseType){
-        const z = zonesForWalls(L,B,H, eFactor, caseType);
-        const windwardRows = (function(){ const cpe=cpeWallWindward[0]; const we=cpe*qp; const wnetPlus=we - (cpi*qp); const wnetMinus=we + (cpi*qp); const wnet=Math.abs(wnetPlus)>Math.abs(wnetMinus)?wnetPlus:wnetMinus; return [{ zone:'D', cpe, we, wnet }]; })();
-        const sideRows = ['A','B','C'].map((zone,i)=>{ const cpe=cpeWallSide[i]; const we=cpe*qp; const wnetPlus=we - (cpi*qp); const wnetMinus=we + (cpi*qp); const wnet=Math.abs(wnetPlus)>Math.abs(wnetMinus)?wnetPlus:wnetMinus; return { zone, cpe, we, wnet }; });
-        const leewardRows = (function(){ const cpe=cpeWallLeeward[0]; const we=cpe*qp; const wnetPlus=we - (cpi*qp); const wnetMinus=we + (cpi*qp); const wnet=Math.abs(wnetPlus)>Math.abs(wnetMinus)?wnetPlus:wnetMinus; return [{ zone:'E', cpe, we, wnet }]; })();
-        return { ...z, windward: windwardRows, side: sideRows, leeward: leewardRows };
-      }
+      const casesEl=$('#cases'); casesEl.innerHTML='';
+      const mode=$('#mode').value; const applyCscd=(mode==='mwfrs');
 
-      function interp(alpha, setA, aA, setB, aB){ const t=clamp((alpha-aA)/(aB-aA),0,1); return setA.map((v,i)=> v + (setB[i]-v)*t ); }
-      function buildRoof(caseType){
-        const eRoof = eRoofFor(caseType, L, B, H);
-        if(roofType==='flat'){
-          const rows=['F','G','H'].map((z,i)=>{ const cpe=cpeFlat[i]; const we=cpe*qp; const wnetPlus=we - (cpi*qp); const wnetMinus=we + (cpi*qp); const wnet=Math.abs(wnetPlus)>Math.abs(wnetMinus)?wnetPlus:wnetMinus; return { zone:z, cpe, we, wnet }; });
-          return { title:'Покрытие (плоское)', note:`e = ${fmt(eRoof,2)} м; F — наветренная кромка; G — боковые и подветренная; H — центр`, rows };
-        } else {
-          if(theta===90){
-            const set = (slope<=22.5) ? interp(slope, g15, 15, g30, 30) : interp(slope, g30, 30, g45, 45);
-            const rows=['F','G','H','I'].map((z,i)=>{ const cpe=set[i]; const we=cpe*qp; const wnetPlus=we - (cpi*qp); const wnetMinus=we + (cpi*qp); const wnet=Math.abs(wnetPlus)>Math.abs(wnetMinus)?wnetPlus:wnetMinus; return { zone:z, cpe, we, wnet }; });
-            return { title:`Покрытие (двускатное, θ=90°, α=${fmt(slope,1)}°)`, note:`e = ${fmt(eRoof,2)} м`, rows };
-          } else {
-            const set0 = (slope<=22.5) ? g0_15 : g0_30;
-            const rows=['F','G','H','I','J'].map((z,i)=>{ const cpe=set0[i]; const we=cpe*qp; const wnetPlus=we - (cpi*qp); const wnetMinus=we + (cpi*qp); const wnet=Math.abs(wnetPlus)>Math.abs(wnetMinus)?wnetPlus:wnetMinus; return { zone:z, cpe, we, wnet }; });
-            return { title:`Покрытие (двускатное, θ=0°, α=${fmt(slope,1)}°)`, note:`e = ${fmt(eRoof,2)} м`, rows };
-          }
-        }
-      }
+      function buildWalls(caseType){ const z=zonesForWalls(L,B,H,eFactor,caseType); const w=netPressure(parseList($('#cpeWallWindward').value,1)[0], ext.qp, intp.qp, applyCscd); w.zone='D'; const sVals=parseList($('#cpeWallSide').value,3); const s=['A','B','C'].map((zone,i)=>({zone, ...netPressure(sVals[i], ext.qp, intp.qp, applyCscd)})); const e=[{zone:'E', ...netPressure(parseList($('#cpeWallLeeward').value,1)[0], ext.qp, intp.qp, applyCscd)}]; return { ...z, windward:[w], side:s, leeward:e } }
+      function buildRoof(caseType){ const eR=eRoofFor(caseType,L,B,H); if(roofType==='flat'){ const rows=['F','G','H'].map((z,i)=>({zone:z, ...netPressure(cpeFlat[i], ext.qp, intp.qp, applyCscd)})); return {title:'Покрытие (плоское)', note:`e=${fmt(eR,2)} м`, rows} } else { if(theta===90){ const set=(slope<=22.5)?interp(slope,g15,15,g30,30):interp(slope,g30,30,g45,45); const rows=['F','G','H','I'].map((z,i)=>({zone:z, ...netPressure(set[i], ext.qp, intp.qp, applyCscd)})); return {title:`Покрытие (двускатное, θ=90°, α=${fmt(slope,1)}°)`, note:`e=${fmt(eR,2)} м`, rows} } else { const set0=(slope<=22.5)?g0_15:g0_30; const rows=['F','G','H','I','J'].map((z,i)=>({zone:z, ...netPressure(set0[i], ext.qp, intp.qp, applyCscd)})); return {title:`Покрытие (двускатное, θ=0°, α=${fmt(slope,1)}°)`, note:`e=${fmt(eR,2)} м`, rows} } } }
 
-      const wallsLong  = buildWalls('long');
-      const wallsShort = buildWalls('short');
-      const roofLong   = buildRoof('long');
-      const roofShort  = buildRoof('short');
+      const wallsLong=buildWalls('long'); const wallsShort=buildWalls('short');
+      const roofLong=buildRoof('long'); const roofShort=buildRoof('short');
 
-      const blockLong  = buildCaseBlock('Случай A — ветер на продольную сторону (на длинную грань)', wallsLong,  roofLong);
-      const blockShort = buildCaseBlock('Случай B — ветер на торцевую сторону (на короткую грань)',   wallsShort, roofShort);
+      casesEl.insertAdjacentHTML('beforeend',
+        buildCaseBlock('Случай A — ветер на длинную грань', wallsLong, roofLong) +
+        buildCaseBlock('Случай B — ветер на короткую грань', wallsShort, roofShort)
+      );
 
-      casesEl.insertAdjacentHTML('beforeend', blockLong + blockShort);
-      status('Готово. Проверьте коэффициенты зон и распечатайте отчёт.','ok');
-      $('#results').classList.add('active');
+      // Отчёт для печати
+      const ctx={L,B,H,roofType,slope,theta,region,vb0,cdir,cseason,terrain,z0,zmin,co,zeExt,zeInt,rho,vb,ext,intp,mode};
+      const lines=[...headerReport(ctx)];
+      function allRows(w,r){ return [].concat(w.windward,w.side,w.leeward,r.rows) }
+      lines.push('\n— СЛУЧАЙ A —'); lines.push(...zoneReport('Стены и покрытие', allRows(wallsLong,roofLong), ext.qp, intp.qp));
+      lines.push('\n— СЛУЧАЙ B —'); lines.push(...zoneReport('Стены и покрытие', allRows(wallsShort,roofShort), ext.qp, intp.qp));
+      lines.push('\nПримечание: значения c_pe базовые; при расчёте крепежей используйте локальные коэффициенты из таблиц СН.');
+      $('#report').textContent = lines.join('\n');
+
+      status('Готово. Расчёт обновлён.','ok');
     }
 
-    // ---------- Events ----------
-    $('#btn-calc').addEventListener('click', calc);
-    $('#btn-print').addEventListener('click', ()=> window.print());
-    $('#btn-copy').addEventListener('click', copyResults);
-    $('#roofType').addEventListener('change', (e)=>{ $('#slopeRow').style.display = e.target.value==='gable' ? '' : 'none'; });
-    let t; $$('.bd input, .bd select').forEach(el=>{ el.addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(calc,250); }) });
+    // ===== Служебное
+    function status(msg,tone=''){ const el=$('#status'); el.textContent=msg; el.style.background=tone==='ok'?'#13243a':'#16203a' }
+    function copyResults(){ const t=$('#report').innerText.trim(); if(!t){status('Нечего копировать',''); return} navigator.clipboard.writeText(t).then(()=>status('Отчёт скопирован','ok')) }
+    function interp(a,setA,aA,setB,aB){ const t=clamp((a-aA)/(aB-aA),0,1); return setA.map((v,i)=> v + (setB[i]-v)*t ) }
+
+    // ===== События
+    document.addEventListener('click', (e)=>{ const act=e.target.closest('[data-action]')?.dataset.action; if(!act) return; if(act==='calc') calc(); if(act==='print') window.print(); if(act==='copy') copyResults(); });
+    $('#roofType').addEventListener('change', e=>{ $('#slopeRow').style.display = e.target.value==='gable' ? '' : 'none' });
+    $('#zeMode').addEventListener('change', e=>{ $('#zeManualRow').style.display = e.target.value==='manual' ? '' : 'none' });
+    let t; $$('.bd input, .bd select').forEach(el=> el.addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(calc,180) }));
     window.addEventListener('load', calc);
   </script>
 </body>
