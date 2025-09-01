@@ -6,11 +6,17 @@
   <title>Калькулятор ветровой нагрузки · СН 2.01.05-2019 (FULL + авто cpi, интерполяция по A)</title>
   <meta name="description" content="Калькулятор ветровых нагрузок по СН 2.01.05-2019: стены и кровля, два направления ветра, учёт cscd/cpi, интерполяция cpe по площади элемента. Подробный отчёт с формулами — только при печати/PDF.">
   <style>
-    :root{ --bg:#0b1020; --card:#111730; --ink:#eaf1ff; --muted:#b7c4e0; --line:#263166; --acc:#8ab4ff; --radius:16px; --shadow:0 8px 22px rgba(0,0,0,.35); --col-left:540px; --gap:18px; --max:1240px }
+    :root{
+      --bg:#0b1020; --card:#111730; --ink:#eaf1ff; --muted:#b7c4e0; --line:#263166; --acc:#8ab4ff;
+      --radius:16px; --shadow:0 8px 22px rgba(0,0,0,.35);
+      --col-left:420px;          /* уже левая колонка */
+      --gap:16px;                /* чуть компактнее */
+      --max:1500px               /* шире общий кадр */
+    }
     *{box-sizing:border-box}
-    html,body{height:100%; overflow-x:hidden} /* фикс: отсекаем горизонт. переполнение */
+    html,body{height:100%; overflow-x:hidden} /* фикс горизонтального переполнения */
     body{margin:0; font-family:Inter,system-ui,Arial,sans-serif; background:var(--bg); color:var(--ink)}
-    .container{max-width:var(--max); margin:auto; padding:22px}
+    .container{max-width:var(--max); margin:auto; padding:14px 14px} /* меньше боковые отступы */
     header{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
     h1{margin:0; font-size:22px}
     .badge{font-size:12px; color:var(--muted)}
@@ -20,19 +26,19 @@
 
     .grid{
       display:grid;
-      grid-template-columns: minmax(0,var(--col-left)) minmax(0,1fr); /* фикс: не вылезает за контейнер */
+      grid-template-columns: minmax(0,var(--col-left)) minmax(0,1.5fr); /* шире правая колонка */
       gap:var(--gap); margin-top:14px
     }
     @media (max-width: 1000px){ .grid{grid-template-columns: 1fr} }
 
     .card{background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); margin-bottom:16px; box-shadow:var(--shadow)}
     .card h2{margin:0; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.08)}
-    .card .bd{padding:16px}
+    .card .bd{padding:14px} /* компактнее внутренние поля */
 
     .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
     @media (max-width:640px){ .row{grid-template-columns:1fr} }
 
-    /* фикс: дети гридов не растягивают макет по ширине из-за содержимого */
+    /* не позволяем контенту распирать колонки */
     .card, .bd, .row > * { min-width:0 }
 
     label{font-size:12px; color:var(--muted); display:block; margin:4px 0}
@@ -40,9 +46,13 @@
     input:focus, select:focus, textarea:focus{border-color:#3b55b9; box-shadow:0 0 0 3px rgba(138,180,255,.18)}
     .hint{font-size:11px; color:var(--muted); margin-top:6px; line-height:1.45}
 
-    table{width:100%; border-collapse:collapse; font-size:13px; table-layout:fixed} /* фикс: таблицы не распирают контейнер */
-    th,td{padding:8px; border-bottom:1px dashed rgba(255,255,255,.08); text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+    table{width:100%; border-collapse:collapse; font-size:14px; table-layout:fixed} /* цифры крупнее */
+    th,td{padding:7px; border-bottom:1px dashed rgba(255,255,255,.08); text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
     th:first-child, td:first-child{text-align:left}
+    #results table th, #results table td{
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
 
     .pill{display:inline-block; padding:4px 8px; border-radius:999px; background:#16203a; border:1px solid var(--line); font-size:12px}
     .legend{display:grid; gap:6px; margin-bottom:6px}
@@ -51,7 +61,7 @@
     .kpi{display:grid; grid-template-columns: repeat(4,1fr); gap:10px}
     @media (max-width:900px){ .kpi{grid-template-columns: repeat(2,1fr)} }
     .kpi .itm{background:#0f1532; border:1px solid #2a3564; border-radius:12px; padding:10px}
-    .kpi .v{font-size:18px; font-weight:700}
+    .kpi .v{font-size:20px; font-weight:700} /* крупнее цифры KPI */
     .kpi .t{font-size:12px; color:var(--muted)}
 
     /* Справки */
@@ -168,7 +178,7 @@
             <div>
               <label>k<sub>i</sub> (коэф. турбулентности)</label>
               <input type="number" step="0.01" id="ki" value="1.00">
-              <div class="hint">Участвует в I<sub>v</sub>(z) — см. раздел 4 СН.</div>
+              <div class="hint">Участвует в I<sub>v</sub>(z).</div>
             </div>
           </div>
 
@@ -431,8 +441,8 @@
     function getCpiAbs(){
       const m=$('#cpiMode').value;
       if(m==='manual') return Math.abs(parseFloat($('#cpi').value)||0);
-      if(m==='autoNoDom'){ // худшее из +0.2 и −0.3
-        return 0.30; // модуль 0.30; знак учитываем обе комбинации в таблице
+      if(m==='autoNoDom'){ // худшее из +0.2 и −0.3 → модуль 0.30 (знак учитываем в таблицах)
+        return 0.30;
       }
       // доминирующая поверхность: c_pi = ψ * |c_pe,ref|
       const psi=parseFloat($('#cpiPsi').value)||0.75;
