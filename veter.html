@@ -77,11 +77,51 @@
     .kbd{display:inline-block; border:1px solid #2a3564; border-radius:6px; padding:0 6px; font-size:11px; background:#0f1532}
 
     .print-only{display:none}
+
+    /* === ПРАВКИ ДЛЯ ПЕЧАТИ / PDF (исправляют обрезание на 1-й странице) === */
     @media print{
-      .print-only{display:block}
-      button,header,.floatbar,details.help{display:none!important}
-      body{background:#fff;color:#000}
-      .card{background:#fff;border:1px solid #ccc;box-shadow:none}
+      /* Чтобы движок нормально пагинировал документ */
+      html, body{
+        height:auto !important;
+        overflow:visible !important;
+        background:#fff !important;
+        color:#000 !important;
+      }
+
+      /* Базовые поля страницы (можно подправить при желании) */
+      @page{
+        size:auto;
+        margin:12mm;
+      }
+
+      /* Убрать элементы управления и хром эффектов */
+      header,.floatbar,details.help,.actions button,.actions .btn[href*="#"]{display:none!important}
+
+      /* Сетка печатается плохо — развернём в поток */
+      .grid{ display:block !important; }
+
+      /* Контейнер на всю ширину */
+      .container{ max-width:100% !important; padding:0 !important; }
+
+      /* Карточки и содержимое: управляем разрывами */
+      .card{
+        background:#fff; border:1px solid #ccc; box-shadow:none;
+        break-inside: avoid; page-break-inside: avoid;
+        margin:0 0 12px 0;
+      }
+      .card .bd,
+      #results table,
+      #report{
+        break-inside: auto; page-break-inside: auto;
+      }
+
+      /* Таблицы: позволяем переносить строки */
+      table{ page-break-inside:auto; }
+      tr{ page-break-inside:avoid; page-break-after:auto; }
+      th,td{ white-space:normal; word-break:break-word; }
+
+      /* Включаем развёрнутый текстовый отчёт */
+      .print-only{display:block !important}
       .report{white-space:pre-wrap; font-family:Consolas, monospace; font-size:12px; line-height:1.45}
     }
   </style>
@@ -94,7 +134,7 @@
         <div class="badge">СН 2.01.05-2019 / EN 1991-1-4 — авто c<sub>pi</sub>, интерполяция c<sub>pe</sub>(A)</div>
       </div>
       <div class="actions">
-        <!-- НОВОЕ: ссылка на главную -->
+        <!-- Ссылка на главную -->
         <a class="btn" href="https://0vchina.github.io/partfolio/">На главную</a>
 
         <button id="btn-calc">Рассчитать</button>
@@ -517,7 +557,7 @@
       const k=kCoef(z0);
       lines.push(`k_r = 0.19 · (z₀ / 0.05)^0.07 = ${fmt(k,4)}`);
       lines.push(`c_r(z_e,ext) = ${fmt(cr(zeExt,z0),4)}; v_m(ext) = c_r·cₒ·v_b = ${fmt(cr(zeExt,z0),4)} · ${fmt(co,2)} · ${fmt(vb,2)} = ${fmt(ext.vm,3)} м/с`);
-      lines.push(`I_v(ext) = (k_i·cₒ)/ln(z_e/z₀)·(z₀/0.05)^0.07 = ${fmt(ext.iv,4)}`);
+      lines.push(`I_v(ext) = (k_i·cₒ)/ln(z_e/z₀)·(з₀/0.05)^0.07 = ${fmt(ext.iv,4)}`);
       lines.push(`q_p(ext) = 0.5·ρ·v_m²·(1+7I_v) = ${fmt(ext.qp,0)} Па`);
       lines.push(`c_r(z_e,int) = ${fmt(cr(zeInt,z0),4)}; v_m(int) = ${fmt(intp.vm,3)} м/с; I_v(int) = ${fmt(intp.iv,4)}; q_p(int) = ${fmt(intp.qp,0)} Па`);
 
