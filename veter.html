@@ -9,36 +9,39 @@
     :root{
       --bg:#0b1020; --card:#111730; --ink:#eaf1ff; --muted:#b7c4e0; --line:#263166; --acc:#8ab4ff;
       --radius:16px; --shadow:0 8px 22px rgba(0,0,0,.35);
-      --col-left:420px;          /* уже левая колонка */
-      --gap:16px;                /* чуть компактнее */
-      --max:1500px               /* шире общий кадр */
+      --col-left:420px;
+      --gap:16px;
+      --max:1500px
     }
     *{box-sizing:border-box}
-    html,body{height:100%; overflow-x:hidden} /* фикс горизонтального переполнения */
+    html,body{height:100%; overflow-x:hidden}
     body{margin:0; font-family:Inter,system-ui,Arial,sans-serif; background:var(--bg); color:var(--ink)}
-    .container{max-width:var(--max); margin:auto; padding:14px 14px} /* меньше боковые отступы */
+    .container{max-width:var(--max); margin:auto; padding:14px 14px}
     header{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
     h1{margin:0; font-size:22px}
     .badge{font-size:12px; color:var(--muted)}
     .actions{display:flex; gap:8px}
-    button{appearance:none; border:1px solid var(--line); background:#1a2340; color:var(--ink); padding:10px 14px; border-radius:10px; cursor:pointer}
-    button:hover{background:#213058}
+    /* стили для кнопок и ссылки-кнопки */
+    .actions .btn, .actions button{
+      appearance:none; border:1px solid var(--line); background:#1a2340; color:var(--ink);
+      padding:10px 14px; border-radius:10px; cursor:pointer; text-decoration:none; display:inline-block
+    }
+    .actions .btn:hover, .actions button:hover{background:#213058}
 
     .grid{
       display:grid;
-      grid-template-columns: minmax(0,var(--col-left)) minmax(0,1.5fr); /* шире правая колонка */
+      grid-template-columns: minmax(0,var(--col-left)) minmax(0,1.5fr);
       gap:var(--gap); margin-top:14px
     }
     @media (max-width: 1000px){ .grid{grid-template-columns: 1fr} }
 
     .card{background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); margin-bottom:16px; box-shadow:var(--shadow)}
     .card h2{margin:0; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.08)}
-    .card .bd{padding:14px} /* компактнее внутренние поля */
+    .card .bd{padding:14px}
 
     .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
     @media (max-width:640px){ .row{grid-template-columns:1fr} }
 
-    /* не позволяем контенту распирать колонки */
     .card, .bd, .row > * { min-width:0 }
 
     label{font-size:12px; color:var(--muted); display:block; margin:4px 0}
@@ -46,7 +49,7 @@
     input:focus, select:focus, textarea:focus{border-color:#3b55b9; box-shadow:0 0 0 3px rgba(138,180,255,.18)}
     .hint{font-size:11px; color:var(--muted); margin-top:6px; line-height:1.45}
 
-    table{width:100%; border-collapse:collapse; font-size:14px; table-layout:fixed} /* цифры крупнее */
+    table{width:100%; border-collapse:collapse; font-size:14px; table-layout:fixed}
     th,td{padding:7px; border-bottom:1px dashed rgba(255,255,255,.08); text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
     th:first-child, td:first-child{text-align:left}
     #results table th, #results table td{
@@ -61,10 +64,9 @@
     .kpi{display:grid; grid-template-columns: repeat(4,1fr); gap:10px}
     @media (max-width:900px){ .kpi{grid-template-columns: repeat(2,1fr)} }
     .kpi .itm{background:#0f1532; border:1px solid #2a3564; border-radius:12px; padding:10px}
-    .kpi .v{font-size:20px; font-weight:700} /* крупнее цифры KPI */
+    .kpi .v{font-size:20px; font-weight:700}
     .kpi .t{font-size:12px; color:var(--muted)}
 
-    /* Справки */
     details.help{margin-top:8px; border:1px dashed rgba(255,255,255,.16); border-radius:10px; background:#0e1735}
     details.help[open]{background:#0e183b}
     details.help>summary{cursor:pointer; padding:8px 10px; color:var(--acc); list-style:none}
@@ -74,7 +76,6 @@
     @media (max-width:640px){ .help-grid{grid-template-columns:1fr} }
     .kbd{display:inline-block; border:1px solid #2a3564; border-radius:6px; padding:0 6px; font-size:11px; background:#0f1532}
 
-    /* Печать */
     .print-only{display:none}
     @media print{
       .print-only{display:block}
@@ -93,6 +94,9 @@
         <div class="badge">СН 2.01.05-2019 / EN 1991-1-4 — авто c<sub>pi</sub>, интерполяция c<sub>pe</sub>(A)</div>
       </div>
       <div class="actions">
+        <!-- НОВОЕ: ссылка на главную -->
+        <a class="btn" href="https://0vchina.github.io/partfolio/">На главную</a>
+
         <button id="btn-calc">Рассчитать</button>
         <button id="btn-print">Печать / PDF</button>
         <button id="btn-copy">Копия отчёта</button>
@@ -434,17 +438,16 @@
       if(!(A>0)) return cpe10;
       if(A<=1) return cpe1;
       if(A>=10) return cpe10;
-      return cpe1 - (cpe1 - cpe10)*log10(A); // логарифмическая интерполяция
+      return cpe1 - (cpe1 - cpe10)*log10(A);
     }
 
     // ===== c_pi режимы
     function getCpiAbs(){
       const m=$('#cpiMode').value;
       if(m==='manual') return Math.abs(parseFloat($('#cpi').value)||0);
-      if(m==='autoNoDom'){ // худшее из +0.2 и −0.3 → модуль 0.30 (знак учитываем в таблицах)
+      if(m==='autoNoDom'){
         return 0.30;
       }
-      // доминирующая поверхность: c_pi = ψ * |c_pe,ref|
       const psi=parseFloat($('#cpiPsi').value)||0.75;
       const cpeRef=Math.abs(parseFloat($('#cpiCpeRef').value)||0.9);
       return psi*cpeRef;
@@ -454,7 +457,6 @@
       const m=$('#cscdMode').value;
       if(!apply) return 1.0;
       if(m==='manual') return Math.max(0.5, parseFloat($('#cscd').value)||1);
-      // auto и "1" — примем 1.0 в упрощённом режиме
       return 1.0;
     }
 
@@ -553,16 +555,13 @@
 
     // ===== Основной расчёт
     function calc(){
-      // Геометрия/кровля
       const L=parseFloat($('#L').value); const B=parseFloat($('#B').value); const H=parseFloat($('#H').value);
       const roofType=$('#roofType').value; const slope=parseFloat($('#slope').value||'0'); const theta=parseFloat($('#theta').value||'90');
 
-      // Регион / скорость
       const region=$('#region').value; const [rI,rII,rIII]=parseList($('#regionsMap').value,3);
       if(region!=='custom'){ const map={I:rI, II:rII, III:rIII}; $('#vb0').value = map[region] ?? $('#vb0').value }
       const vb0=parseFloat($('#vb0').value); const cdir=parseFloat($('#cdir').value); const cseason=parseFloat($('#cseason').value);
 
-      // Местность / плотность / высоты / коэффициенты
       const terrain=$('#terrain').value; const co=parseFloat($('#co').value);
       const rho=Math.max(0.5, parseFloat($('#rho').value)||RHO_DEF);
       const ki=Math.max(0.5, parseFloat($('#ki').value)||1);
@@ -573,12 +572,10 @@
       const zeIntRaw=zeMode==='manual'?parseFloat($('#zeInt').value):H;
       const zeExt=Math.max(zeExtRaw,zmin); const zeInt=Math.max(zeIntRaw,zmin);
 
-      // Базовая скорость и qp
       const vb=cdir*cseason*vb0;
       const ext=peakPressure(rho, vb, zeExt, z0, co, ki);
       const intp=peakPressure(rho, vb, zeInt, z0, co, ki);
 
-      // KPI
       $('#kpi-vb0').textContent = fmt(vb0,1)+' м/с';
       $('#kpi-vb').textContent  = fmt(vb,1)+' м/с';
       $('#kpi-iv').textContent  = fmt(ext.iv,3);
@@ -589,7 +586,6 @@
       const cscd = getCscd(applyCscd);
       const Aelem = Math.max(0.01, parseFloat($('#Aelem').value)||10);
 
-      // Загрузка cpe таблиц (10 м² и 1 м²)
       const cpeWallWindward10 = parseList($('#cpeWallWindward10').value,1);
       const cpeWallWindward1  = parseList($('#cpeWallWindward1').value,1);
       const cpeWallSide10     = parseList($('#cpeWallSide10').value,3);
@@ -656,10 +652,8 @@
         buildCaseBlock('Случай B — ветер на короткую грань', wallsShort, roofShort, ctx)
       );
 
-      // Легенда
       updateLegend();
 
-      // Отчёт
       const ctxRep={L,B,H,roofType,slope,theta,region,vb0,cdir,cseason,terrain,z0,zmin,co,zeExt,zeInt,rho,ki,vb,ext,intp,mode};
       const lines=[...headerReport(ctxRep)];
       lines.push('\n— СЛУЧАЙ A — ВЕТЕР НА ДЛИННУЮ ГРАНЬ —');
@@ -669,10 +663,8 @@
       lines.push(...zoneReportDetailed('Стены (A/B/C, D, E)', [].concat(wallsShort.windward,wallsShort.side,wallsShort.leeward)));
       lines.push(...zoneReportDetailed(roofShort.title, roofShort.rows));
 
-      // Трение (оценка суммарной силы на кровле)
       if($('#frictionOn').checked){
         const cfr = Math.max(0, parseFloat($('#cfr').value)||0.02);
-        // простая оценка: τ = c_fr * q_p(ext) ; F = τ * A_roof; A_roof ~ L*B
         const tau = cfr * ext.qp;
         const F = tau * L * B;
         lines.push(`\n— ТРЕНИЕ КРОВЛИ (оценка) —`);
