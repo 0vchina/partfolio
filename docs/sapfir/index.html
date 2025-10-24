@@ -1,1 +1,330 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SAPFIR‑style Workspace</title>
+
+    <!-- Tailwind via CDN (no build needed) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { theme: { extend: {}, }, plugins: [] }
+    </script>
+
+    <!-- React Flow CSS -->
+    <link rel="stylesheet" href="https://esm.sh/reactflow@11.10.0/dist/style.css" />
+
+    <style>
+      html, body, #root { height:100%; }
+      body { background: radial-gradient(ellipse at top, #eef2ff, #ffffff); }
+      .prose p { margin: 0.25rem 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="module">
+      // ===== Imports (ESM from CDN) =====
+      import React, { useCallback, useEffect, useMemo, useRef, useState } from "https://esm.sh/react@18.2.0";
+      import { createRoot } from "https://esm.sh/react-dom@18.2.0/client";
+      import ReactFlow, {
+        Background,
+        Controls,
+        MiniMap,
+        ReactFlowProvider,
+        useEdgesState,
+        useNodesState,
+        addEdge,
+        Handle,
+        Position,
+      } from "https://esm.sh/reactflow@11.10.0";
+      import { NodeResizer } from "https://esm.sh/reactflow@11.10.0";
+      import { motion } from "https://esm.sh/framer-motion@11.0.0";
+      import { Link as LinkIcon, Image as ImageIcon, Video, Type, Trash2, Download, Upload, Share2, ZoomIn, ZoomOut, Maximize } from "https://esm.sh/lucide-react@0.462.0";
+      import LZString from "https://esm.sh/lz-string@1.5.0";
+
+      // ===== Tiny UI helpers =====
+      const Button = ({ className = "", children, ...props }) => (
+        React.createElement("button", { className: `px-3 py-2 rounded-2xl shadow-sm border border-zinc-200 bg-white hover:bg-zinc-50 active:scale-[0.99] transition text-sm ${className}`, ...props }, children)
+      );
+      const IconButton = ({ children, className = "", ...props }) => (
+        React.createElement("button", { className: `p-2 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm active:scale-[0.99] transition ${className}`, ...props }, children)
+      );
+
+      // ===== Utilities =====
+      const sanitizeSimple = (html) => {
+        const tmp = document.createElement("div");
+        tmp.innerHTML = html || "";
+        tmp.querySelectorAll("script,style").forEach((el) => el.remove());
+        tmp.querySelectorAll("*").forEach((el) => {
+          [...el.attributes].forEach((a) => { if (a.name.startsWith("on")) el.removeAttribute(a.name); });
+        });
+        return tmp.innerHTML;
+      };
+      const isYouTube = (url) => { try { return /youtu\.be|youtube\.com/.test(new URL(url).host); } catch { return false; } };
+      const toYouTubeEmbed = (url) => { try { const u = new URL(url); if (u.host.includes("youtu.be")) { const id = u.pathname.replace("/", ""); return `https://www.youtube.com/embed/${id}`; } const id = u.searchParams.get("v"); return `https://www.youtube.com/embed/${id||""}`; } catch { return url; } };
+      const uid = (p="id") => `${p}_${Math.random().toString(36).slice(2,9)}`;
+
+      // ===== Custom Node =====
+      function CardNode({ id, data, selected }) {
+        const { title = "Блок", kind = "text", content = "", imageUrl = "", videoUrl = "", linkUrl = "", color = "#ffffff" } = data || {};
+        return (
+          React.createElement("div", { style: { width:"100%", height:"100%" } },
+            React.createElement(NodeResizer, { color: "#6366f1", isVisible: selected, minWidth: 220, minHeight: 140 }),
+            React.createElement(Handle, { type:"target", position: Position.Left, className: "!w-3 !h-3 !bg-indigo-500" }),
+            React.createElement("div", { className: "w-full h-full rounded-2xl overflow-hidden border border-zinc-200 bg-white/90 backdrop-blur-sm shadow-md" },
+              React.createElement("div", { className: "px-3 py-2 bg-gradient-to-r from-indigo-500/10 to-sky-500/10 border-b border-zinc-200 flex items-center gap-2" },
+                React.createElement("div", { className: "w-2.5 h-2.5 rounded-full bg-emerald-500" }),
+                React.createElement("div", { className: "w-2.5 h-2.5 rounded-full bg-amber-500" }),
+                React.createElement("div", { className: "w-2.5 h-2.5 rounded-full bg-rose-500" }),
+                React.createElement("h4", { className: "ml-2 font-medium text-zinc-800 truncate" }, title)
+              ),
+              React.createElement("div", { className: "p-3 space-y-2 text-sm", style: { background: color } },
+                kind === "text" && React.createElement("div", { className: "prose prose-zinc max-w-none text-zinc-700", dangerouslySetInnerHTML: { __html: sanitizeSimple(content) } }),
+                kind === "link" && React.createElement("a", { href: linkUrl, target: "_blank", rel: "noreferrer", className: "inline-flex items-center gap-2 text-indigo-600 hover:underline" }, React.createElement(LinkIcon, { size: 16 }), ` ${linkUrl || "https://example.com"}`),
+                kind === "image" && imageUrl && React.createElement("img", { src: imageUrl, alt: "img", className: "w-full h-48 object-cover rounded-xl border border-zinc-200" }),
+                kind === "video" && videoUrl && React.createElement("div", { className: "aspect-video w-full rounded-xl overflow-hidden border border-zinc-200" }, (
+                  isYouTube(videoUrl)
+                    ? React.createElement("iframe", { src: toYouTubeEmbed(videoUrl), title: "video", allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share", allowFullScreen: true, className: "w-full h-full" })
+                    : React.createElement("video", { src: videoUrl, controls: true, className: "w-full h-full" })
+                ))
+              )
+            ),
+            React.createElement(Handle, { type:"source", position: Position.Right, className: "!w-3 !h-3 !bg-indigo-500" })
+          )
+        );
+      }
+      const nodeTypes = { cardNode: CardNode };
+
+      // ===== Builder Page =====
+      function Builder() {
+        const initialNodes = useMemo(() => ([
+          { id: uid("n"), type: "cardNode", position: { x:120, y:80 }, data: { title: "Задача", kind: "text", content: "Добавь описание…" }, style: { width: 280, height: 180 } },
+          { id: uid("n"), type: "cardNode", position: { x:520, y:260 }, data: { title: "Ссылка", kind: "link", linkUrl: "https://example.com" }, style: { width: 260, height: 160 } },
+        ]), []);
+        const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+        const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+        const [selectedNodeId, setSelectedNodeId] = useState(null);
+        const rfRef = useRef(null);
+        const onConnect = useCallback((p) => setEdges((eds) => addEdge({ ...p, animated:true, style:{ strokeWidth:2 } }, eds)), []);
+        const onNodeClick = useCallback((_, n) => setSelectedNodeId(n.id), []);
+        const selectedNode = useMemo(() => nodes.find((n) => n.id === selectedNodeId), [nodes, selectedNodeId]);
+        const addBlock = (kind) => {
+          const id = uid("n");
+          const base = { id, type:"cardNode", position:{ x:120, y:120 }, style:{ width:280, height:180 }, data:{ title:"Новый блок", kind } };
+          if (kind === "text") base.data.content = "<p>Текст…</p>";
+          if (kind === "link") base.data.linkUrl = "https://";
+          if (kind === "image") base.data.imageUrl = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee";
+          if (kind === "video") base.data.videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+          setNodes((nds) => [...nds, base]);
+        };
+        const removeSelected = () => {
+          if (!selectedNodeId) return;
+          setNodes((nds) => nds.filter((n) => n.id !== selectedNodeId));
+          setEdges((eds) => eds.filter((e) => e.source !== selectedNodeId && e.target !== selectedNodeId));
+          setSelectedNodeId(null);
+        };
+        const exportShareLink = () => {
+          const rf = rfRef.current;
+          const viewport = rf?.getViewport?.() || { x:0, y:0, zoom:1 };
+          const payload = { nodes, edges, viewport };
+          const encoded = LZString.compressToEncodedURIComponent(JSON.stringify(payload));
+          const url = `${location.origin}${location.pathname}#/view?data=${encoded}`;
+          navigator.clipboard?.writeText(url);
+          alert("Ссылка скопирована в буфер обмена ✔");
+        };
+        const importFromJson = () => {
+          const txt = prompt("Вставьте JSON схемы:");
+          if (!txt) return;
+          try { const obj = JSON.parse(txt); setNodes(obj.nodes||[]); setEdges(obj.edges||[]); alert("Импортировано"); }
+          catch { alert("Ошибка JSON"); }
+        };
+        const exportJson = () => {
+          const payload = { nodes, edges };
+          const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a"); a.href = url; a.download = "workspace.json"; a.click(); URL.revokeObjectURL(url);
+        };
+        const onSelectionChange = ({ nodes: ns }) => setSelectedNodeId(ns?.[0]?.id || null);
+        const updateSelectedNode = (patch) => { if (!selectedNode) return; setNodes((nds) => nds.map((n) => n.id === selectedNode.id ? { ...n, data: { ...n.data, ...patch } } : n)); };
+        const zoomIn = () => rfRef.current?.zoomIn?.();
+        const zoomOut = () => rfRef.current?.zoomOut?.();
+        const fitView = () => rfRef.current?.fitView?.({ padding: 0.2 });
+
+        return (
+          React.createElement("div", { className: "w-full h-full flex flex-col" },
+            React.createElement("header", { className: "flex items-center justify-between p-3 border-b border-zinc-200 bg-white/70 backdrop-blur sticky top-0 z-10" },
+              React.createElement("div", { className: "flex items-center gap-3" },
+                React.createElement(motion.div, { initial:{opacity:0, y:-6}, animate:{opacity:1, y:0}, className:"text-xl font-semibold" }, "SAPFIR‑style Builder"),
+                React.createElement("span", { className: "hidden sm:inline text-zinc-400" }, "·"),
+                React.createElement("a", { href: "#/view", className: "text-sm text-indigo-600 hover:underline hidden sm:inline" }, "Страница просмотра")
+              ),
+              React.createElement("div", { className: "flex items-center gap-2" },
+                React.createElement(Button, { onClick: () => addBlock("text") }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(Type, { size:16 }), "Текст")),
+                React.createElement(Button, { onClick: () => addBlock("link") }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(LinkIcon, { size:16 }), "Ссылка")),
+                React.createElement(Button, { onClick: () => addBlock("image") }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(ImageIcon, { size:16 }), "Фото")),
+                React.createElement(Button, { onClick: () => addBlock("video") }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(Video, { size:16 }), "Видео")),
+                React.createElement(IconButton, { onClick: zoomOut }, React.createElement(ZoomOut, { size:18 })),
+                React.createElement(IconButton, { onClick: zoomIn }, React.createElement(ZoomIn, { size:18 })),
+                React.createElement(IconButton, { onClick: fitView }, React.createElement(Maximize, { size:18 })),
+                React.createElement(Button, { onClick: exportJson }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(Download, { size:16 }), "JSON")),
+                React.createElement(Button, { onClick: importFromJson }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(Upload, { size:16 }), "Импорт")),
+                React.createElement(Button, { className: "bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-500", onClick: exportShareLink }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(Share2, { size:16 }), "Поделиться")),
+                React.createElement(IconButton, { onClick: removeSelected, title: "Удалить выбранное" }, React.createElement(Trash2, { size:18, className: "text-rose-600" }))
+              )
+            ),
+            React.createElement("div", { className: "flex-1 w-full h-[calc(100%-64px)] grid grid-cols-12" },
+              React.createElement("div", { className: "col-span-12 lg:col-span-9 relative" },
+                React.createElement("div", { className: "absolute inset-0" },
+                  React.createElement(ReactFlow, {
+                    ref: rfRef,
+                    nodes, edges,
+                    onNodesChange, onEdgesChange,
+                    onConnect, onNodeClick,
+                    onSelectionChange,
+                    nodeTypes,
+                    fitView: true,
+                    proOptions: { hideAttribution: true },
+                    defaultEdgeOptions: { style: { stroke: "#6366f1" } },
+                    connectionLineStyle: { stroke: "#6366f1", strokeWidth: 2 },
+                  },
+                    React.createElement(MiniMap, { pannable: true, zoomable: true, className: "!bg-white/60 !backdrop-blur" }),
+                    React.createElement(Controls, { className: "!bg-white/80 !border !border-zinc-200 !rounded-xl !shadow" }),
+                    React.createElement(Background, { variant: "dots", gap: 16, size: 1 })
+                  )
+                )
+              ),
+              React.createElement("div", { className: "col-span-12 lg:col-span-3 border-l border-zinc-200 bg-white/60 backdrop-blur p-4 space-y-3" },
+                React.createElement("h3", { className: "font-semibold" }, "Свойства блока"),
+                !selectedNode ? (
+                  React.createElement("p", { className: "text-sm text-zinc-500" }, "Выберите блок, чтобы редактировать.")
+                ) : (
+                  React.createElement(React.Fragment, null,
+                    React.createElement("input", { className: "w-full px-3 py-2 rounded-xl border border-zinc-200 bg-white/80", value: selectedNode.data.title || "", onChange: (e) => updateSelectedNode({ title: e.target.value }), placeholder: "Название" }),
+                    React.createElement("div", { className: "grid grid-cols-2 gap-2" },
+                      React.createElement("label", { className: "text-xs text-zinc-500" }, "Тип"),
+                      React.createElement("select", { className: "px-3 py-2 rounded-xl border border-zinc-200 bg-white", value: selectedNode.data.kind, onChange: (e) => updateSelectedNode({ kind: e.target.value }) },
+                        React.createElement("option", { value: "text" }, "Текст"),
+                        React.createElement("option", { value: "link" }, "Ссылка"),
+                        React.createElement("option", { value: "image" }, "Фото"),
+                        React.createElement("option", { value: "video" }, "Видео")
+                      )
+                    ),
+                    selectedNode.data.kind === "text" && React.createElement("textarea", { rows: 6, className: "w-full px-3 py-2 rounded-xl border border-zinc-200 bg-white/80", value: selectedNode.data.content || "", onChange: (e) => updateSelectedNode({ content: e.target.value }), placeholder: "Поддерживается простой HTML: <p>, <b>, <i>, <ul>…" }),
+                    selectedNode.data.kind === "link" && React.createElement("input", { className: "w-full px-3 py-2 rounded-xl border border-zinc-200 bg-white/80", value: selectedNode.data.linkUrl || "", onChange: (e) => updateSelectedNode({ linkUrl: e.target.value }), placeholder: "https://" }),
+                    selectedNode.data.kind === "image" && React.createElement("input", { className: "w-full px-3 py-2 rounded-xl border border-zinc-200 bg-white/80", value: selectedNode.data.imageUrl || "", onChange: (e) => updateSelectedNode({ imageUrl: e.target.value }), placeholder: "URL изображения" }),
+                    selectedNode.data.kind === "video" && React.createElement("input", { className: "w-full px-3 py-2 rounded-xl border border-zinc-200 bg-white/80", value: selectedNode.data.videoUrl || "", onChange: (e) => updateSelectedNode({ videoUrl: e.target.value }), placeholder: "YouTube или MP4 URL" }),
+                    React.createElement("div", { className: "grid grid-cols-2 gap-2 items-center" },
+                      React.createElement("label", { className: "text-xs text-zinc-500" }, "Фон"),
+                      React.createElement("input", { type: "color", className: "w-full h-9 rounded", value: selectedNode.data.color || "#ffffff", onChange: (e) => updateSelectedNode({ color: e.target.value }) })
+                    ),
+                    React.createElement("p", { className: "text-xs text-zinc-500" }, "Размер меняется потягиванием границы (NodeResizer).")
+                  )
+                )
+              )
+            )
+          )
+        );
+      }
+
+      // ===== Viewer Page =====
+      function Viewer() {
+        const rfRef = useRef(null);
+        const [dataState, setDataState] = useState(() => {
+          try {
+            const m = (location.hash || "").match(/data=([^&]+)/);
+            if (m && m[1]) { return JSON.parse(LZString.decompressFromEncodedURIComponent(m[1])); }
+          } catch {}
+          return { nodes: [], edges: [], viewport: { x: 0, y: 0, zoom: 1 } };
+        });
+        const [nodes, setNodes] = useState(dataState.nodes || []);
+        const [edges, setEdges] = useState(dataState.edges || []);
+        useEffect(() => {
+          if (dataState.viewport && rfRef.current?.setViewport) rfRef.current.setViewport(dataState.viewport, { duration: 400 });
+          else rfRef.current?.fitView?.({ padding: 0.2 });
+        }, [dataState]);
+        const loadFromLink = () => {
+          const link = prompt("Вставьте ссылку вида …#/view?data=…");
+          if (!link) return; try { const u = new URL(link); const m = (u.hash||"").match(/data=([^&]+)/); const enc = m?.[1]; if (!enc) throw 0; const obj = JSON.parse(LZString.decompressFromEncodedURIComponent(enc)); setDataState(obj); setNodes(obj.nodes||[]); setEdges(obj.edges||[]); alert("Схема загружена"); } catch { alert("Не удалось загрузить ссылку"); }
+        };
+        const importJson = () => {
+          const txt = prompt("Вставьте JSON схемы:"); if (!txt) return; try { const obj = JSON.parse(txt); setDataState(obj); setNodes(obj.nodes||[]); setEdges(obj.edges||[]); alert("Импортировано"); } catch { alert("Ошибка JSON"); }
+        };
+        const fitView = () => rfRef.current?.fitView?.({ padding: 0.2 });
+        return (
+          React.createElement("div", { className: "w-full h-full flex flex-col" },
+            React.createElement("header", { className: "flex items-center justify-between p-3 border-b border-zinc-200 bg-white/70 backdrop-blur sticky top-0 z-10" },
+              React.createElement("div", { className: "flex items-center gap-3" },
+                React.createElement(motion.div, { initial:{opacity:0, y:-6}, animate:{opacity:1, y:0}, className:"text-xl font-semibold" }, "SAPFIR‑style Viewer"),
+                React.createElement("span", { className: "hidden sm:inline text-zinc-400" }, "·"),
+              ),
+              React.createElement("div", { className: "flex items-center gap-2" },
+                React.createElement(Button, { onClick: loadFromLink }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(LinkIcon, { size:16 }), "Загрузить по ссылке")),
+                React.createElement(Button, { onClick: importJson }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(Upload, { size:16 }), "Импорт JSON")),
+                React.createElement(IconButton, { onClick: fitView, title: "На весь экран" }, React.createElement(Maximize, { size:18 }))
+              )
+            ),
+            React.createElement("div", { className: "flex-1 relative" },
+              React.createElement(ReactFlow, {
+                ref: rfRef,
+                nodes, edges, nodeTypes,
+                fitView: true,
+                proOptions: { hideAttribution: true },
+                defaultEdgeOptions: { style: { stroke: "#6366f1" } },
+                connectionLineStyle: { stroke: "#6366f1", strokeWidth: 2 },
+                nodesDraggable: false, nodesConnectable: false, elementsSelectable: false,
+                panOnDrag: true, zoomOnScroll: true, zoomOnPinch: true,
+              },
+                React.createElement(MiniMap, { pannable: true, zoomable: true, className: "!bg-white/60 !backdrop-blur" }),
+                React.createElement(Controls, { className: "!bg-white/80 !border !border-zinc-200 !rounded-xl !shadow" }),
+                React.createElement(Background, { variant: "dots", gap: 16, size: 1 })
+              )
+            )
+          )
+        );
+      }
+
+      // ===== Simple PIN gate for Builder =====
+const BUILDER_PIN = '2701'; // ← смени на свой PIN!
+
+function Gate({ onUnlock }) {
+  const [pin, setPin] = React.useState('');
+  const submit = () => {
+    if (pin === BUILDER_PIN) {
+      sessionStorage.setItem('sapfir_unlocked', '1');
+      onUnlock();
+    } else {
+      alert('Неверный PIN');
+    }
+  };
+  return React.createElement('div', { className: 'w-screen h-screen grid place-items-center' },
+    React.createElement('div', { className: 'w-[92%] sm:w-[420px] rounded-2xl border border-zinc-200 bg-white/80 backdrop-blur p-6 shadow-xl' },
+      React.createElement('div', { className: 'text-lg font-semibold mb-3' }, 'Вход в конструктор'),
+      React.createElement('p', { className: 'text-sm text-zinc-600 mb-4' }, 'Введите PIN, чтобы открыть страницу конструктора.'),
+      React.createElement('div', { className: 'flex gap-2' },
+        React.createElement('input', { type: 'password', value: pin, onChange: e=>setPin(e.target.value), placeholder: 'PIN', className: 'flex-1 px-3 py-2 rounded-xl border border-zinc-200' }),
+        React.createElement('button', { onClick: submit, className: 'px-4 py-2 rounded-xl bg-indigo-600 text-white' }, 'Открыть')
+      ),
+      React.createElement('p', { className: 'text-xs text-zinc-500 mt-3' }, 'Совет: смени константу BUILDER_PIN в коде.')
+    )
+  );
+}
+
+// ===== App (Hash routing) =====
+function App() {
+  const [unlocked, setUnlocked] = React.useState(() => sessionStorage.getItem('sapfir_unlocked') === '1');
+  const [, setTick] = React.useState(0);
+  React.useEffect(() => { const onChange = () => setTick(t=>t+1); window.addEventListener('hashchange', onChange); return () => window.removeEventListener('hashchange', onChange); }, []);
+  const route = (location.hash || '#/build').split('?')[0];
+  const wantBuild = route === '#/build';
+  const Page = wantBuild ? (unlocked ? Builder : () => React.createElement(Gate, { onUnlock: () => { setUnlocked(true); location.hash = '#/build'; } })) : Viewer;
+  return React.createElement('div', { className: 'w-screen h-screen' },
+    React.createElement(ReactFlowProvider, null, React.createElement(Page, null))
+  );
+}
+
+createRoot(document.getElementById('root')).render(React.createElement(App));
+    </script>
+  </body>
+</html>
 
