@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SAPFIR-like Workspace (multi-content blocks)</title>
+<title>SAPFIR-like Workspace (cloud save)</title>
 <style>
   :root { --bg:#f6f7fb; --panel:#ffffff; --line:#6366f1; --muted:#8a8fa3; }
   html,body,#app{height:100%}
@@ -44,10 +44,18 @@
   .edge{stroke:var(--line);stroke-width:2;fill:none}
   .viewer .node{pointer-events:none}
   .muted{color:var(--muted)}
+  .wsbox{display:flex;gap:.35rem;align-items:center}
+  .wsbox input{width:180px;padding:.45rem .6rem;border:1px solid #e6e7ee;border-radius:10px;background:#fff}
+  .sep{color:#c3c7d3}
 </style>
 </head>
 <body>
 <div id="app"></div>
+
+<!-- Firebase SDK (compat для простоты вставки на любую страницу) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore-compat.js"></script>
 
 <script>
 /* ====== Настройки / роутер ====== */
@@ -60,6 +68,7 @@ if (!location.hash) location.hash = '#/build';
 /* ====== Состояние ====== */
 let nodes=[], edges=[], viewport={x:0,y:0,scale:1};
 let selectedId = null;
+let workspaceId = 'default'; // ← можно менять в UI
 const uid = () => Math.random().toString(36).slice(2,9);
 
 /* ====== Утилиты ====== */
@@ -128,27 +137,79 @@ function redrawEdges(svg){
     const a = nodes.find(n=>n.id===e.from);
     const b = nodes.find(n=>n.id===e.to);
     if(!a||!b) return;
-    const x1 = a.x + a.w;
-    const y1 = a.y + a.h/2;
-    const x2 = b.x;
-    const y2 = b.y + b.h/2;
+    const x1 = a.x + a.w, y1 = a.y + a.h/2;
+    const x2 = b.x,       y2 = b.y + b.h/2;
     const d = smoothPath(x1, y1, x2, y2, 12);
     const p = document.createElementNS('http://www.w3.org/2000/svg','path');
-    p.setAttribute('d', d);
-    p.setAttribute('class','edge');
-    p.setAttribute('marker-end','url(#arrow)');
+    p.setAttribute('d', d); p.setAttribute('class','edge'); p.setAttribute('marker-end','url(#arrow)');
     svg.appendChild(p);
   });
 }
 
+/* ====== Persist (localStorage) ====== */
+const STORAGE_KEY = 'sapfir_workspace_v1';
+function saveLocal() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes, edges, viewport, workspaceId })); } catch {}
+}
+const saveLocalDebounced = (()=>{ let t; return ()=>{ clearTimeout(t); t=setTimeout(saveLocal, 250); };})();
+function loadLocal() {
+  try { const raw=localStorage.getItem(STORAGE_KEY); if(!raw) return false;
+    const obj=JSON.parse(raw); nodes=obj.nodes||[]; edges=obj.edges||[]; viewport=obj.viewport||{x:0,y:0,scale:1}; workspaceId=obj.workspaceId||'default'; return true;
+  } catch { return false; }
+}
+function clearLocal(){ localStorage.removeItem(STORAGE_KEY); }
+
+/* ====== Firebase init (вставьте свой конфиг) ====== */
+/* 1) Создайте проект Firebase, включите Firestore и Anonymous auth.
+   2) Правила Firestore см. ниже в инструкции.
+   3) Скопируйте объект конфигурации Web App сюда: */
+const firebaseConfig = {
+  apiKey: "PASTE_YOUR_API_KEY",
+  authDomain: "YOUR.firebaseapp.com",
+  projectId: "YOUR",
+  storageBucket: "YOUR.appspot.com",
+  messagingSenderId: "0000000000",
+  appId: "1:0000000000:web:XXXXXXXXXXXX"
+};
+// --- Не трогайте дальше ---
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+/* Авторизация анонимно (для прав записи) */
+async function ensureAuth(){
+  if (auth.currentUser) return auth.currentUser;
+  await auth.signInAnonymously();
+  return auth.currentUser;
+}
+
+/* Firestore: сохранение / загрузка */
+async function saveRemote(){
+  const user = await ensureAuth();
+  if (!workspaceId) { alert('Задайте ID схемы'); return; }
+  const payload = { nodes, edges, viewport, ownerUid: user.uid, updatedAt: Date.now() };
+  await db.collection('workspaces').doc(workspaceId).set(payload, { merge: true });
+  alert('Сохранено в облако ✔'); saveLocal();
+}
+async function loadRemote(){
+  if (!workspaceId) { alert('Задайте ID схемы'); return; }
+  const snap = await db.collection('workspaces').doc(workspaceId).get();
+  if (!snap.exists){ alert('Нет данных с таким ID'); return; }
+  const obj = snap.data();
+  nodes = obj.nodes||[]; edges = obj.edges||[]; viewport = obj.viewport||{x:0,y:0,scale:1};
+  saveLocal(); // кэш
+  // перерисуем текущую страницу
+  if (route()==='#/build') renderBuilder(true); else renderViewer(true);
+}
+
 /* ====== Страница: Конструктор ====== */
-function renderBuilder(){
+function renderBuilder(skipInit=false){
   // PIN gate
   if (sessionStorage.getItem('sapfir_pin_ok')!=='1'){
     app.innerHTML='';
     app.append(
       el('div',{style:{height:'100%',display:'grid',placeItems:'center'}},
-        el('div',{style:{width:'min(420px,92vw)',background:'#fff',border:'1px solid #e6e7ee',borderRadius:'16px',padding:'18px',boxShadow:'0 10px 30px rgba(0,0,0,.06)'}},
+        el('div',{style:{width:'min(460px,92vw)',background:'#fff',border:'1px solid #e6e7ee',borderRadius:'16px',padding:'18px',boxShadow:'0 10px 30px rgba(0,0,0,.06)'}},
           el('h3',{},'Вход в конструктор'),
           el('p',{class:'muted'},'Введите PIN, чтобы открыть страницу конструктора.'),
           (()=>{
@@ -167,25 +228,24 @@ function renderBuilder(){
     return;
   }
 
-  // Инициализация
-  if (nodes.length===0) {
-    nodes = [
-      {
-        id:uid(), x:120,y:80,w:320,h:220, title:'Пример блока', color:'#ffffff',
-        items: [
-          {type:'text', html:'<p>Можно хранить <b>текст</b>, изображения, видео и ссылки одновременно.</p>'},
-          {type:'image', url:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee'},
-          {type:'link', url:'https://example.com'},
-          {type:'video', url:'https://www.youtube.com/watch?v=dQw4w9WgXcQ'}
-        ]
-      },
-      {
-        id:uid(), x:540,y:300,w:280,h:180, title:'Пустой блок', color:'#ffffff',
-        items: [{type:'text', html:'<p>Добавь элементы справа — Текст/Фото/Видео/Ссылка.</p>'}]
-      },
-    ];
-    edges = [];
-    viewport = {x:0,y:0,scale:1};
+  // Инициализация (если нет локального и это не «перерисовка»)
+  if (!skipInit && nodes.length===0) {
+    if (!loadLocal()) {
+      nodes = [
+        {
+          id:uid(), x:120,y:80,w:320,h:220, title:'Пример блока', color:'#ffffff',
+          items: [
+            {type:'text', html:'<p>В одном блоке можно <b>текст</b>, <i>изображения</i>, <u>видео</u> и <a href="#">ссылки</a>.</p>'},
+            {type:'image', url:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee'},
+            {type:'link',  url:'https://example.com'},
+            {type:'video', url:'https://www.youtube.com/watch?v=dQw4w9WgXcQ'}
+          ]
+        },
+      ];
+      edges = [];
+      viewport = {x:0,y:0,scale:1};
+      workspaceId = 'default';
+    }
   }
 
   app.innerHTML='';
@@ -193,12 +253,21 @@ function renderBuilder(){
   /* === Topbar === */
   const leftBar = el('div',{class:'toolbar'},
     el('strong',{},'SAPFIR-style Builder'),
-    el('span',{class:'muted'},'·'),
-    el('a',{href:'#/view',class:'btn'},'Страница просмотра')
+    el('span',{class:'sep'},'·'),
+    el('a',{href:'#/view',class:'btn'},'Просмотр')
   );
+
+  // блок облака
+  const wsInput = el('input',{value:workspaceId, placeholder:'ID схемы'});
+  wsInput.addEventListener('input', ()=>{ workspaceId = wsInput.value.trim(); saveLocalDebounced(); });
+  const bSaveCloud = el('button',{class:'btn'},'Сохранить в облако');
+  const bLoadCloud = el('button',{class:'btn'},'Загрузить из облака');
+  bSaveCloud.addEventListener('click', saveRemote);
+  bLoadCloud.addEventListener('click', loadRemote);
 
   const btnNew  = el('button',{class:'btn'},'Новый блок');
   btnNew.addEventListener('click', ()=>addNode());
+
   const bZoomOut = el('button',{class:'btn'},'–');
   const bZoomIn  = el('button',{class:'btn'},'+');
   const bFit     = el('button',{class:'btn'},'Fit');
@@ -206,16 +275,24 @@ function renderBuilder(){
   const bImport  = el('button',{class:'btn'},'Импорт');
   const bShare   = el('button',{class:'btn primary'},'Поделиться');
   const bDel     = el('button',{class:'btn'},'Удалить');
+  const bReset   = el('button',{class:'btn'},'Сбросить');
+
   bZoomOut.addEventListener('click', zoomOut);
   bZoomIn .addEventListener('click', zoomIn);
   bFit    .addEventListener('click', fitView);
   bJson   .addEventListener('click', exportJSON);
   bImport .addEventListener('click', importJSON);
-  bShare  .addEventListener('click', share);
+  bShare  .addEventListener('click', ()=>share(wsInput.value.trim()));
   bDel    .addEventListener('click', removeSelected);
+  bReset  .addEventListener('click', ()=>{
+    if (!confirm('Очистить локальные данные и вернуть демо?')) return;
+    clearLocal(); nodes=[]; edges=[]; viewport={x:0,y:0,scale:1}; renderBuilder();
+  });
 
   const rightBar = el('div',{class:'toolbar'},
-    btnNew, bZoomOut, bZoomIn, bFit, bJson, bImport, bShare, bDel
+    el('div',{class:'wsbox'}, el('span',{},'ID:'), wsInput),
+    bSaveCloud, bLoadCloud,
+    btnNew, bZoomOut, bZoomIn, bFit, bJson, bImport, bShare, bDel, bReset
   );
 
   const top = el('div',{class:'topbar'}, leftBar, rightBar);
@@ -257,6 +334,7 @@ function renderBuilder(){
     if(!panning) return;
     viewport.x += e.clientX-last.x; viewport.y += e.clientY-last.y;
     last={x:e.clientX,y:e.clientY}; applyViewport();
+    saveLocalDebounced();
   });
   board.addEventListener('wheel', (e)=>{
     e.preventDefault();
@@ -267,7 +345,7 @@ function renderBuilder(){
     viewport.scale = clamp(viewport.scale*k, .3, 2.5);
     viewport.x = e.clientX-rect.left - cx*viewport.scale;
     viewport.y = e.clientY-rect.top  - cy*viewport.scale;
-    applyViewport();
+    applyViewport(); saveLocalDebounced();
   }, {passive:false});
   function applyViewport(){
     layer.style.transform = `translate(${viewport.x}px,${viewport.y}px) scale(${viewport.scale})`;
@@ -308,7 +386,7 @@ function renderBuilder(){
         const pt = toCanvas(e.clientX,e.clientY,board);
         n.x = orig.x + (pt.x - start.x); n.y = orig.y + (pt.y - start.y);
         card.style.left = n.x+'px'; card.style.top = n.y+'px';
-        redrawEdges(svg);
+        redrawEdges(svg); saveLocalDebounced();
       });
 
       // Resize
@@ -322,7 +400,7 @@ function renderBuilder(){
         n.w = Math.max(240, os.w + (e.clientX-rs.x)/viewport.scale);
         n.h = Math.max(160, os.h + (e.clientY-rs.y)/viewport.scale);
         card.style.width = n.w+'px'; card.style.height = n.h+'px';
-        redrawEdges(svg);
+        redrawEdges(svg); saveLocalDebounced();
       });
 
       // Select
@@ -338,8 +416,7 @@ function renderBuilder(){
       out.addEventListener('mousedown',(e)=>{
         e.stopPropagation(); connecting=true; sourceId = n.id;
         temp = document.createElementNS('http://www.w3.org/2000/svg','path');
-        temp.setAttribute('class','edge'); temp.setAttribute('marker-end','url(#arrow)');
-        svg.appendChild(temp);
+        temp.setAttribute('class','edge'); temp.setAttribute('marker-end','url(#arrow)'); svg.appendChild(temp);
       });
       window.addEventListener('mouseup',(e)=>{
         if(!connecting) return;
@@ -347,7 +424,7 @@ function renderBuilder(){
         const t = document.elementFromPoint(e.clientX,e.clientY);
         if (t && t.classList.contains('in')){
           const targetId = t.getAttribute('data-id');
-          if (targetId && targetId!==sourceId) edges.push({from:sourceId,to:targetId});
+          if (targetId && targetId!==sourceId) { edges.push({from:sourceId,to:targetId}); saveLocalDebounced(); }
           redrawEdges(svg);
         }
       });
@@ -389,16 +466,16 @@ function renderBuilder(){
   // Действия
   function addNode(){
     const n = {id:uid(), x:120,y:120,w:320,h:220, title:'Новый блок', color:'#ffffff', items:[{type:'text', html:'<p>Текст…</p>'}]};
-    nodes.push(n); selectedId=n.id; drawNodes(); updateInspector();
+    nodes.push(n); selectedId=n.id; drawNodes(); updateInspector(); saveLocalDebounced();
   }
   function removeSelected(){
     if(!selectedId) return;
     nodes = nodes.filter(n=>n.id!==selectedId);
     edges = edges.filter(e=>e.from!==selectedId && e.to!==selectedId);
-    selectedId=null; updateInspector(); drawNodes();
+    selectedId=null; updateInspector(); drawNodes(); saveLocalDebounced();
   }
-  function zoomIn(){ viewport.scale = clamp(viewport.scale*1.1,.3,2.5); applyViewport(); }
-  function zoomOut(){ viewport.scale = clamp(viewport.scale*0.9,.3,2.5); applyViewport(); }
+  function zoomIn(){ viewport.scale = clamp(viewport.scale*1.1,.3,2.5); applyViewport(); saveLocalDebounced(); }
+  function zoomOut(){ viewport.scale = clamp(viewport.scale*0.9,.3,2.5); applyViewport(); saveLocalDebounced(); }
   function fitView(){
     if(nodes.length===0){ viewport={x:0,y:0,scale:1}; return applyViewport(); }
     const minX=Math.min(...nodes.map(n=>n.x)), minY=Math.min(...nodes.map(n=>n.y));
@@ -408,24 +485,29 @@ function renderBuilder(){
     viewport.scale = clamp(isFinite(s)?s:1,.3,2.5);
     viewport.x = (boardRect.width - (maxX-minX)*viewport.scale)/2 - minX*viewport.scale;
     viewport.y = (boardRect.height- (maxY-minY)*viewport.scale)/2 - minY*viewport.scale;
-    applyViewport();
+    applyViewport(); saveLocalDebounced();
   }
   function exportJSON(){
-    const data = {nodes,edges};
+    const data = {nodes,edges,viewport,workspaceId};
     const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
     const a = el('a',{href:URL.createObjectURL(blob),download:'workspace.json'}); a.click(); URL.revokeObjectURL(a.href);
   }
   function importJSON(){
     const txt = prompt('Вставьте JSON схемы:');
     if(!txt) return;
-    try{ const obj=JSON.parse(txt); nodes=obj.nodes||[]; edges=obj.edges||[]; selectedId=null; updateInspector(); drawNodes();}
+    try{ const obj=JSON.parse(txt); nodes=obj.nodes||[]; edges=obj.edges||[]; viewport=obj.viewport||viewport; workspaceId=obj.workspaceId||workspaceId; selectedId=null; updateInspector(); drawNodes(); saveLocalDebounced();}
     catch{ alert('Ошибка JSON'); }
   }
-  function share(){
-    const data = enc({nodes,edges,viewport});
-    const url = location.origin+location.pathname+'#/view?data='+data;
-    navigator.clipboard?.writeText(url);
-    alert('Ссылка скопирована ✔');
+  function share(ws){
+    // Если задан ws — шлём ссылку с ws, иначе — старая ссылка с data=
+    if (ws) {
+      const url = `${location.origin}${location.pathname}#/view?ws=${encodeURIComponent(ws)}`;
+      navigator.clipboard?.writeText(url); alert('Ссылка (облако) скопирована ✔');
+    } else {
+      const data = enc({nodes,edges,viewport});
+      const url = `${location.origin}${location.pathname}#/view?data=${data}`;
+      navigator.clipboard?.writeText(url); alert('Ссылка (встроенные данные) скопирована ✔');
+    }
   }
 
   function moveItem(items, from, to){
@@ -440,15 +522,10 @@ function renderBuilder(){
     const n = nodes.find(k=>k.id===selectedId);
     if(!n){ insp.append(el('p',{class:'muted'},'Выберите блок.')); return; }
 
-    // Заголовок и фон
-    const title = el('input',{value:n.title||''});
-    title.addEventListener('input',()=>{n.title=title.value; drawNodes();});
-    const color = el('input',{type:'color', value:n.color||'#ffffff'});
-    color.addEventListener('input',()=>{n.color=color.value; drawNodes();});
+    const title = el('input',{value:n.title||''}); title.addEventListener('input',()=>{n.title=title.value; drawNodes(); saveLocalDebounced();});
+    const color = el('input',{type:'color', value:n.color||'#ffffff'}); color.addEventListener('input',()=>{n.color=color.value; drawNodes(); saveLocalDebounced();});
 
-    // Контент списка элементов
     const contentWrap = el('div',{class:'content-list'});
-
     function renderItems(){
       contentWrap.innerHTML='';
       (n.items||[]).forEach((it, idx)=>{
@@ -456,33 +533,23 @@ function renderBuilder(){
         const head = el('div',{class:'item-head'},
           el('div',{class:'type'}, it.type==='text'?'Текст':it.type==='image'?'Фото':it.type==='video'?'Видео':'Ссылка'),
           el('div',{class:'actions'},
-            (()=>{
-              const up = el('button',{class:'iconbtn'},'↑'); up.addEventListener('click',()=>{moveItem(n.items,idx,idx-1); renderItems(); drawNodes();}); return up;
-            })(),
-            (()=>{
-              const dn = el('button',{class:'iconbtn'},'↓'); dn.addEventListener('click',()=>{moveItem(n.items,idx,idx+1); renderItems(); drawNodes();}); return dn;
-            })(),
-            (()=>{
-              const rm = el('button',{class:'iconbtn'},'✕'); rm.addEventListener('click',()=>{n.items.splice(idx,1); renderItems(); drawNodes();}); return rm;
-            })()
+            (()=>{ const up=el('button',{class:'iconbtn'},'↑'); up.addEventListener('click',()=>{moveItem(n.items,idx,idx-1); renderItems(); drawNodes(); saveLocalDebounced();}); return up;})(),
+            (()=>{ const dn=el('button',{class:'iconbtn'},'↓'); dn.addEventListener('click',()=>{moveItem(n.items,idx,idx+1); renderItems(); drawNodes(); saveLocalDebounced();}); return dn;})(),
+            (()=>{ const rm=el('button',{class:'iconbtn'},'✕'); rm.addEventListener('click',()=>{n.items.splice(idx,1); renderItems(); drawNodes(); saveLocalDebounced();}); return rm;})()
           )
         );
-        let bodyFields = null;
+        let bodyFields=null;
         if (it.type==='text'){
-          const ta = el('textarea',{rows:4}, it.html||'');
-          ta.addEventListener('input',()=>{ it.html = ta.value; drawNodes(); });
+          const ta=el('textarea',{rows:4}, it.html||''); ta.addEventListener('input',()=>{ it.html = ta.value; drawNodes(); saveLocalDebounced();});
           bodyFields = el('div',{}, el('label',{},'HTML текст'), ta, el('small',{class:'muted'},'Поддерживается простой HTML (p, b, i, ul, a...).'));
         } else if (it.type==='image'){
-          const inp = el('input',{value:it.url||'', placeholder:'https://…'});
-          inp.addEventListener('input',()=>{ it.url = inp.value; drawNodes(); });
+          const inp=el('input',{value:it.url||'', placeholder:'https://…'}); inp.addEventListener('input',()=>{ it.url = inp.value; drawNodes(); saveLocalDebounced();});
           bodyFields = el('div',{}, el('label',{},'URL изображения'), inp);
         } else if (it.type==='video'){
-          const inp = el('input',{value:it.url||'', placeholder:'YouTube или MP4 URL'});
-          inp.addEventListener('input',()=>{ it.url = inp.value; drawNodes(); });
+          const inp=el('input',{value:it.url||'', placeholder:'YouTube или MP4 URL'}); inp.addEventListener('input',()=>{ it.url = inp.value; drawNodes(); saveLocalDebounced();});
           bodyFields = el('div',{}, el('label',{},'URL видео'), inp);
         } else {
-          const inp = el('input',{value:it.url||'', placeholder:'https://…'});
-          inp.addEventListener('input',()=>{ it.url = inp.value; drawNodes(); });
+          const inp=el('input',{value:it.url||'', placeholder:'https://…'}); inp.addEventListener('input',()=>{ it.url = inp.value; drawNodes(); saveLocalDebounced();});
           bodyFields = el('div',{}, el('label',{},'URL ссылки'), inp);
         }
         card.append(head, bodyFields);
@@ -491,16 +558,15 @@ function renderBuilder(){
     }
     renderItems();
 
-    // Кнопки добавления элемента
     const addRow = el('div',{class:'toolbar',style:{marginTop:'6px'}});
     const addText = el('button',{class:'btn'},'Добавить текст');
     const addImg  = el('button',{class:'btn'},'Добавить фото');
     const addVid  = el('button',{class:'btn'},'Добавить видео');
     const addLink = el('button',{class:'btn'},'Добавить ссылку');
-    addText.addEventListener('click',()=>{ (n.items ||= []).push({type:'text', html:'<p>Текст…</p>'}); renderItems(); drawNodes(); });
-    addImg .addEventListener('click',()=>{ (n.items ||= []).push({type:'image', url:''}); renderItems(); drawNodes(); });
-    addVid .addEventListener('click',()=>{ (n.items ||= []).push({type:'video', url:''}); renderItems(); drawNodes(); });
-    addLink.addEventListener('click',()=>{ (n.items ||= []).push({type:'link', url:'https://'}); renderItems(); drawNodes(); });
+    addText.addEventListener('click',()=>{ (n.items ||= []).push({type:'text', html:'<p>Текст…</p>'}); renderItems(); drawNodes(); saveLocalDebounced(); });
+    addImg .addEventListener('click',()=>{ (n.items ||= []).push({type:'image', url:''}); renderItems(); drawNodes(); saveLocalDebounced(); });
+    addVid .addEventListener('click',()=>{ (n.items ||= []).push({type:'video', url:''}); renderItems(); drawNodes(); saveLocalDebounced(); });
+    addLink.addEventListener('click',()=>{ (n.items ||= []).push({type:'link', url:'https://'}); renderItems(); drawNodes(); saveLocalDebounced(); });
     addRow.append(addText, addImg, addVid, addLink);
 
     insp.append(
@@ -516,37 +582,29 @@ function renderBuilder(){
 }
 
 /* ====== Страница: Просмотрщик ====== */
-function renderViewer(){
+async function renderViewer(skipInit=false){
   app.innerHTML='';
+  const wsParam   = qget('ws');
   const dataParam = qget('data');
   try{
-    if (dataParam){
+    if (wsParam){
+      // Загрузка из Firestore по ws
+      const snap = await db.collection('workspaces').doc(wsParam).get();
+      if (!snap.exists){ app.innerHTML = '<div style="padding:16px">Нет данных по этому ID.</div>'; return; }
+      const obj = snap.data(); nodes=obj.nodes||[]; edges=obj.edges||[]; viewport=obj.viewport||{x:0,y:0,scale:1};
+    } else if (dataParam){
       const parsed = dec(dataParam);
-      nodes = parsed.nodes||[];
-      edges = parsed.edges||[];
-      viewport = parsed.viewport||{x:0,y:0,scale:1};
-    } else { nodes=[]; edges=[]; viewport={x:0,y:0,scale:1}; }
+      nodes = parsed.nodes||[]; edges = parsed.edges||[]; viewport = parsed.viewport||{x:0,y:0,scale:1};
+    } else {
+      nodes=[]; edges=[]; viewport={x:0,y:0,scale:1};
+    }
   }catch{ nodes=[]; edges=[]; viewport={x:0,y:0,scale:1}; }
 
   const top = el('div',{class:'topbar'},
-    el('div',{class:'toolbar'}, el('strong',{},'SAPFIR-style Viewer'), el('span',{class:'muted'},'· только просмотр')),
+    el('div',{class:'toolbar'}, el('strong',{},'SAPFIR-style Viewer'), el('span',{class:'muted'}, wsParam ? `· облако · ${wsParam}` : '· встроенные данные')),
     el('div',{class:'toolbar'},
       (()=>{
         const bFit=el('button',{class:'btn'},'Fit'); bFit.addEventListener('click',fitView); return bFit;
-      })(),
-      (()=>{
-        const bLoad=el('button',{class:'btn'},'Загрузить по ссылке');
-        bLoad.addEventListener('click',()=>{
-          const link = prompt('Вставьте ссылку вида …#/view?data=…'); if(!link) return;
-          try{ const u=new URL(link); const m=(u.hash||'').match(/data=([^&]+)/); if(!m) throw 0; const obj=dec(m[1]); nodes=obj.nodes||[]; edges=obj.edges||[]; viewport=obj.viewport||{x:0,y:0,scale:1}; draw(); alert('Схема загружена'); }catch{ alert('Не удалось загрузить'); }
-        }); return bLoad;
-      })(),
-      (()=>{
-        const bImp=el('button',{class:'btn'},'Импорт JSON');
-        bImp.addEventListener('click',()=>{
-          const txt=prompt('Вставьте JSON схемы:'); if(!txt) return;
-          try{ const o=JSON.parse(txt); nodes=o.nodes||[]; edges=o.edges||[]; draw(); }catch{ alert('Ошибка JSON'); }
-        }); return bImp;
       })()
     )
   );
@@ -604,7 +662,6 @@ function renderViewer(){
     applyVP();
   }
 
-  // пан/зум
   let panning=false,last={x:0,y:0};
   board.addEventListener('mousedown',(e)=>{ panning=true; last={x:e.clientX,y:e.clientY}; });
   window.addEventListener('mouseup',()=>panning=false);
@@ -627,7 +684,6 @@ function renderViewer(){
     viewport.y=(rect.height-(maxY-minY)*viewport.scale)/2 - minY*viewport.scale;
     applyVP();
   }
-
   draw();
 }
 
