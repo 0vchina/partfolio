@@ -1,348 +1,537 @@
 <!doctype html>
 <html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SAPFIR-style Workspace</title>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAPFIR-like Workspace (no deps)</title>
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --panel: #ffffff;
+    --line: #6366f1;
+    --muted: #8a8fa3;
+  }
+  html,body,#app{height:100%} body{margin:0;background:radial-gradient(ellipse at top,#eef2ff,#fff)}
+  *{box-sizing:border-box;font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Arial}
+  .topbar{position:sticky;top:0;z-index:10;display:flex;gap:.5rem;justify-content:space-between;align-items:center;background:#fffddf00;background:#ffffffcc;backdrop-filter:saturate(1.3) blur(6px);border-bottom:1px solid #e6e7ee;padding:.6rem .8rem}
+  .btn{border:1px solid #e6e7ee;background:#fff;border-radius:14px;padding:.45rem .7rem;font-size:.9rem;cursor:pointer}
+  .btn:hover{background:#fafbff}
+  .btn.primary{background:#4f46e5;color:#fff;border-color:#4f46e5}
+  .toolbar{display:flex;gap:.35rem;flex-wrap:wrap;align-items:center}
+  .wrap{display:grid;grid-template-columns: 1fr 320px;height:calc(100% - 52px)}
+  .panel{border-left:1px solid #e6e7ee;background:#ffffffcc;padding:12px;backdrop-filter:blur(6px)}
+  .panel h3{margin:6px 0 10px}
+  .panel label{font-size:.8rem;color:#666}
+  .panel input,.panel select,.panel textarea{width:100%;padding:.5rem .6rem;border:1px solid #e6e7ee;border-radius:10px;margin:.3rem 0 .6rem;background:#fff}
+  .panel small{color:#777}
+  /* Canvas area */
+  .board{position:relative;overflow:hidden;background:var(--bg)}
+  .grid{
+    position:absolute;inset:0; background-image:
+      radial-gradient(#c7cdfa 1px, transparent 0);
+    background-size: 16px 16px; opacity:.5; pointer-events:none;
+    transform-origin: 0 0;
+  }
+  .layer{position:absolute;inset:0; transform-origin:0 0;}
+  /* Node card */
+  .node{
+    position:absolute; min-width:220px; min-height:140px;
+    background:#fff; border:1px solid #e6e7ee; border-radius:16px;
+    box-shadow:0 8px 26px rgba(22,28,45,.06);
+    overflow:hidden; user-select:none;
+  }
+  .node .title{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid #eceef5;background:linear-gradient(90deg,#eef2ff,#f7faff)}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .node .body{padding:10px;font-size:.9rem}
+  .handle{position:absolute;top:50%;transform:translateY(-50%);width:12px;height:12px;border-radius:50%;background:var(--line);cursor:crosshair}
+  .handle.out{right:-6px} .handle.in{left:-6px}
+  .node .resizer{position:absolute;width:12px;height:12px;right:0;bottom:0;background:var(--line);border-top-left-radius:4px;cursor:nwse-resize}
+  .node.selected{outline:2px solid #a5b4fc}
+  /* Edge */
+  svg.edges{position:absolute;inset:0;pointer-events:none}
+  .edge{stroke:var(--line);stroke-width:2;fill:none}
+  /* Viewer tweaks */
+  .viewer .node{pointer-events:none}
+  /* Misc */
+  .kbd{font:12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:2px 6px}
+  .muted{color:var(--muted)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ---------- Simple hash router + PIN gate ---------- */
+const PIN = '2701'; // СМЕНИ свой PIN здесь
+const app = document.getElementById('app');
+const route = () => (location.hash || '#/build').split('?')[0];
+window.addEventListener('hashchange', render);
+if (!location.hash) location.hash = '#/build';
 
-    <!-- Tailwind (можно удалить, если мешает CSP) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config = { theme: { extend: {} }, plugins: [] }</script>
+/* ---------- State ---------- */
+let nodes=[], edges=[], viewport={x:0,y:0,scale:1};
+let selectedId = null;
+const uid = () => Math.random().toString(36).slice(2,9);
 
-    <!-- React Flow CSS (статичные стили, можно оставить с jsDelivr) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reactflow@11.10.0/dist/style.css" />
+/* ---------- Helpers ---------- */
+const enc = (obj) => btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+const dec = (str) => JSON.parse(decodeURIComponent(escape(atob(str))));
+const qget = (k) => new URLSearchParams((location.hash.split('?')[1]||'')).get(k);
+const el = (tag, props={}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k,v] of Object.entries(props)) {
+    if (k==='style') Object.assign(n.style, v);
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2).toLowerCase(), v);
+    else n.setAttribute(k, v);
+  }
+  kids.flat().forEach(ch => n.append(ch.nodeType?ch:document.createTextNode(ch)));
+  return n;
+};
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const toCanvas = (clientX, clientY, board) => {
+  const r = board.getBoundingClientRect();
+  const x = (clientX - r.left - viewport.x) / viewport.scale;
+  const y = (clientY - r.top  - viewport.y) / viewport.scale;
+  return {x,y};
+};
+function redrawEdges(svg){
+  svg.innerHTML='';
+  edges.forEach(e=>{
+    const a = nodes.find(n=>n.id===e.from);
+    const b = nodes.find(n=>n.id===e.to);
+    if(!a||!b) return;
+    const x1 = a.x + a.w;
+    const y1 = a.y + a.h/2;
+    const x2 = b.x;
+    const y2 = b.y + b.h/2;
+    const dx = Math.max(40, Math.abs(x2-x1)*.4);
+    const d = `M ${x1},${y1} C ${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`;
+    const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d', d); p.setAttribute('class','edge'); svg.appendChild(p);
+  });
+}
 
-    <style>
-      html, body, #root { height: 100%; }
-      body { background: radial-gradient(ellipse at top, #eef2ff, #ffffff); }
-      .prose p { margin: 0.25rem 0; }
-      /* Нативный ресайз (без node-resizer пакета) */
-      .resizable-shell { resize: both; overflow: hidden; min-width: 220px; min-height: 140px; }
-      .resizable-shell::-webkit-resizer { background: rgba(99,102,241,.35); }
-    </style>
-  </head>
-  <body>
-    <div id="root"></div>
+/* ---------- Builder UI ---------- */
+function renderBuilder(){
+  // gate
+  if (sessionStorage.getItem('sapfir_pin_ok')!=='1'){
+    app.innerHTML='';
+    app.append(
+      el('div',{style:{height:'100%',display:'grid',placeItems:'center'}},
+        el('div',{style:{width:'min(420px,92vw)',background:'#fff',border:'1px solid #e6e7ee',borderRadius:'16px',padding:'18px',boxShadow:'0 10px 30px rgba(0,0,0,.06)'}},
+          el('h3',{},'Вход в конструктор'),
+          el('p',{class:'muted'},'Введите PIN, чтобы открыть страницу конструктора.'),
+          (()=>{
+            const input = el('input',{type:'password',placeholder:'PIN',style:{width:'100%',padding:'10px',border:'1px solid #e6e7ee',borderRadius:'12px'}});
+            const btn = el('button',{class:'btn primary',style:{marginTop:'10px'},onclick:()=>{
+              if(input.value===PIN){ sessionStorage.setItem('sapfir_pin_ok','1'); render(); }
+              else alert('Неверный PIN');
+            }},'Открыть');
+            return el('div',{},input,btn);
+          })(),
+          el('small',{class:'muted'},'Подсказка: константа PIN в коде.')
+        )
+      )
+    );
+    return;
+  }
 
-    <script type="module">
-      // ===== Все импорты — только со Skypack, чтобы React был один =====
-      import React, { useCallback, useEffect, useMemo, useRef, useState } from "https://cdn.skypack.dev/react@18.2.0";
-      import { createRoot } from "https://cdn.skypack.dev/react-dom@18.2.0/client";
-      import ReactFlow, {
-        Background, Controls, MiniMap, ReactFlowProvider,
-        useEdgesState, useNodesState, addEdge, Handle, Position,
-        useUpdateNodeInternals
-      } from "https://cdn.skypack.dev/reactflow@11.10.0";
-      import { motion } from "https://cdn.skypack.dev/framer-motion@11.0.0";
-      import {
-        Link as LinkIcon, Image as ImageIcon, Video, Type, Trash2,
-        Download, Upload, Share2, ZoomIn, ZoomOut, Maximize
-      } from "https://cdn.skypack.dev/lucide-react@0.462.0";
-      import LZString from "https://cdn.skypack.dev/lz-string@1.5.0";
+  // init
+  if (nodes.length===0) {
+    nodes = [
+      {id:uid(), x:120,y:80,w:280,h:180, title:'Задача', kind:'text', color:'#ffffff', content:'Добавь описание…'},
+      {id:uid(), x:520,y:260,w:260,h:160, title:'Ссылка', kind:'link', color:'#ffffff', link:'https://example.com'},
+    ];
+    edges = [];
+    viewport = {x:0,y:0,scale:1};
+  }
 
-      // ===== UI helpers =====
-      const Button = ({ className = "", children, ...props }) =>
-        React.createElement("button", { className: `px-3 py-2 rounded-2xl shadow-sm border border-zinc-200 bg-white hover:bg-zinc-50 active:scale-[0.99] transition text-sm ${className}`, ...props }, children);
-      const IconButton = ({ children, className = "", ...props }) =>
-        React.createElement("button", { className: `p-2 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm active:scale-[0.99] transition ${className}`, ...props }, children);
+  app.innerHTML='';
+  // topbar
+  const top = el('div',{class:'topbar'},
+    el('div',{class:'toolbar'},
+      el('strong',{},'SAPFIR-style Builder'),
+      el('span',{class:'muted'},'·'),
+      el('a',{href:'#/view',class:'btn'},'Страница просмотра')
+    ),
+    el('div',{class:'toolbar'},
+      el('button',{class:'btn',onclick:()=>addNode('text')},'Текст'),
+      el('button',{class:'btn',onclick:()=>addNode('link')},'Ссылка'),
+      el('button',{class:'btn',onclick:()=>addNode('image')},'Фото'),
+      el('button',{class:'btn',onclick:()=>addNode('video')},'Видео'),
+      el('button',{class:'btn',onclick:zoomOut},'–'),
+      el('button',{class:'btn',onclick:zoomIn},'+'),
+      el('button',{class:'btn',onclick:fitView},'Fit'),
+      el('button',{class:'btn',onclick:exportJSON},'JSON'),
+      el('button',{class:'btn',onclick:importJSON},'Импорт'),
+      el('button',{class:'btn primary',onclick:share},'Поделиться'),
+      el('button',{class:'btn',onclick:removeSelected},'Удалить')
+    )
+  );
+  // board
+  const board = el('div',{class:'board'});
+  const grid  = el('div',{class:'grid'});
+  const layer = el('div',{class:'layer'});
+  const svg   = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('class','edges');
 
-      // ===== Utils =====
-      const sanitizeSimple = (html) => {
-        const tmp = document.createElement("div");
-        tmp.innerHTML = html || "";
-        tmp.querySelectorAll("script,style").forEach((el) => el.remove());
-        tmp.querySelectorAll("*").forEach((el) => {
-          [...el.attributes].forEach((a) => { if (a.name.startsWith("on")) el.removeAttribute(a.name); });
-        });
-        return tmp.innerHTML;
-      };
-      const isYouTube = (url) => { try { return /youtu\.be|youtube\.com/.test(new URL(url).host); } catch { return false; } };
-      const toYouTubeEmbed = (url) => { try { const u = new URL(url); if (u.host.includes("youtu.be")) { const id = u.pathname.replace("/", ""); return `https://www.youtube.com/embed/${id}`; } const id = u.searchParams.get("v"); return `https://www.youtube.com/embed/${id||""}`; } catch { return url; } };
-      const uid = (p="id") => `${p}_${Math.random().toString(36).slice(2,9)}`;
+  board.append(grid, svg, layer);
 
-      // ===== Custom Node (нативный ресайз без внешних пакетов) =====
-      function CardNode({ id, data }) {
-        const { title = "Блок", kind = "text", content = "", imageUrl = "", videoUrl = "", linkUrl = "", color = "#ffffff" } = data || {};
-        const shellRef = useRef(null);
-        const updateNodeInternals = useUpdateNodeInternals();
+  // inspector
+  const panel = el('div',{class:'panel'},
+    el('h3',{},'Свойства блока'),
+    el('div',{id:'insp'}, el('p',{class:'muted'},'Выберите блок.'))
+  );
 
-        useEffect(() => {
-          if (!shellRef.current) return;
-          const ro = new ResizeObserver(() => updateNodeInternals(id));
-          ro.observe(shellRef.current);
-          return () => ro.disconnect();
-        }, [id, updateNodeInternals]);
+  app.append(top, el('div',{class:'wrap'}, board, panel));
 
-        return (
-          React.createElement("div", { className: "relative" },
-            React.createElement("div", { ref: shellRef, className: "resizable-shell w-full h-full rounded-2xl overflow-hidden border border-zinc-200 bg-white/90 backdrop-blur-sm shadow-md" },
-              React.createElement("div", { className: "px-3 py-2 bg-gradient-to-r from-indigo-500/10 to-sky-500/10 border-b border-zinc-200 flex items-center gap-2" },
-                React.createElement("div", { className: "w-2.5 h-2.5 rounded-full bg-emerald-500" }),
-                React.createElement("div", { className: "w-2.5 h-2.5 rounded-full bg-amber-500" }),
-                React.createElement("div", { className: "w-2.5 h-2.5 rounded-full bg-rose-500" }),
-                React.createElement("h4", { className: "ml-2 font-medium text-zinc-800 truncate" }, title)
-              ),
-              React.createElement("div", { className: "p-3 space-y-2 text-sm", style: { background: color } },
-                kind === "text"  && React.createElement("div", { className: "prose prose-zinc max-w-none text-zinc-700", dangerouslySetInnerHTML: { __html: sanitizeSimple(content) } }),
-                kind === "link"  && React.createElement("a", { href: linkUrl, target: "_blank", rel: "noreferrer", className: "inline-flex items-center gap-2 text-indigo-600 hover:underline" }, React.createElement(LinkIcon, { size: 16 }), ` ${linkUrl || "https://example.com"}`),
-                kind === "image" && imageUrl && React.createElement("img", { src: imageUrl, alt: "img", className: "w-full h-48 object-cover rounded-xl border border-zinc-200" }),
-                kind === "video" && videoUrl && React.createElement("div", { className: "aspect-video w-full rounded-xl overflow-hidden border border-zinc-200" },
-                  isYouTube(videoUrl)
-                    ? React.createElement("iframe", { src: toYouTubeEmbed(videoUrl), title: "video", allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share", allowFullScreen: true, className: "w-full h-full" })
-                    : React.createElement("video", { src: videoUrl, controls: true, className: "w-full h-full" })
-                )
-              )
-            ),
-            React.createElement(Handle, { type:"target", position: Position.Left,  className: "!w-3 !h-3 !bg-indigo-500 absolute top-1/2 -translate-y-1/2 -left-1.5 rounded-full" }),
-            React.createElement(Handle, { type:"source", position: Position.Right, className: "!w-3 !h-3 !bg-indigo-500 absolute top-1/2 -translate-y-1/2 -right-1.5 rounded-full" })
-          )
+  // pan & zoom
+  let panning=false, last={x:0,y:0};
+  board.addEventListener('mousedown', (e)=>{
+    if (e.target!==board && e.target!==grid) return;
+    panning=true; last={x:e.clientX,y:e.clientY};
+  });
+  window.addEventListener('mouseup', ()=>panning=false);
+  window.addEventListener('mousemove', (e)=>{
+    if(!panning) return;
+    viewport.x += e.clientX-last.x; viewport.y += e.clientY-last.y;
+    last={x:e.clientX,y:e.clientY}; applyViewport();
+  });
+  board.addEventListener('wheel', (e)=>{
+    e.preventDefault();
+    const k = e.deltaY>0 ? 0.9 : 1.1;
+    const rect = board.getBoundingClientRect();
+    const cx = (e.clientX-rect.left - viewport.x)/viewport.scale;
+    const cy = (e.clientY-rect.top  - viewport.y)/viewport.scale;
+    viewport.scale = clamp(viewport.scale*k, .3, 2.5);
+    viewport.x = e.clientX-rect.left - cx*viewport.scale;
+    viewport.y = e.clientY-rect.top  - cy*viewport.scale;
+    applyViewport();
+  }, {passive:false});
+  function applyViewport(){
+    layer.style.transform = `translate(${viewport.x}px,${viewport.y}px) scale(${viewport.scale})`;
+    grid.style.transform  = `translate(${viewport.x}px,${viewport.y}px) scale(${viewport.scale})`;
+    redrawEdges(svg);
+  }
+  applyViewport();
+
+  // render nodes
+  function drawNodes(){
+    layer.innerHTML='';
+    nodes.forEach(n=>{
+      const card = el('div',{class:'node',style:{left:n.x+'px',top:n.y+'px',width:n.w+'px',height:n.h+'px'}});
+      if (n.id===selectedId) card.classList.add('selected');
+      card.append(
+        el('div',{class:'title'},
+          el('div',{class:'dot',style:{background:'#10b981'}}),
+          el('div',{class:'dot',style:{background:'#f59e0b'}}),
+          el('div',{class:'dot',style:{background:'#ef4444'}}),
+          el('strong',{}, ' '+(n.title||'Блок'))
+        ),
+        (()=>{
+          const body = el('div',{class:'body',style:{background:n.color||'#ffffff'}});
+          if(n.kind==='text'){
+            body.innerHTML = (n.content||'').replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi,'');
+          }else if(n.kind==='link'){
+            body.append(el('a',{href:n.link||'#',target:'_blank'}, n.link||'https://'));
+          }else if(n.kind==='image'){
+            if(n.image) body.append(el('img',{src:n.image,style:{width:'100%',height:'160px',objectFit:'cover',borderRadius:'12px',border:'1px solid #e6e7ee'}}));
+            else body.append('URL изображения не задан');
+          }else if(n.kind==='video'){
+            if(n.video){
+              if (/youtu\.be|youtube\.com/.test(n.video)){
+                const id = (()=>{
+                  try{const u=new URL(n.video);return u.searchParams.get('v')||u.pathname.slice(1);}catch{return''}
+                })();
+                body.append(el('iframe',{src:'https://www.youtube.com/embed/'+id, allow:'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',allowFullscreen:'',style:{width:'100%',aspectRatio:'16/9',border:'1px solid #e6e7ee',borderRadius:'12px'}}));
+              } else {
+                body.append(el('video',{src:n.video,controls:'',style:{width:'100%',border:'1px solid #e6e7ee',borderRadius:'12px'}}));
+              }
+            } else body.append('URL видео не задан');
+          }
+          return body;
+        })(),
+        el('div',{class:'handle in',  'data-id':n.id}),
+        el('div',{class:'handle out', 'data-id':n.id}),
+        el('div',{class:'resizer','data-id':n.id})
+      );
+      // drag node
+      let dragging=false, start={x:0,y:0}, orig={x:0,y:0};
+      card.addEventListener('mousedown', (e)=>{
+        if (e.target.closest('.resizer')|| e.target.classList.contains('handle')) return;
+        dragging=true; selectedId=n.id; updateInspector(); drawNodes();
+        const pt = toCanvas(e.clientX,e.clientY,board); start=pt; orig={x:n.x,y:n.y};
+      });
+      window.addEventListener('mouseup', ()=>dragging=false);
+      window.addEventListener('mousemove', (e)=>{
+        if(!dragging) return;
+        const pt = toCanvas(e.clientX,e.clientY,board);
+        n.x = orig.x + (pt.x - start.x); n.y = orig.y + (pt.y - start.y);
+        card.style.left = n.x+'px'; card.style.top = n.y+'px';
+        redrawEdges(svg);
+      });
+
+      // resize
+      let resizing=false, rs={x:0,y:0}, os={w:0,h:0};
+      card.querySelector('.resizer').addEventListener('mousedown',(e)=>{
+        e.stopPropagation(); resizing=true; rs={x:e.clientX,y:e.clientY}; os={w:n.w,h:n.h};
+      });
+      window.addEventListener('mouseup',()=>resizing=false);
+      window.addEventListener('mousemove',(e)=>{
+        if(!resizing) return;
+        n.w = Math.max(220, os.w + (e.clientX-rs.x)/viewport.scale);
+        n.h = Math.max(140, os.h + (e.clientY-rs.y)/viewport.scale);
+        card.style.width = n.w+'px'; card.style.height = n.h+'px';
+        redrawEdges(svg);
+      });
+
+      // select
+      card.addEventListener('click', (e)=>{ if(!e.target.classList.contains('out') && !e.target.classList.contains('in')) { selectedId=n.id; updateInspector(); drawNodes(); } });
+
+      // connect
+      let connecting=false, temp=null, sourceId=null;
+      const out = card.querySelector('.out');
+      const inn = card.querySelector('.in');
+      out.addEventListener('mousedown',(e)=>{
+        e.stopPropagation(); connecting=true; sourceId = n.id;
+        temp = document.createElementNS('http://www.w3.org/2000/svg','path'); temp.setAttribute('class','edge'); svg.appendChild(temp);
+      });
+      window.addEventListener('mouseup',(e)=>{
+        if(!connecting) return;
+        connecting=false; if(temp){ svg.removeChild(temp); temp=null; }
+        // drop?
+        const t = document.elementFromPoint(e.clientX,e.clientY);
+        if (t && t.classList.contains('in')){
+          const targetId = t.getAttribute('data-id');
+          if (targetId && targetId!==sourceId) edges.push({from:sourceId,to:targetId});
+          redrawEdges(svg);
+        }
+      });
+      window.addEventListener('mousemove',(e)=>{
+        if(!connecting) return;
+        const a = nodes.find(x=>x.id===sourceId);
+        const {x:cx,y:cy} = toCanvas(e.clientX,e.clientY,board);
+        const x1=a.x+a.w, y1=a.y+a.h/2, x2=cx, y2=cy;
+        const dx=Math.max(40, Math.abs(x2-x1)*.4);
+        const d=`M ${x1},${y1} C ${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`;
+        temp.setAttribute('d',d);
+      });
+    });
+    redrawEdges(svg);
+  }
+  drawNodes();
+
+  function addNode(kind){
+    const n = {id:uid(), x:120,y:120,w:280,h:180, title:'Новый блок', kind, color:'#ffffff'};
+    if (kind==='text') n.content = '<p>Текст…</p>';
+    if (kind==='link') n.link = 'https://';
+    if (kind==='image') n.image = 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee';
+    if (kind==='video') n.video = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+    nodes.push(n); drawNodes();
+  }
+  function removeSelected(){
+    if(!selectedId) return;
+    nodes = nodes.filter(n=>n.id!==selectedId);
+    edges = edges.filter(e=>e.from!==selectedId && e.to!==selectedId);
+    selectedId=null; updateInspector(); drawNodes();
+  }
+  function zoomIn(){ viewport.scale = clamp(viewport.scale*1.1,.3,2.5); applyViewport(); }
+  function zoomOut(){ viewport.scale = clamp(viewport.scale*0.9,.3,2.5); applyViewport(); }
+  function fitView(){
+    if(nodes.length===0){ viewport={x:0,y:0,scale:1}; return applyViewport(); }
+    const minX=Math.min(...nodes.map(n=>n.x)), minY=Math.min(...nodes.map(n=>n.y));
+    const maxX=Math.max(...nodes.map(n=>n.x+n.w)), maxY=Math.max(...nodes.map(n=>n.y+n.h));
+    const boardRect = board.getBoundingClientRect();
+    const s = 0.9*Math.min(boardRect.width/(maxX-minX+1), boardRect.height/(maxY-minY+1));
+    viewport.scale = clamp(isFinite(s)?s:1,.3,2.5);
+    viewport.x = (boardRect.width - (maxX-minX)*viewport.scale)/2 - minX*viewport.scale;
+    viewport.y = (boardRect.height- (maxY-minY)*viewport.scale)/2 - minY*viewport.scale;
+    applyViewport();
+  }
+  function exportJSON(){
+    const data = {nodes,edges};
+    const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const a = el('a',{href:URL.createObjectURL(blob),download:'workspace.json'}); a.click(); URL.revokeObjectURL(a.href);
+  }
+  function importJSON(){
+    const txt = prompt('Вставьте JSON схемы:');
+    if(!txt) return;
+    try{ const obj=JSON.parse(txt); nodes=obj.nodes||[]; edges=obj.edges||[]; selectedId=null; updateInspector(); drawNodes();}
+    catch{ alert('Ошибка JSON'); }
+  }
+  function share(){
+    const data = enc({nodes,edges,viewport});
+    const url = location.origin+location.pathname+'#/view?data='+data;
+    navigator.clipboard?.writeText(url);
+    alert('Ссылка скопирована ✔');
+  }
+
+  function updateInspector(){
+    const insp = document.getElementById('insp');
+    insp.innerHTML='';
+    const n = nodes.find(k=>k.id===selectedId);
+    if(!n){ insp.append(el('p',{class:'muted'},'Выберите блок.')); return; }
+    insp.append(
+      el('label',{},'Название'),
+      (()=>{
+        const i=el('input',{value:n.title||'',oninput:()=>{n.title=i.value; drawNodes();}});
+        return i;
+      })(),
+      el('label',{},'Тип'),
+      (()=>{
+        const s=el('select',{onchange:()=>{n.kind=s.value; drawNodes();}},
+          el('option',{value:'text',selected:n.kind==='text'},'Текст'),
+          el('option',{value:'link',selected:n.kind==='link'},'Ссылка'),
+          el('option',{value:'image',selected:n.kind==='image'},'Фото'),
+          el('option',{value:'video',selected:n.kind==='video'},'Видео')
         );
-      }
-      const nodeTypes = { cardNode: CardNode };
+        return s;
+      })(),
+      ...(n.kind==='text' ? [
+        el('label',{},'HTML содержимое'),
+        (()=>{
+          const t=el('textarea',{rows:6,oninput:()=>{n.content=t.value; drawNodes();}}, n.content||'');
+          return t;
+        })()
+      ] : n.kind==='link' ? [
+        el('label',{},'URL'),
+        (()=>{
+          const t=el('input',{value:n.link||'',oninput:()=>{n.link=t.value; drawNodes();}});
+          return t;
+        })()
+      ] : n.kind==='image' ? [
+        el('label',{},'URL изображения'),
+        (()=>{
+          const t=el('input',{value:n.image||'',oninput:()=>{n.image=t.value; drawNodes();}});
+          return t;
+        })()
+      ] : [
+        el('label',{},'URL видео'),
+        (()=>{
+          const t=el('input',{value:n.video||'',oninput:()=>{n.video=t.value; drawNodes();}});
+          return t;
+        })()
+      ]),
+      el('label',{},'Цвет фона'),
+      (()=>{
+        const t=el('input',{type:'color',value:n.color||'#ffffff',oninput:()=>{n.color=t.value; drawNodes();}});
+        return t;
+      })(),
+      el('small',{class:'muted'},'Размер меняется потягиванием правого-нижнего угла.')
+    );
+  }
+}
 
-      // ===== Builder =====
-      function Builder() {
-        const initialNodes = useMemo(() => ([
-          { id: uid("n"), type: "cardNode", position: { x:120, y:80 },  data: { title: "Задача", kind: "text", content: "Добавь описание…" }, style: { width: 280, height: 180 } },
-          { id: uid("n"), type: "cardNode", position: { x:520, y:260 }, data: { title: "Ссылка", kind: "link", linkUrl: "https://example.com" }, style: { width: 260, height: 160 } },
-        ]), []);
-        const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-        const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-        const [selectedNodeId, setSelectedNodeId] = useState(null);
-        const rfRef = useRef(null);
+/* ---------- Viewer UI ---------- */
+function renderViewer(){
+  app.innerHTML='';
+  const dataParam = qget('data');
+  try{
+    if (dataParam){
+      const parsed = dec(dataParam);
+      nodes = parsed.nodes||[];
+      edges = parsed.edges||[];
+      viewport = parsed.viewport||{x:0,y:0,scale:1};
+    } else { nodes=[]; edges=[]; viewport={x:0,y:0,scale:1}; }
+  }catch(e){ nodes=[]; edges=[]; viewport={x:0,y:0,scale:1}; }
 
-        const onConnect      = useCallback((p) => setEdges((eds) => addEdge({ ...p, animated:true, style:{ strokeWidth:2 } }, eds)), []);
-        const onNodeClick    = useCallback((_, n) => setSelectedNodeId(n.id), []);
-        const selectedNode   = useMemo(() => nodes.find((n) => n.id === selectedNodeId), [nodes, selectedNodeId]);
+  const top = el('div',{class:'topbar'},
+    el('div',{class:'toolbar'}, el('strong',{},'SAPFIR-style Viewer'), el('span',{class:'muted'},'· только просмотр')),
+    el('div',{class:'toolbar'},
+      el('button',{class:'btn',onclick:fitView},'Fit'),
+      el('button',{class:'btn',onclick:loadFromLink},'Загрузить по ссылке'),
+      el('button',{class:'btn',onclick:importJSON},'Импорт JSON')
+    )
+  );
+  const board = el('div',{class:'board viewer'});
+  const grid  = el('div',{class:'grid'});
+  const layer = el('div',{class:'layer'});
+  const svg   = document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('class','edges');
+  board.append(grid, svg, layer);
+  app.append(top, board);
 
-        const addBlock = (kind) => {
-          const id = uid("n");
-          const base = { id, type:"cardNode", position:{ x:120, y:120 }, style:{ width:280, height:180 }, data:{ title:"Новый блок", kind } };
-          if (kind === "text")  base.data.content  = "<p>Текст…</p>";
-          if (kind === "link")  base.data.linkUrl  = "https://";
-          if (kind === "image") base.data.imageUrl = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee";
-          if (kind === "video") base.data.videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-          setNodes((nds) => [...nds, base]);
-        };
+  function draw(){
+    layer.innerHTML=''; svg.innerHTML='';
+    nodes.forEach(n=>{
+      const card = el('div',{class:'node',style:{left:n.x+'px',top:n.y+'px',width:n.w+'px',height:n.h+'px'}});
+      card.append(
+        el('div',{class:'title'},
+          el('div',{class:'dot',style:{background:'#10b981'}}),
+          el('div',{class:'dot',style:{background:'#f59e0b'}}),
+          el('div',{class:'dot',style:{background:'#ef4444'}}),
+          el('strong',{}, ' '+(n.title||'Блок'))
+        ),
+        (()=>{
+          const body = el('div',{class:'body',style:{background:n.color||'#ffffff'}});
+          if(n.kind==='text'){ body.innerHTML=(n.content||''); }
+          else if(n.kind==='link'){ body.append(el('a',{href:n.link||'#',target:'_blank'},n.link||'https://')); }
+          else if(n.kind==='image'){ if(n.image) body.append(el('img',{src:n.image,style:{width:'100%',height:'160px',objectFit:'cover',borderRadius:'12px',border:'1px solid #e6e7ee'}})); }
+          else if(n.kind==='video'){
+            if(n.video){
+              if (/youtu\.be|youtube\.com/.test(n.video)){
+                const id=(()=>{try{const u=new URL(n.video);return u.searchParams.get('v')||u.pathname.slice(1);}catch{return''}})();
+                body.append(el('iframe',{src:'https://www.youtube.com/embed/'+id, allow:'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',allowFullscreen:'',style:{width:'100%',aspectRatio:'16/9',border:'1px solid #e6e7ee',borderRadius:'12px'}}));
+              } else { body.append(el('video',{src:n.video,controls:'',style:{width:'100%',border:'1px solid #e6e7ee',borderRadius:'12px'}})); }
+            }
+          }
+          return body;
+        })()
+      );
+      layer.append(card);
+    });
+    // edges
+    edges.forEach(e=>{
+      const a=nodes.find(n=>n.id===e.from), b=nodes.find(n=>n.id===e.to);
+      if(!a||!b) return;
+      const x1=a.x+a.w, y1=a.y+a.h/2, x2=b.x, y2=b.y+b.h/2;
+      const dx=Math.max(40,Math.abs(x2-x1)*.4);
+      const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+      p.setAttribute('d',`M ${x1},${y1} C ${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`); p.setAttribute('class','edge');
+      svg.appendChild(p);
+    });
+    applyVP();
+  }
 
-        const removeSelected = () => {
-          if (!selectedNodeId) return;
-          setNodes((nds) => nds.filter((n) => n.id !== selectedNodeId));
-          setEdges((eds) => eds.filter((e) => e.source !== selectedNodeId && e.target !== selectedNodeId));
-          setSelectedNodeId(null);
-        };
+  // pan/zoom
+  let panning=false,last={x:0,y:0};
+  board.addEventListener('mousedown',(e)=>{ panning=true; last={x:e.clientX,y:e.clientY}; });
+  window.addEventListener('mouseup',()=>panning=false);
+  window.addEventListener('mousemove',(e)=>{ if(!panning)return; viewport.x+=e.clientX-last.x; viewport.y+=e.clientY-last.y; last={x:e.clientX,y:e.clientY}; applyVP();});
+  board.addEventListener('wheel',(e)=>{ e.preventDefault(); const k=e.deltaY>0?0.9:1.1; const r=board.getBoundingClientRect(); const cx=(e.clientX-r.left-viewport.x)/viewport.scale; const cy=(e.clientY-r.top-viewport.y)/viewport.scale; viewport.scale=clamp(viewport.scale*k,.3,2.5); viewport.x=e.clientX-r.left-cx*viewport.scale; viewport.y=e.clientY-r.top-cy*viewport.scale; applyVP(); },{passive:false});
+  function applyVP(){
+    layer.style.transform=`translate(${viewport.x}px,${viewport.y}px) scale(${viewport.scale})`;
+    grid.style.transform =`translate(${viewport.x}px,${viewport.y}px) scale(${viewport.scale})`;
+    svg.style.transform  =`translate(${viewport.x}px,${viewport.y}px) scale(${viewport.scale})`;
+    svg.style.transformOrigin='0 0';
+  }
+  function fitView(){
+    if(nodes.length===0){ viewport={x:0,y:0,scale:1}; return applyVP(); }
+    const minX=Math.min(...nodes.map(n=>n.x)), minY=Math.min(...nodes.map(n=>n.y));
+    const maxX=Math.max(...nodes.map(n=>n.x+n.w)), maxY=Math.max(...nodes.map(n=>n.y+n.h));
+    const rect=board.getBoundingClientRect();
+    const s=0.9*Math.min(rect.width/(maxX-minX+1), rect.height/(maxY-minY+1));
+    viewport.scale=clamp(isFinite(s)?s:1,.3,2.5);
+    viewport.x=(rect.width-(maxX-minX)*viewport.scale)/2 - minX*viewport.scale;
+    viewport.y=(rect.height-(maxY-minY)*viewport.scale)/2 - minY*viewport.scale;
+    applyVP();
+  }
+  function loadFromLink(){
+    const link = prompt('Вставьте ссылку вида …#/view?data=…'); if(!link) return;
+    try{ const u=new URL(link); const m=(u.hash||'').match(/data=([^&]+)/); if(!m) throw 0; const obj=dec(m[1]); nodes=obj.nodes||[]; edges=obj.edges||[]; viewport=obj.viewport||{x:0,y:0,scale:1}; draw(); alert('Схема загружена'); }catch{ alert('Не удалось загрузить'); }
+  }
+  function importJSON(){
+    const txt=prompt('Вставьте JSON схемы:'); if(!txt) return;
+    try{ const o=JSON.parse(txt); nodes=o.nodes||[]; edges=o.edges||[]; draw(); }catch{ alert('Ошибка JSON'); }
+  }
 
-        const exportShareLink = () => {
-          const rf = rfRef.current;
-          const viewport = rf?.getViewport?.() || { x:0, y:0, zoom:1 };
-          const payload = { nodes, edges, viewport };
-          const encoded = LZString.compressToEncodedURIComponent(JSON.stringify(payload));
-          const url = `${location.origin}${location.pathname}#/view?data=${encoded}`;
-          navigator.clipboard?.writeText(url);
-          alert("Ссылка скопирована в буфер обмена ✔");
-        };
+  draw();
+}
 
-        const importFromJson = () => {
-          const txt = prompt("Вставьте JSON схемы:");
-          if (!txt) return;
-          try { const obj = JSON.parse(txt); setNodes(obj.nodes||[]); setEdges(obj.edges||[]); alert("Импортировано"); }
-          catch { alert("Ошибка JSON"); }
-        };
-
-        const exportJson = () => {
-          const payload = { nodes, edges };
-          const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-          const url  = URL.createObjectURL(blob);
-          const a = document.createElement("a"); a.href = url; a.download = "workspace.json"; a.click(); URL.revokeObjectURL(url);
-        };
-
-        const onSelectionChange = ({ nodes: ns }) => setSelectedNodeId(ns?.[0]?.id || null);
-        const updateSelectedNode = (patch) => { if (!selectedNode) return; setNodes((nds) => nds.map((n) => n.id === selectedNode.id ? { ...n, data: { ...n.data, ...patch } } : n)); };
-        const zoomIn  = () => rfRef.current?.zoomIn?.();
-        const zoomOut = () => rfRef.current?.zoomOut?.();
-        const fitView = () => rfRef.current?.fitView?.({ padding: 0.2 });
-
-        return (
-          React.createElement("div", { className: "w-full h-full flex flex-col" },
-            React.createElement("header", { className: "flex items-center justify-between p-3 border-b border-zinc-200 bg-white/70 backdrop-blur sticky top-0 z-10" },
-              React.createElement("div", { className: "flex items-center gap-3" },
-                React.createElement(motion.div, { initial:{opacity:0, y:-6}, animate:{opacity:1, y:0}, className:"text-xl font-semibold" }, "SAPFIR-style Builder"),
-                React.createElement("span", { className: "hidden sm:inline text-zinc-400" }, "·"),
-                React.createElement("a", { href: "#/view", className: "text-sm text-indigo-600 hover:underline hidden sm:inline" }, "Страница просмотра")
-              ),
-              React.createElement("div", { className: "flex items-center gap-2" },
-                React.createElement(Button, { onClick: () => addBlock("text")  }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(Type, { size:16 }), "Текст")),
-                React.createElement(Button, { onClick: () => addBlock("link")  }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(LinkIcon, { size:16 }), "Ссылка")),
-                React.createElement(Button, { onClick: () => addBlock("image") }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(ImageIcon, { size:16 }), "Фото")),
-                React.createElement(Button, { onClick: () => addBlock("video") }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(Video, { size:16 }), "Видео")),
-                React.createElement(IconButton, { onClick: zoomOut }, React.createElement(ZoomOut, { size:18 })),
-                React.createElement(IconButton, { onClick: zoomIn  }, React.createElement(ZoomIn,  { size:18 })),
-                React.createElement(IconButton, { onClick: fitView }, React.createElement(Maximize,{ size:18 })),
-                React.createElement(Button, { onClick: exportJson       }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(Download, { size:16 }), "JSON")),
-                React.createElement(Button, { onClick: importFromJson   }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(Upload,   { size:16 }), "Импорт")),
-                React.createElement(Button, { className: "bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-500", onClick: exportShareLink }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(Share2, { size:16 }), "Поделиться")),
-                React.createElement(IconButton, { onClick: removeSelected, title: "Удалить выбранное" }, React.createElement(Trash2, { size:18, className: "text-rose-600" }))
-              )
-            ),
-            React.createElement("div", { className: "flex-1 w-full h-[calc(100%-64px)] grid grid-cols-12" },
-              React.createElement("div", { className: "col-span-12 lg:col-span-9 relative" },
-                React.createElement("div", { className: "absolute inset-0" },
-                  React.createElement(ReactFlow, {
-                    ref: rfRef,
-                    nodes, edges,
-                    onNodesChange, onEdgesChange,
-                    onConnect, onNodeClick,
-                    onSelectionChange,
-                    nodeTypes,
-                    fitView: true,
-                    proOptions: { hideAttribution: true },
-                    defaultEdgeOptions: { style: { stroke: "#6366f1" } },
-                    connectionLineStyle: { stroke: "#6366f1", strokeWidth: 2 },
-                  },
-                    React.createElement(MiniMap, { pannable: true, zoomable: true, className: "!bg-white/60 !backdrop-blur" }),
-                    React.createElement(Controls, { className: "!bg-white/80 !border !border-zinc-200 !rounded-xl !shadow" }),
-                    React.createElement(Background, { variant: "dots", gap: 16, size: 1 })
-                  )
-                )
-              ),
-              React.createElement("div", { className: "col-span-12 lg:col-span-3 border-l border-zinc-200 bg-white/60 backdrop-blur p-4 space-y-3" },
-                React.createElement("h3", { className: "font-semibold" }, "Свойства блока"),
-                !selectedNode ? (
-                  React.createElement("p", { className: "text-sm text-zinc-500" }, "Выберите блок, чтобы редактировать.")
-                ) : (
-                  React.createElement(React.Fragment, null,
-                    React.createElement("input", { className: "w-full px-3 py-2 rounded-xl border border-zinc-200 bg-white/80", value: selectedNode.data.title || "", onChange: (e) => updateSelectedNode({ title: e.target.value }), placeholder: "Название" }),
-                    React.createElement("div", { className: "grid grid-cols-2 gap-2" },
-                      React.createElement("label", { className: "text-xs text-zinc-500" }, "Тип"),
-                      React.createElement("select", { className: "px-3 py-2 rounded-xl border border-zinc-200 bg-white", value: selectedNode.data.kind, onChange: (e) => updateSelectedNode({ kind: e.target.value }) },
-                        React.createElement("option", { value: "text"  }, "Текст"),
-                        React.createElement("option", { value: "link"  }, "Ссылка"),
-                        React.createElement("option", { value: "image" }, "Фото"),
-                        React.createElement("option", { value: "video" }, "Видео")
-                      )
-                    ),
-                    selectedNode.data.kind === "text"  && React.createElement("textarea", { rows: 6, className: "w-full px-3 py-2 rounded-xl border border-zinc-200 bg-white/80", value: selectedNode.data.content || "", onChange: (e) => updateSelectedNode({ content: e.target.value }), placeholder: "Поддерживается простой HTML: <p>, <b>, <i>, <ul>…" }),
-                    selectedNode.data.kind === "link"  && React.createElement("input",   { className: "w-full px-3 py-2 rounded-xl border border-зinc-200 bg-white/80", value: selectedNode.data.linkUrl || "",  onChange: (e) => updateSelectedNode({ linkUrl:  e.target.value }), placeholder: "https://" }),
-                    selectedNode.data.kind === "image" && React.createElement("input",   { className: "w-full px-3 py-2 rounded-xl border border-зinc-200 bg-white/80", value: selectedNode.data.imageUrl || "", onChange: (e) => updateSelectedNode({ imageUrl: e.target.value }), placeholder: "URL изображения" }),
-                    selectedNode.data.kind === "video" && React.createElement("input",   { className: "w-full px-3 py-2 rounded-xl border border-зinc-200 bg-white/80", value: selectedNode.data.videoUrl || "", onChange: (e) => updateSelectedNode({ videoUrl: e.target.value }), placeholder: "YouTube или MP4 URL" }),
-                    React.createElement("div", { className: "grid grid-cols-2 gap-2 items-center" },
-                      React.createElement("label", { className: "text-xs text-zinc-500" }, "Фон"),
-                      React.createElement("input", { type: "color", className: "w-full h-9 rounded", value: selectedNode.data.color || "#ffffff", onChange: (e) => updateSelectedNode({ color: e.target.value }) })
-                    ),
-                    React.createElement("p", { className: "text-xs text-zinc-500" }, "Размер меняется потягиванием правого-нижнего угла (нативный ресайз).")
-                  )
-                )
-              )
-            )
-          )
-        );
-      }
-
-      // ===== Viewer (только просмотр) =====
-      function Viewer() {
-        const rfRef = useRef(null);
-        const [dataState, setDataState] = useState(() => {
-          try {
-            const m = (location.hash || "").match(/data=([^&]+)/);
-            if (m && m[1]) { return JSON.parse(LZString.decompressFromEncodedURIComponent(m[1])); }
-          } catch {}
-          return { nodes: [], edges: [], viewport: { x: 0, y: 0, zoom: 1 } };
-        });
-        const [nodes, setNodes] = useState(dataState.nodes || []);
-        const [edges, setEdges] = useState(dataState.edges || []);
-        useEffect(() => {
-          if (dataState.viewport && rfRef.current?.setViewport) rfRef.current.setViewport(dataState.viewport, { duration: 400 });
-          else rfRef.current?.fitView?.({ padding: 0.2 });
-        }, [dataState]);
-        const loadFromLink = () => {
-          const link = prompt("Вставьте ссылку вида …#/view?data=…");
-          if (!link) return;
-          try {
-            const u = new URL(link);
-            const m = (u.hash||"").match(/data=([^&]+)/);
-            const enc = m?.[1];
-            if (!enc) throw 0;
-            const obj = JSON.parse(LZString.decompressFromEncodedURIComponent(enc));
-            setDataState(obj); setNodes(obj.nodes||[]); setEdges(obj.edges||[]); alert("Схема загружена");
-          } catch { alert("Не удалось загрузить ссылку"); }
-        };
-        const importJson = () => {
-          const txt = prompt("Вставьте JSON схемы:"); if (!txt) return;
-          try { const obj = JSON.parse(txt); setDataState(obj); setNodes(obj.nodes||[]); setEdges(obj.edges||[]); alert("Импортировано"); }
-          catch { alert("Ошибка JSON"); }
-        };
-        const fitView = () => rfRef.current?.fitView?.({ padding: 0.2 });
-
-        return (
-          React.createElement("div", { className: "w-full h-full flex flex-col" },
-            React.createElement("header", { className: "flex items-center justify-between p-3 border-b border-зinc-200 bg-white/70 backdrop-blur sticky top-0 z-10" },
-              React.createElement("div", { className: "flex items-center gap-3" },
-                React.createElement(motion.div, { initial:{opacity:0, y:-6}, animate:{opacity:1, y:0}, className:"text-xl font-semibold" }, "SAPFIR-style Viewer"),
-                React.createElement("span", { className: "hidden sm:inline text-zinc-400" }, "·")
-              ),
-              React.createElement("div", { className: "flex items-center gap-2" },
-                React.createElement(Button, { onClick: loadFromLink }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(LinkIcon, { size:16 }), "Загрузить по ссылке")),
-                React.createElement(Button, { onClick: importJson  }, React.createElement("div", { className: "inline-flex items-center gap-2" }, React.createElement(Upload,   { size:16 }), "Импорт JSON")),
-                React.createElement(IconButton, { onClick: fitView, title: "На весь экран" }, React.createElement(Maximize, { size:18 }))
-              )
-            ),
-            React.createElement("div", { className: "flex-1 relative" },
-              React.createElement(ReactFlow, {
-                ref: rfRef,
-                nodes, edges, nodeTypes,
-                fitView: true,
-                proOptions: { hideAttribution: true },
-                defaultEdgeOptions: { style: { stroke: "#6366f1" } },
-                connectionLineStyle: { stroke: "#6366f1", strokeWidth: 2 },
-                nodesDraggable: false, nodesConnectable: false, elementsSelectable: false,
-                panOnDrag: true, zoomOnScroll: true, zoomOnPinch: true,
-              },
-                React.createElement(MiniMap, { pannable: true, zoomable: true, className: "!bg-white/60 !backdrop-blur" }),
-                React.createElement(Controls, { className: "!bg-white/80 !border !border-zinc-200 !rounded-xl !shadow" }),
-                React.createElement(Background, { variant: "dots", gap: 16, size: 1 })
-              )
-            )
-          )
-        );
-      }
-
-      // ===== Простая PIN-защита для /build =====
-      const BUILDER_PIN = '2701'; // поменяй на свой
-      function Gate({ onUnlock }) {
-        const [pin, setPin] = useState('');
-        const submit = () => {
-          if (pin === BUILDER_PIN) { sessionStorage.setItem('sapfir_unlocked', '1'); onUnlock(); }
-          else { alert('Неверный PIN'); }
-        };
-        return React.createElement('div', { className: 'w-screen h-screen grid place-items-center' },
-          React.createElement('div', { className: 'w-[92%] sm:w-[420px] rounded-2xl border border-zinc-200 bg-white/80 backdrop-blur p-6 shadow-xl' },
-            React.createElement('div', { className: 'text-lg font-semibold mb-3' }, 'Вход в конструктор'),
-            React.createElement('p', { className: 'text-sm text-zinc-600 mb-4' }, 'Введите PIN, чтобы открыть страницу конструктора.'),
-            React.createElement('div', { className: 'flex gap-2' },
-              React.createElement('input', { type: 'password', value: pin, onChange: e=>setPin(e.target.value), placeholder: 'PIN', className: 'flex-1 px-3 py-2 rounded-xl border border-zinc-200' }),
-              React.createElement('button', { onClick: submit, className: 'px-4 py-2 rounded-xl bg-indigo-600 text-white' }, 'Открыть')
-            ),
-            React.createElement('p', { className: 'text-xs text-zinc-500 mt-3' }, 'Совет: смени константу BUILDER_PIN в коде.')
-          )
-        );
-      }
-
-      // ===== App (Hash routing + PIN gate) =====
-      function App() {
-        const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem('sapfir_unlocked') === '1');
-        const [, setTick] = useState(0);
-        useEffect(() => { const onChange = () => setTick(t=>t+1); window.addEventListener('hashchange', onChange); return () => window.removeEventListener('hashchange', onChange); }, []);
-        const route = (location.hash || '#/build').split('?')[0];
-        const wantBuild = route === '#/build';
-        const Page = wantBuild
-          ? (unlocked ? Builder : () => React.createElement(Gate, { onUnlock: () => { setUnlocked(true); location.hash = '#/build'; } }))
-          : Viewer;
-        return React.createElement("div", { className: "w-screen h-screen" },
-          React.createElement(ReactFlowProvider, null, React.createElement(Page, null))
-        );
-      }
-
-      createRoot(document.getElementById('root')).render(React.createElement(App));
-    </script>
-  </body>
+/* ---------- Render router ---------- */
+function render(){
+  if (route()==='#/view') renderViewer();
+  else renderBuilder();
+}
+render();
+</script>
+</body>
 </html>
