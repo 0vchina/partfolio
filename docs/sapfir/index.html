@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SAPFIR-like Workspace (cloud save)</title>
+<title>SAPFIR-like Workspace (smooth drag + reliable links)</title>
 <style>
   :root { --bg:#f6f7fb; --panel:#ffffff; --line:#6366f1; --muted:#8a8fa3; }
   html,body,#app{height:100%}
   body{margin:0;background:radial-gradient(ellipse at top,#eef2ff,#fff)}
   *{box-sizing:border-box;font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Arial}
-  .topbar{position:sticky;top:0;z-index:10;display:flex;gap:.5rem;justify-content:space-between;align-items:center;background:#ffffffcc;backdrop-filter:saturate(1.3) blur(6px);border-bottom:1px solid #e6e7ee;padding:.6rem .8rem}
+  .topbar{position:sticky;top:0;z-index:20;display:flex;gap:.5rem;justify-content:space-between;align-items:center;background:#ffffffcc;backdrop-filter:saturate(1.3) blur(6px);border-bottom:1px solid #e6e7ee;padding:.6rem .8rem}
   .btn{border:1px solid #e6e7ee;background:#fff;border-radius:14px;padding:.45rem .7rem;font-size:.9rem;cursor:pointer}
   .btn:hover{background:#fafbff}
   .btn.primary{background:#4f46e5;color:#fff;border-color:#4f46e5}
@@ -29,16 +29,16 @@
   .board{position:relative;overflow:hidden;background:var(--bg)}
   .grid{position:absolute;inset:0;background-image:radial-gradient(#c7cdfa 1px, transparent 0);background-size:16px 16px;opacity:.5;pointer-events:none;transform-origin:0 0}
   .layer{position:absolute;inset:0;transform-origin:0 0}
-  .node{position:absolute;min-width:240px;min-height:160px;background:#fff;border:1px solid #e6e7ee;border-radius:16px;box-shadow:0 8px 26px rgba(22,28,45,.06);overflow:hidden;user-select:none}
-  .node .title{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid #eceef5;background:linear-gradient(90deg,#eef2ff,#f7faff)}
+  .node{position:absolute;min-width:240px;min-height:160px;background:#fff;border:1px solid #e6e7ee;border-radius:16px;box-shadow:0 8px 26px rgba(22,28,45,.06);overflow:hidden;user-select:none; touch-action: none;}
+  .node .title{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid #eceef5;background:linear-gradient(90deg,#eef2ff,#f7faff); cursor:grab}
   .dot{width:10px;height:10px;border-radius:50%}
   .node .body{padding:10px;font-size:.9rem;display:flex;flex-direction:column;gap:8px}
   .node .body .text-block p{margin:.3rem 0}
   .node .body img{width:100%;max-height:180px;object-fit:cover;border-radius:12px;border:1px solid #e6e7ee}
   .node .body iframe,.node .body video{width:100%;aspect-ratio:16/9;border:1px solid #e6e7ee;border-radius:12px}
-  .handle{position:absolute;top:50%;transform:translateY(-50%);width:12px;height:12px;border-radius:50%;background:var(--line);cursor:crosshair}
-  .handle.out{right:-6px} .handle.in{left:-6px}
-  .node .resizer{position:absolute;width:12px;height:12px;right:0;bottom:0;background:var(--line);border-top-left-radius:4px;cursor:nwse-resize}
+  .handle{position:absolute;top:50%;transform:translateY(-50%);width:16px;height:16px;border-radius:50%;background:var(--line);cursor:crosshair; z-index:10; box-shadow:0 0 0 3px #fff}
+  .handle.out{right:-8px} .handle.in{left:-8px}
+  .node .resizer{position:absolute;width:14px;height:14px;right:0;bottom:0;background:var(--line);border-top-left-radius:4px;cursor:nwse-resize; z-index:10}
   .node.selected{outline:2px solid #a5b4fc}
   svg.edges{position:absolute;inset:0;pointer-events:none}
   .edge{stroke:var(--line);stroke-width:2;fill:none}
@@ -108,7 +108,7 @@ const toYouTubeEmbed = (url) => {
     if (u.host.includes('youtu.be')) { const id = u.pathname.replace('/', ''); return `https://www.youtube.com/embed/${id}`; }
     const id = u.searchParams.get('v'); return `https://www.youtube.com/embed/${id||''}`;
   } catch { return url; }
-}
+};
 
 /* --- Плавные ортогональные ребра со стрелкой --- */
 function smoothPath(x1, y1, x2, y2, r = 12) {
@@ -149,7 +149,7 @@ const STORAGE_KEY = 'sapfir_workspace_v1';
 function saveLocal() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes, edges, viewport, workspaceId })); } catch {}
 }
-const saveLocalDebounced = (()=>{ let t; return ()=>{ clearTimeout(t); t=setTimeout(saveLocal, 250); };})();
+const saveLocalDebounced = (()=>{ let t; return ()=>{ clearTimeout(t); t=setTimeout(saveLocal, 120); };})();
 function loadLocal() {
   try { const raw=localStorage.getItem(STORAGE_KEY); if(!raw) return false;
     const obj=JSON.parse(raw); nodes=obj.nodes||[]; edges=obj.edges||[]; viewport=obj.viewport||{x:0,y:0,scale:1}; workspaceId=obj.workspaceId||'default'; return true;
@@ -157,7 +157,7 @@ function loadLocal() {
 }
 function clearLocal(){ localStorage.removeItem(STORAGE_KEY); }
 
-/* ====== Firebase init (с твоим конфигом) ====== */
+/* ====== Firebase init (твой конфиг) ====== */
 const firebaseConfig = {
   apiKey: "AIzaSyDAHKVTQGOtf7Pn7S-VGTuH4th9S6yYaII",
   authDomain: "ovchina-ecfa1.firebaseapp.com",
@@ -170,15 +170,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db   = firebase.firestore();
-
-/* Авторизация анонимно (для прав записи) */
-async function ensureAuth(){
-  if (auth.currentUser) return auth.currentUser;
-  await auth.signInAnonymously();
-  return auth.currentUser;
-}
-
-/* Firestore: сохранение / загрузка */
+async function ensureAuth(){ if (auth.currentUser) return auth.currentUser; await auth.signInAnonymously(); return auth.currentUser; }
 async function saveRemote(){
   const user = await ensureAuth();
   if (!workspaceId) { alert('Задайте ID схемы'); return; }
@@ -223,17 +215,15 @@ function renderBuilder(skipInit=false){
 
   if (!skipInit && nodes.length===0) {
     if (!loadLocal()) {
-      nodes = [
-        {
-          id:uid(), x:120,y:80,w:320,h:220, title:'Пример блока', color:'#ffffff',
-          items: [
-            {type:'text', html:'<p>В одном блоке можно <b>текст</b>, <i>изображения</i>, <u>видео</u> и <a href="#">ссылки</a>.</p>'},
-            {type:'image', url:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee'},
-            {type:'link',  url:'https://example.com'},
-            {type:'video', url:'https://www.youtube.com/watch?v=dQw4w9WgXcQ'}
-          ]
-        },
-      ];
+      nodes = [{
+        id:uid(), x:120,y:80,w:320,h:220, title:'Пример блока', color:'#ffffff',
+        items: [
+          {type:'text', html:'<p>В одном блоке можно <b>текст</b>, <i>изображения</i>, <u>видео</u> и <a href="#">ссылки</a>.</p>'},
+          {type:'image', url:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee'},
+          {type:'link',  url:'https://example.com'},
+          {type:'video', url:'https://www.youtube.com/watch?v=dQw4w9WgXcQ'}
+        ]
+      }];
       edges = [];
       viewport = {x:0,y:0,scale:1};
       workspaceId = 'default';
@@ -293,6 +283,7 @@ function renderBuilder(skipInit=false){
   const svg   = document.createElementNS('http://www.w3.org/2000/svg','svg');
   svg.setAttribute('class','edges');
 
+  // defs со стрелкой
   const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
   const marker = document.createElementNS('http://www.w3.org/2000/svg','marker');
   marker.setAttribute('id','arrow'); marker.setAttribute('markerWidth','10'); marker.setAttribute('markerHeight','10');
@@ -310,16 +301,21 @@ function renderBuilder(skipInit=false){
 
   app.append(top, el('div',{class:'wrap'}, board, panel));
 
+  /* ===== Панорамирование/зум (Pointer Events) ===== */
   let panning=false, last={x:0,y:0};
-  board.addEventListener('mousedown', (e)=>{
+  board.addEventListener('pointerdown', (e)=>{
     if (e.target!==board && e.target!==grid) return;
     panning=true; last={x:e.clientX,y:e.clientY};
+    board.setPointerCapture(e.pointerId);
+    document.body.style.cursor='grabbing';
   });
-  window.addEventListener('mouseup', ()=>panning=false);
-  window.addEventListener('mousemove', (e)=>{
+  board.addEventListener('pointermove', (e)=>{
     if(!panning) return;
     viewport.x += e.clientX-last.x; viewport.y += e.clientY-last.y;
     last={x:e.clientX,y:e.clientY}; applyViewport(); saveLocalDebounced();
+  });
+  board.addEventListener('pointerup', ()=>{
+    panning=false; document.body.style.cursor='';
   });
   board.addEventListener('wheel', (e)=>{
     e.preventDefault();
@@ -335,86 +331,104 @@ function renderBuilder(skipInit=false){
   function applyViewport(){
     layer.style.transform = `translate(${viewport.x}px,${viewport.y}px) scale(${viewport.scale})`;
     grid.style.transform  = `translate(${viewport.x}px,${viewport.y}px) scale(${viewport.scale})`;
+    svg.style.transform   = `translate(${viewport.x}px,${viewport.y}px) scale(${viewport.scale})`;
+    svg.style.transformOrigin='0 0';
     redrawEdges(svg);
   }
   applyViewport();
 
+  /* ===== Рендер узлов ===== */
   function drawNodes(){
     layer.innerHTML='';
     nodes.forEach(n=>{
       const card = el('div',{class:'node',style:{left:n.x+'px',top:n.y+'px',width:n.w+'px',height:n.h+'px'}});
       if (n.id===selectedId) card.classList.add('selected');
+      const titleBar = el('div',{class:'title'},
+        el('div',{class:'dot',style:{background:'#10b981'}}),
+        el('div',{class:'dot',style:{background:'#f59e0b'}}),
+        el('div',{class:'dot',style:{background:'#ef4444'}}),
+        el('strong',{}, ' '+(n.title||'Блок'))
+      );
       card.append(
-        el('div',{class:'title'},
-          el('div',{class:'dot',style:{background:'#10b981'}}),
-          el('div',{class:'dot',style:{background:'#f59e0b'}}),
-          el('div',{class:'dot',style:{background:'#ef4444'}}),
-          el('strong',{}, ' '+(n.title||'Блок'))
-        ),
+        titleBar,
         renderBody(n),
-        el('div',{class:'handle in','data-id':n.id}),
-        el('div',{class:'handle out','data-id':n.id}),
-        el('div',{class:'resizer','data-id':n.id})
+        el('div',{class:'handle in','data-id':n.id, title:'Вход'}),
+        el('div',{class:'handle out','data-id':n.id, title:'Выход'}),
+        el('div',{class:'resizer','data-id':n.id, title:'Изменить размер'})
       );
 
-      let dragging=false, start={x:0,y:0}, orig={x:0,y:0};
-      card.addEventListener('mousedown', (e)=>{
-        if (e.target.closest('.resizer')|| e.target.classList.contains('handle')) return;
+      /* ---- Smooth drag (Pointer Events + RAF) ---- */
+      let dragging=false, start={x:0,y:0}, orig={x:0,y:0}, rafId=null, dx=0, dy=0;
+      const commit = ()=>{ cancelAnimationFrame(rafId); rafId=null; card.style.transform=''; n.x = orig.x + dx; n.y = orig.y + dy; card.style.left=n.x+'px'; card.style.top=n.y+'px'; redrawEdges(svg); saveLocalDebounced(); };
+      const paint = ()=>{ card.style.transform = `translate(${dx}px,${dy}px)`; rafId=requestAnimationFrame(paint); };
+      titleBar.addEventListener('pointerdown', (e)=>{
+        e.preventDefault();
         dragging=true; selectedId=n.id; updateInspector(); drawNodes();
-        const pt = toCanvas(e.clientX,e.clientY,board); start=pt; orig={x:n.x,y:n.y};
+        const pt = toCanvas(e.clientX,e.clientY,board); start=pt; orig={x:n.x,y:n.y}; dx=dy=0;
+        card.setPointerCapture(e.pointerId); document.body.style.cursor='grabbing';
+        if(!rafId) rafId=requestAnimationFrame(paint);
       });
-      window.addEventListener('mouseup', ()=>dragging=false);
-      window.addEventListener('mousemove', (e)=>{
+      titleBar.addEventListener('pointermove', (e)=>{
         if(!dragging) return;
         const pt = toCanvas(e.clientX,e.clientY,board);
-        n.x = orig.x + (pt.x - start.x); n.y = orig.y + (pt.y - start.y);
-        card.style.left = n.x+'px'; card.style.top = n.y+'px';
-        redrawEdges(svg); saveLocalDebounced();
+        dx = (pt.x - start.x); dy = (pt.y - start.y);
+        // edges обновим «на лету» по приблизительной позиции
+        const oldX=n.x, oldY=n.y; n.x=orig.x+dx; n.y=orig.y+dy; redrawEdges(svg); n.x=oldX; n.y=oldY;
+      });
+      titleBar.addEventListener('pointerup', ()=>{
+        if(!dragging) return; dragging=false; document.body.style.cursor=''; commit();
       });
 
+      /* ---- Resize (Pointer Events) ---- */
       let resizing=false, rs={x:0,y:0}, os={w:0,h:0};
-      card.querySelector('.resizer').addEventListener('mousedown',(e)=>{
-        e.stopPropagation(); resizing=true; rs={x:e.clientX,y:e.clientY}; os={w:n.w,h:n.h};
+      card.querySelector('.resizer').addEventListener('pointerdown',(e)=>{
+        e.stopPropagation(); resizing=true; rs={x:e.clientX,y:e.clientY}; os={w:n.w,h:n.h}; card.setPointerCapture(e.pointerId);
       });
-      window.addEventListener('mouseup',()=>resizing=false);
-      window.addEventListener('mousemove',(e)=>{
+      card.addEventListener('pointermove',(e)=>{
         if(!resizing) return;
         n.w = Math.max(240, os.w + (e.clientX-rs.x)/viewport.scale);
         n.h = Math.max(160, os.h + (e.clientY-rs.y)/viewport.scale);
         card.style.width = n.w+'px'; card.style.height = n.h+'px';
         redrawEdges(svg); saveLocalDebounced();
       });
+      card.addEventListener('pointerup',()=>{ resizing=false; });
 
-      card.addEventListener('click', (e)=>{
-        if(!e.target.classList.contains('out') && !e.target.classList.contains('in')) {
+      /* ---- Select ---- */
+      card.addEventListener('pointerdown', (e)=>{
+        if(!e.target.classList.contains('out') && !e.target.classList.contains('in') && !e.target.classList.contains('resizer')){
           selectedId=n.id; updateInspector(); drawNodes();
         }
       });
 
+      /* ---- Connect (Pointer Events) ---- */
       let connecting=false, temp=null, sourceId=null;
       const out = card.querySelector('.out');
-      out.addEventListener('mousedown',(e)=>{
+      out.addEventListener('pointerdown',(e)=>{
         e.stopPropagation(); connecting=true; sourceId = n.id;
         temp = document.createElementNS('http://www.w3.org/2000/svg','path');
         temp.setAttribute('class','edge'); temp.setAttribute('marker-end','url(#arrow)'); svg.appendChild(temp);
+        document.body.style.cursor='crosshair';
+        board.setPointerCapture?.(e.pointerId);
       });
-      window.addEventListener('mouseup',(e)=>{
-        if(!connecting) return;
-        connecting=false; if(temp){ svg.removeChild(temp); temp=null; }
-        const t = document.elementFromPoint(e.clientX,e.clientY);
-        if (t && t.classList.contains('in')){
-          const targetId = t.getAttribute('data-id');
-          if (targetId && targetId!==sourceId) { edges.push({from:sourceId,to:targetId}); saveLocalDebounced(); }
-          redrawEdges(svg);
-        }
-      });
-      window.addEventListener('mousemove',(e)=>{
+      board.addEventListener('pointermove',(e)=>{
         if(!connecting) return;
         const a = nodes.find(x=>x.id===sourceId);
         const {x:cx,y:cy} = toCanvas(e.clientX,e.clientY,board);
         const x1=a.x+a.w, y1=a.y+a.h/2, x2=cx, y2=cy;
         const d = smoothPath(x1, y1, x2, y2, 12);
         temp.setAttribute('d', d);
+      });
+      board.addEventListener('pointerup',(e)=>{
+        if(!connecting) return;
+        connecting=false; document.body.style.cursor='';
+        if(temp){ svg.removeChild(temp); temp=null; }
+        const t = document.elementFromPoint(e.clientX,e.clientY);
+        const inlet = t?.closest ? t.closest('.in') : (t && t.classList.contains('in') ? t : null);
+        if (inlet){
+          const targetId = inlet.getAttribute('data-id');
+          if (targetId && targetId!==sourceId) { edges.push({from:sourceId,to:targetId}); saveLocalDebounced(); }
+          redrawEdges(svg);
+        }
       });
 
       layer.append(card);
@@ -443,6 +457,7 @@ function renderBuilder(skipInit=false){
     return body;
   }
 
+  /* ==== Действия ==== */
   function addNode(){
     const n = {id:uid(), x:120,y:120,w:320,h:220, title:'Новый блок', color:'#ffffff', items:[{type:'text', html:'<p>Текст…</p>'}]};
     nodes.push(n); selectedId=n.id; drawNodes(); updateInspector(); saveLocalDebounced();
@@ -578,12 +593,9 @@ async function renderViewer(skipInit=false){
   }catch{ nodes=[]; edges=[]; viewport={x:0,y:0,scale:1}; }
 
   const top = el('div',{class:'topbar'},
-    el('div',{class:'toolbar'}, el('strong',{},'SAPFIR-style Viewer'), el('span',{class:'muted'}, wsParam ? `· облако · ${wsParam}` : '· встроенные данные')),
-    el('div',{class:'toolbar'},
-      (()=>{
-        const bFit=el('button',{class:'btn'},'Fit'); bFit.addEventListener('click',fitView); return bFit;
-      })()
-    )
+    el('div',{class:'toolbar'}, el('strong',{},'SAPFIR-style Viewer'),
+      el('span',{class:'muted'}, wsParam ? `· облако · ${wsParam}` : '· встроенные данные')),
+    el('div',{class:'toolbar'}, (()=>{const b=el('button',{class:'btn'},'Fit'); b.addEventListener('click',fitView); return b;})())
   );
   const board = el('div',{class:'board viewer'});
   const grid  = el('div',{class:'grid'});
@@ -625,7 +637,7 @@ async function renderViewer(skipInit=false){
       );
       layer.append(card);
     });
-  edges.forEach(e=>{
+    edges.forEach(e=>{
       const a=nodes.find(n=>n.id===e.from), b=nodes.find(n=>n.id===e.to);
       if(!a||!b) return;
       const x1=a.x+a.w, y1=a.y+a.h/2, x2=b.x, y2=b.y+b.h/2;
@@ -638,9 +650,9 @@ async function renderViewer(skipInit=false){
   }
 
   let panning=false,last={x:0,y:0};
-  board.addEventListener('mousedown',(e)=>{ panning=true; last={x:e.clientX,y:e.clientY}; });
-  window.addEventListener('mouseup',()=>panning=false);
-  window.addEventListener('mousemove',(e)=>{ if(!panning)return; viewport.x+=e.clientX-last.x; viewport.y+=e.clientY-last.y; last={x:e.clientX,y:e.clientY}; applyVP();});
+  board.addEventListener('pointerdown',(e)=>{ panning=true; board.setPointerCapture(e.pointerId); last={x:e.clientX,y:e.clientY}; document.body.style.cursor='grabbing'; });
+  board.addEventListener('pointermove',(e)=>{ if(!panning)return; viewport.x+=e.clientX-last.x; viewport.y+=e.clientY-last.y; last={x:e.clientX,y:e.clientY}; applyVP();});
+  board.addEventListener('pointerup',()=>{ panning=false; document.body.style.cursor=''; });
   board.addEventListener('wheel',(e)=>{ e.preventDefault(); const k=e.deltaY>0?0.9:1.1; const r=board.getBoundingClientRect(); const cx=(e.clientX-r.left-viewport.x)/viewport.scale; const cy=(e.clientY-r.top-viewport.y)/viewport.scale; viewport.scale=clamp(viewport.scale*k,.3,2.5); viewport.x=e.clientX-r.left-cx*viewport.scale; viewport.y=e.clientY-r.top-cy*viewport.scale; applyVP(); },{passive:false});
   function applyVP(){
     layer.style.transform=`translate(${viewport.x}px,${viewport.y}px) scale(${viewport.scale})`;
