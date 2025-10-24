@@ -1,487 +1,737 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Виталий Овчинников | Инженер-конструктор</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAPFIR-like Workspace (smooth drag + stable connect)</title>
+<style>
+  :root { --bg:#f6f7fb; --panel:#ffffff; --line:#6366f1; --muted:#8a8fa3; }
+  html,body,#app{height:100%}
+  body{margin:0;background:radial-gradient(ellipse at top,#eef2ff,#fff)}
+  *{box-sizing:border-box;font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Arial}
 
-  <link rel="canonical" href="https://0vchina.github.io/partfolio/" />
-  <meta name="description" content="Инженер-проектировщик. BIM, 3D, расчёты, усиление зданий, проектирование домов и промышленных объектов." />
-  <link rel="icon" href="file_0000000030986246a48be624a539648a.webp" type="image/webp" />
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LW6E096HYD"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-LW6E096HYD');
-  </script>
-  <!-- Шрифты -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet" />
+  .topbar{position:sticky;top:0;z-index:20;display:flex;gap:.5rem;justify-content:space-between;align-items:center;background:#ffffffcc;backdrop-filter:saturate(1.3) blur(6px);border-bottom:1px solid #e6e7ee;padding:.6rem .8rem}
+  .btn{border:1px solid #e6e7ee;background:#fff;border-radius:14px;padding:.45rem .7rem;font-size:.9rem;cursor:pointer}
+  .btn:hover{background:#fafbff}
+  .btn.primary{background:#4f46e5;color:#fff;border-color:#4f46e5}
+  .toolbar{display:flex;gap:.35rem;flex-wrap:wrap;align-items:center}
 
-  <style>
-    :root{
-      --header-offset:80px;
-      --accent:#1CAAD9;
-      --panel-bg:rgba(255,255,255,.78);
-      --panel-brd:rgba(0,0,0,.08);
-      --panel-shadow:0 8px 32px rgba(0,0,0,.18);
-      --reveal-y:24px;
-      --reveal-dur:.7s;
-    }
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{
-      margin:0; font-family:'Inter',sans-serif; color:#111;
-      background:url('a2.webp') center / cover no-repeat fixed;
-      overflow-x:hidden;
-      will-change: background-position; /* параллакс */
-    }
+  .wrap{display:grid;grid-template-columns: 1fr 360px;height:calc(100% - 52px)}
+  .panel{border-left:1px solid #e6e7ee;background:#ffffffcc;padding:12px;backdrop-filter:blur(6px);overflow:auto}
+  .panel h3{margin:6px 0 10px}
+  .panel label{font-size:.8rem;color:#666}
+  .panel input,.panel select,.panel textarea{width:100%;padding:.5rem .6rem;border:1px solid #e6e7ee;border-radius:10px;margin:.3rem 0 .6rem;background:#fff}
+  .panel small{color:#777}
+  .panel .content-list{display:flex;flex-direction:column;gap:10px;margin-top:.5rem}
+  .item-card{border:1px solid #eceef5;border-radius:12px;padding:10px;background:#fff}
+  .item-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .item-head .type{font-size:.85rem;color:#555}
+  .item-head .actions{display:flex;gap:6px}
+  .item-head .iconbtn{border:1px solid #e6e7ee;background:#fff;border-radius:8px;padding:4px 8px;cursor:pointer}
 
-    /* HEADER */
-    header{
-      background:url('file_0000000030986246a48be624a539648a.webp') center/cover;
-      position:sticky; top:0; z-index:1000;
-      padding:14px 16px; text-align:center;
-      border-bottom:1px solid var(--panel-brd);
-      backdrop-filter: blur(6px);
-    }
-    header h1{
-      font-family:'Montserrat',sans-serif;
-      margin:0; font-size:2.2rem; font-weight:800;
-      text-shadow:0 1px 2px rgba(255,255,255,.95);
-      position:relative; display:inline-block;
-    }
-    header h1::after{
-      content:""; position:absolute; left:50%; bottom:-6px; width:0; height:3px;
-      background:linear-gradient(90deg,var(--accent),#7AD7F0);
-      border-radius:6px; transform:translateX(-50%);
-      animation: underline 1.2s .2s ease forwards;
-    }
-    @keyframes underline{ to{ width:62%; } }
+  .board{position:relative;overflow:hidden;background:var(--bg); touch-action: none;} /* важно для тача */
+  .grid{position:absolute;inset:0;background-image:radial-gradient(#c7cdfa 1px, transparent 0);background-size:16px 16px;opacity:.5;pointer-events:none;transform-origin:0 0}
+  .layer{position:absolute;inset:0;transform-origin:0 0}
 
-    header p{
-      margin:.25rem 0 0; font-size:1.05rem;
-      text-shadow:0 1px 2px rgba(255,255,255,.95);
-    }
-    nav a{
-      color:#0d0d0d; margin:0 .7rem; text-decoration:none; font-weight:600;
-      border-bottom:2px solid transparent; padding-bottom:2px; transition:border-color .2s, color .2s;
-    }
-    nav a:hover{ border-color:var(--accent); color:#000; }
+  .node{position:absolute;min-width:240px;min-height:160px;background:#fff;border:1px solid #e6e7ee;border-radius:16px;box-shadow:0 8px 26px rgba(22,28,45,.06);overflow:hidden;user-select:none; touch-action: none;}
+  .node .title{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid #eceef5;background:linear-gradient(90deg,#eef2ff,#f7faff); cursor:grab}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .node .body{padding:10px;font-size:.9rem;display:flex;flex-direction:column;gap:8px}
+  .node .body .text-block p{margin:.3rem 0}
+  .node .body img{width:100%;max-height:180px;object-fit:cover;border-radius:12px;border:1px solid #e6e7ee}
+  .node .body iframe,.node .body video{width:100%;aspect-ratio:16/9;border:1px solid #e6e7ee;border-radius:12px}
 
-    /* SECTIONS */
-    section{
-      padding:1.8rem 1.2rem; max-width:1100px; margin:1.2rem auto;
-      background:var(--panel-bg); border:1px solid var(--panel-brd);
-      border-radius:14px; box-shadow:var(--panel-shadow);
-      transform:translateY(var(--reveal-y)); opacity:0;
-      transition: transform var(--reveal-dur) ease, opacity var(--reveal-dur) ease, box-shadow .25s ease;
-    }
-    section.reveal-in{ transform:translateY(0); opacity:1; }
-    section[id]::before{content:""; display:block; height:var(--header-offset); margin-top:calc(-1*var(--header-offset)); visibility:hidden}
+  .handle{position:absolute;top:50%;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;background:var(--line);cursor:crosshair; z-index:10; box-shadow:0 0 0 4px #fff}
+  .handle.out{right:-9px} .handle.in{left:-9px}
+  .handle:hover{ outline:2px solid #a5b4fc; }
 
-    h2{
-      font-family:'Montserrat',sans-serif; font-size:1.4rem; line-height:1.3; font-weight:700; margin:0 0 .8rem;
-      position:relative; display:inline-block;
-    }
-    h2::after{
-      content:""; position:absolute; left:0; bottom:-6px; height:2px; width:56px;
-      background:linear-gradient(90deg,var(--accent),transparent);
-      border-radius:8px; transform-origin:left; transform:scaleX(.2); opacity:.6;
-      transition: transform .6s ease .05s;
-    }
-    section.reveal-in h2::after{ transform:scaleX(1); }
+  .node .resizer{position:absolute;width:14px;height:14px;right:0;bottom:0;background:var(--line);border-top-left-radius:4px;cursor:nwse-resize; z-index:10}
+  .node.selected{outline:2px solid #a5b4fc}
 
-    p{ line-height:1.7; }
+  svg.edges{position:absolute;inset:0;pointer-events:none}
+  .edge{stroke:var(--line);stroke-width:2;fill:none}
 
-    .experience-badges{ display:flex; flex-wrap:wrap; gap:.5rem; margin:.75rem 0 0; }
-    .experience-badge{
-      display:inline-block; padding:.35rem .6rem; border:1px solid var(--panel-brd);
-      border-radius:999px; font-size:.9rem; background:#fff8; backdrop-filter:blur(4px);
-      transition: transform .2s ease, box-shadow .2s ease;
-    }
-    .experience-badge:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.1); }
-    .experience-list{ margin:.8rem 0 0; padding-left:1.1rem; }
-    .experience-list li{ margin:.35rem 0; }
-
-    .cta{ display:flex; gap:12px; flex-wrap:wrap; margin-top:1rem; }
-    .btn{
-      display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px;
-      text-decoration:none; font-weight:700; border:1px solid var(--panel-brd); background:#fff;
-      transition: transform .18s ease, box-shadow .2s ease, background .2s ease;
-    }
-    .btn:hover{ transform:translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,.14); background:#fff; }
-
-    footer{
-      text-align:center; background:#0d0d0d; color:#fff; padding:24px; margin-top:28px;
-      transform:translateY(var(--reveal-y)); opacity:0; transition:transform var(--reveal-dur) ease, opacity var(--reveal-dur) ease;
-    }
-    footer.reveal-in{ transform:translateY(0); opacity:1; }
-
-    /* Бейдж «создан нами с тобой» */
-    .credit { margin-top: 8px; }
-    .credit-badge{
-      display:inline-flex; align-items:center; gap:10px;
-      padding:8px 12px; border-radius:999px;
-      background:#fff; border:1px solid var(--panel-brd);
-      box-shadow:0 8px 22px rgba(0,0,0,.15);
-      font-weight:800; color:#0d0d0d;
-    }
-    .credit-badge .pill{
-      padding:4px 10px; border-radius:999px;
-      background:linear-gradient(90deg, #1CAAD9, #7AD7F0);
-      color:#001018;
-    }
-    .credit-badge .x{ opacity:.7; font-weight:900; }
-
-    /* FAB */
-    .contact-fab{
-      position:fixed; right:16px; bottom:16px; display:flex; flex-direction:column; gap:10px; z-index:1001;
-    }
-    .fab-btn{
-      display:inline-flex; align-items:center; gap:8px; text-decoration:none;
-      background:#fff; border:1px solid var(--panel-brd); box-shadow:0 10px 24px rgba(0,0,0,.16);
-      padding:10px 14px; border-radius:999px; font-weight:700; color:#111; backdrop-filter:blur(6px);
-      transition: transform .18s ease, box-shadow .22s ease;
-    }
-    .fab-btn:hover{ transform:translateY(-2px) scale(1.02); box-shadow:0 14px 30px rgba(0,0,0,.2); }
-
-    @media (max-width:600px){
-      header h1{font-size:1.7rem}
-      header p{font-size:.98rem}
-      nav a{margin:0 .5rem; font-size:.96rem}
-    }
-
-    /* ===== Модалка для формы ===== */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.75);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      backdrop-filter: blur(6px);
-    }
-    .modal-overlay.active { display: flex; }
-
-    .modal-content {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-brd);
-      border-radius: 14px;
-      box-shadow: var(--panel-shadow);
-      max-width: 880px;
-      width: 92%;
-      max-height: 92vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      animation: zoomIn .35s ease;
-    }
-    @keyframes zoomIn {
-      from { transform: scale(.85); opacity: 0; }
-      to   { transform: scale(1); opacity: 1; }
-    }
-    .modal-header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 14px; background: #fff; border-bottom: 1px solid var(--panel-brd);
-    }
-    .modal-title { font-weight: 700; }
-    .modal-actions { display:flex; gap:10px; }
-    .modal-actions a{
-      text-decoration:none; font-weight:700; border:1px solid var(--panel-brd);
-      padding:6px 10px; border-radius:8px; background:#fff; color:#111;
-    }
-    .modal-close{
-      background:#fff; border:1px solid var(--panel-brd); border-radius:8px;
-      padding:6px 10px; cursor:pointer; font-weight:700;
-    }
-    .modal-body { background:#fff; }
-    .modal-iframe{
-      width: 100%; height: 76vh; border: 0; display: block; background: #fff;
-    }
-    @media (max-width: 600px){ .modal-iframe{ height: 82vh; } }
-
-    .open-form-btn{
-      display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px;
-      text-decoration:none; font-weight:700; border:1px solid var(--panel-brd); background:#fff;
-      transition: transform .18s ease, box-shadow .2s ease;
-      cursor:pointer;
-    }
-    .open-form-btn:hover{ transform:translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,.14); }
-    .form-note{ font-size:.95rem; opacity:.85; margin-top:.75rem; }
-
-    /* ——— Мягкий, ненавязчивый блок 3D ——— */
-    .model-wrap{
-      position:relative;
-      margin:8px auto 0;
-      width:min(60vw, 820px); /* спокойная ширина на ПК */
-      background:transparent;
-      border:0; box-shadow:none;
-      /* Сильная растушёвка краёв: к границе полностью прозрачно */
-      -webkit-mask-image: radial-gradient(130% 120% at 50% 50%, #000 48%, rgba(0,0,0,0) 72%);
-              mask-image: radial-gradient(130% 120% at 50% 50%, #000 48%, rgba(0,0,0,0) 72%);
-    }
-    .model-frame{
-      width:100%;
-      aspect-ratio:16/9;       /* мобильные/планшеты */
-      border-radius:0;         /* без видимого прямоугольника */
-      overflow:visible;
-    }
-    .model-frame iframe{
-      width:100%; height:100%;
-      border:0; display:block;
-      background:transparent;  /* важно для прозрачного фона */
-    }
-    /* тонкий «скелетон», без анимации */
-    .model-skeleton{
-      position:absolute; inset:0; pointer-events:none;
-      background:rgba(0,0,0,.02);
-    }
-    /* ещё мягче на широких экранах */
-    @media (min-width:1024px){
-      .model-frame{ aspect-ratio:21/9; }
-      .model-wrap{
-        -webkit-mask-image: radial-gradient(140% 125% at 50% 50%, #000 44%, rgba(0,0,0,0) 70%);
-                mask-image: radial-gradient(140% 125% at 50% 50%, #000 44%, rgba(0,0,0,0) 70%);
-      }
-    }
-  </style>
+  .viewer .node{pointer-events:none}
+  .muted{color:var(--muted)}
+  .wsbox{display:flex;gap:.35rem;align-items:center}
+  .wsbox input{width:180px;padding:.45rem .6rem;border:1px solid #e6e7ee;border-radius:10px;background:#fff}
+  .sep{color:#c3c7d3}
+</style>
 </head>
 <body>
-  <header aria-label="Шапка сайта">
-    <h1>Виталий Овчинников</h1>
-    <p>Инженер-проектировщик | BIM | Расчёты | 3D визуализация</p>
-    <nav aria-label="Основная навигация">
-      <a href="#about">Обо мне</a>
-      <a href="#experience">Опыт</a>
-      <a href="models.html">3D и рендеры</a>
-      <a href="real.html">Реальные объекты</a>
-      <a href="calc.html">Расчёты</a>
-      <a href="tools.html">Инструменты</a>
-      <!-- добавлена ссылка на раздел с калькуляторами -->
-      <a href="#calc">Калькуляторы</a>
-      <a href="#contact">Контакты</a>
-      <a href="https://app.ovchina.by/admin/" target="_blank" rel="nofollow noopener">Админка</a>
-    </nav>
-  </header>
+<div id="app"></div>
 
-  <main>
-    <section id="about">
-      <h2>Обо мне</h2>
-      <p>Я инженер-проектировщик. Работаю с ArchiCAD, ЛИРА-САПР + SAPFIR, SolidWorks, Ansys (база) и др. Совмещаю расчёты с визуализацией и BIM.</p>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore-compat.js"></script>
 
-      <!-- Мягкий прозрачный блок 3D (с автоспином) -->      
-      <div class="model-wrap" aria-label="3D модель">      
-        <div class="model-frame">
-          <iframe
-            title="LMB"
-            loading="lazy"
-            allowfullscreen
-            mozallowfullscreen="true"
-            webkitallowfullscreen="true"
-            allow="autoplay; fullscreen; xr-spatial-tracking"
-            xr-spatial-tracking
-            execution-while-out-of-viewport
-            execution-while-not-rendered
-            web-share
-            src="https://sketchfab.com/models/37a2e7fa624a416cb33bf2c412cc8279/embed?autospin=0.3&autostart=1&preload=1&transparent=1">
-          </iframe>
-        </div>
-        <div class="model-skeleton" aria-hidden="true"></div>
-      </div>
+<script>
+/* ====== Настройки / роутер ====== */
+const PIN = '2701';
+const app = document.getElementById('app');
+const route = () => (location.hash || '#/build').split('?')[0];
+window.addEventListener('hashchange', render);
+if (!location.hash) location.hash = '#/build';
 
-      <p>Опыт работы прорабом помогает проектировать решения, которые удобно реализовывать на стройке.</p>
-      <div class="cta">
-        <a class="btn" href="models.html">Посмотреть 3D и рендеры →</a>
-        <a class="btn" href="real.html">Реальные объекты</a>
-        <a class="btn" href="calc.html">Расчёты</a>
-        <a class="btn" href="tools.html">Fix для Sketchfab →</a>
-        <!-- из этого блока убрали ссылки на калькуляторы -->
-      </div>
-    </section>
+/* ====== Состояние ====== */
+let nodes=[], edges=[], viewport={x:0,y:0,scale:1};
+let selectedId = null;
+let workspaceId = 'default';
+const uid = () => Math.random().toString(36).slice(2,9);
 
-    <!-- НОВЫЙ отдельный блок для калькуляторов -->
-    <section id="calc">
-      <h2>Калькуляторы</h2>
-      <div class="cta">
-        <a class="btn" href="thermal.html">Калькулятор теплотехники — РБ</a>
-        <a class="btn" href="veter.html">Калькулятор ветровой нагрузки в РБ</a>
-        <a class="btn" href="veter_naves.html">Калькулятор ветровой нагрузки на навес в РБ</a>
-        <a class="btn" href="snow.html">Калькулятор снеговой нагрузки в РБ</a>
-      </div>
-    </section>
+/* ====== Утилиты ====== */
+const enc = (obj) => btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+const dec = (str) => JSON.parse(decodeURIComponent(escape(atob(str))));
+const qget = (k) => new URLSearchParams((location.hash.split('?')[1]||'')).get(k);
+const el = (tag, props={}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k,v] of Object.entries(props)) {
+    if (k==='style') Object.assign(n.style, v);
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2).toLowerCase(), v);
+    else n.setAttribute(k, v);
+  }
+  kids.flat().forEach(ch => n.append(ch?.nodeType?ch:document.createTextNode(ch)));
+  return n;
+};
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const toCanvas = (clientX, clientY, board) => {
+  const r = board.getBoundingClientRect();
+  const x = (clientX - r.left - viewport.x) / viewport.scale;
+  const y = (clientY - r.top  - viewport.y) / viewport.scale;
+  return {x,y};
+};
+function sanitizeSimple(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html || '';
+  tmp.querySelectorAll('script,style').forEach(el => el.remove());
+  tmp.querySelectorAll('*').forEach(el => {
+    [...el.attributes].forEach(a => { if (a.name.startsWith('on')) el.removeAttribute(a.name); });
+  });
+  return tmp.innerHTML;
+}
+const isYouTube = (url) => { try { return /youtu\.be|youtube\.com/.test(new URL(url).host); } catch { return false; } };
+const toYouTubeEmbed = (url) => {
+  try {
+    const u = new URL(url);
+    if (u.host.includes('youtu.be')) { const id = u.pathname.replace('/', ''); return `https://www.youtube.com/embed/${id}`; }
+    const id = u.searchParams.get('v'); return `https://www.youtube.com/embed/${id||''}`;
+  } catch { return url; }
+};
 
-    <section id="services">
-      <h2>Чем помогу</h2>
-      <ul class="experience-list">
-        <li>Проектирование частных домов и небольших общественных зданий.</li>
-        <li>Расчёты несущих конструкций (бетон, сталь, кирпич, дерево).</li>
-        <li>Усиление балок и плит (в т.ч. углеволокно).</li>
-        <li>BIM-модели, рабочая документация, визуализации.</li>
-      </ul>
-    </section>
+/* --- Плавные ортогональные ребра со стрелкой --- */
+function smoothPath(x1, y1, x2, y2, r = 12) {
+  const midX = x1 + Math.max(40, (x2 - x1) * 0.5);
+  const p1x=x1, p1y=y1, p2x=midX, p2y=y1, p3x=midX, p3y=y2, p4x=x2, p4y=y2;
+  const r1 = Math.min(r, Math.abs(p2x - p1x), Math.abs(p3y - p2y));
+  const r2 = Math.min(r, Math.abs(p3y - p2y), Math.abs(p4x - p3x));
+  const a1x = p2x - r1, a1y = p2y;
+  const a2x = p2x,      a2y = p2y + Math.sign(p3y - p2y) * r1;
+  const b1x = p3x,      b1y = p3y - Math.sign(p3y - p2y) * r2;
+  const b2x = p3x + Math.sign(p4x - p3x) * r2, b2y = p3y;
+  return [
+    `M ${p1x},${p1y}`,
+    `L ${a1x},${a1y}`,
+    `Q ${p2x},${p2y} ${a2x},${a2y}`,
+    `L ${b1x},${b1y}`,
+    `Q ${p3x},${p3y} ${b2x},${b2y}`,
+    `L ${p4x},${p4y}`
+  ].join(' ');
+}
+function redrawEdges(svg){
+  svg.querySelectorAll('path.edge').forEach(p=>p.remove());
+  edges.forEach(e=>{
+    const a = nodes.find(n=>n.id===e.from);
+    const b = nodes.find(n=>n.id===e.to);
+    if(!a||!b) return;
+    const x1 = a.x + a.w, y1 = a.y + a.h/2;
+    const x2 = b.x,       y2 = b.y + b.h/2;
+    const d = smoothPath(x1, y1, x2, y2, 12);
+    const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d', d); p.setAttribute('class','edge'); p.setAttribute('marker-end','url(#arrow)');
+    svg.appendChild(p);
+  });
+}
 
-    <section id="stack">
-      <h2>Инструменты и ПО</h2>
-      <div class="experience-badges">
-        <span class="experience-badge">ArchiCAD</span>
-        <span class="experience-badge">ЛИРА-САПР + SAPFIR</span>
-        <span class="experience-badge">SolidWorks</span>
-        <span class="experience-badge">Ansys (база)</span>
-        <span class="experience-badge">Sketchfab</span>
-        <span class="experience-badge">BIM / IFC</span>
-      </div>
-    </section>
+/* ====== Persist (localStorage) ====== */
+const STORAGE_KEY = 'sapfir_workspace_v1';
+function saveLocal() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes, edges, viewport, workspaceId })); } catch {}
+}
+const saveLocalDebounced = (()=>{ let t; return ()=>{ clearTimeout(t); t=setTimeout(saveLocal, 120); };})();
+function loadLocal() {
+  try { const raw=localStorage.getItem(STORAGE_KEY); if(!raw) return false;
+    const obj=JSON.parse(raw); nodes=obj.nodes||[]; edges=obj.edges||[]; viewport=obj.viewport||{x:0,y:0,scale:1}; workspaceId=obj.workspaceId||'default'; return true;
+  } catch { return false; }
+}
+function clearLocal(){ localStorage.removeItem(STORAGE_KEY); }
 
-    <section id="experience">
-      <h2>Опыт строительства</h2>
-      <p>Участвовал в возведении реальных объектов как прораб и инженер: организация работ, координация подрядчиков, контроль качества и сроков.</p>
-      <div class="experience-badges">
-        <span class="experience-badge">Прораб / инженер</span>
-        <span class="experience-badge">BIM + расчёты + визуализация</span>
-        <span class="experience-badge">Европейские объекты</span>
-      </div>
-      <ul class="experience-list">
-        <li>Технологичность и последовательность монтажа.</li>
-        <li>Учёт бюджета, сроков и логистики.</li>
-        <li>Коммуникация с заказчиком, технадзором и подрядчиками.</li>
-      </ul>
-    </section>
+/* ====== Firebase init (твой конфиг) ====== */
+const firebaseConfig = {
+  apiKey: "AIzaSyDAHKVTQGOtf7Pn7S-VGTuH4th9S6yYaII",
+  authDomain: "ovchina-ecfa1.firebaseapp.com",
+  projectId: "ovchina-ecfa1",
+  storageBucket: "ovchina-ecfa1.firebasestorage.app",
+  messagingSenderId: "1070939824213",
+  appId: "1:1070939824213:web:85cc26bd99431592b274dc",
+  measurementId: "G-RKG91GGFSX"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+async function ensureAuth(){ if (auth.currentUser) return auth.currentUser; await auth.signInAnonymously(); return auth.currentUser; }
+async function saveRemote(){
+  const user = await ensureAuth();
+  if (!workspaceId) { alert('Задайте ID схемы'); return; }
+  const payload = { nodes, edges, viewport, ownerUid: user.uid, updatedAt: Date.now() };
+  await db.collection('workspaces').doc(workspaceId).set(payload, { merge: true });
+  alert('Сохранено в облако ✔'); saveLocal();
+}
+async function loadRemote(){
+  if (!workspaceId) { alert('Задайте ID схемы'); return; }
+  const snap = await db.collection('workspaces').doc(workspaceId).get();
+  if (!snap.exists){ alert('Нет данных с таким ID'); return; }
+  const obj = snap.data();
+  nodes = obj.nodes||[]; edges = obj.edges||[]; viewport = obj.viewport||{x:0,y:0,scale:1};
+  saveLocal();
+  if (route()==='#/build') renderBuilder(true); else renderViewer(true);
+}
 
-    <section id="process">
-      <h2>Подход к работе</h2>
-      <p>Этапность: быстрый концепт → расчёт ключевых узлов → деталировка. На каждом этапе — визуализация, чтобы заказчик видел, как решение выглядит и монтируется.</p>
-    </section>
+/* ====== Страница: Конструктор ====== */
+function renderBuilder(skipInit=false){
+  if (sessionStorage.getItem('sapfir_pin_ok')!=='1'){
+    app.innerHTML='';
+    app.append(
+      el('div',{style:{height:'100%',display:'grid',placeItems:'center'}},
+        el('div',{style:{width:'min(460px,92vw)',background:'#fff',border:'1px solid #e6e7ee',borderRadius:'16px',padding:'18px',boxShadow:'0 10px 30px rgba(0,0,0,.06)'}},
+          el('h3',{},'Вход в конструктор'),
+          el('p',{class:'muted'},'Введите PIN, чтобы открыть страницу конструктора.'),
+          (()=>{
+            const input = el('input',{type:'password',placeholder:'PIN',style:{width:'100%',padding:'10px',border:'1px solid #e6e7ee',borderRadius:'12px'}});
+            const btn = el('button',{class:'btn primary',style:{marginTop:'10px'}},'Открыть');
+            btn.addEventListener('click', ()=>{
+              if(input.value===PIN){ sessionStorage.setItem('sapfir_pin_ok','1'); render(); }
+              else alert('Неверный PIN');
+            });
+            return el('div',{},input,btn);
+          })(),
+          el('small',{class:'muted'},'Подсказка: константа PIN в коде.')
+        )
+      )
+    );
+    return;
+  }
 
-    <section id="geo">
-      <h2>Где и с кем работал</h2>
-      <p>Европейские объекты: Германия (супермаркет, школа, пожарная часть, клиника), частные дома по технологии Viebrockhaus. Опыт прораба — плюс к реализуемости решений.</p>
-    </section>
+  if (!skipInit && nodes.length===0) {
+    if (!loadLocal()) {
+      nodes = [{
+        id:uid(), x:120,y:80,w:320,h:220, title:'Пример блока', color:'#ffffff',
+        items: [
+          {type:'text', html:'<p>В одном блоке можно <b>текст</b>, <i>изображения</i>, <u>видео</u> и <a href="#">ссылки</a>.</p>'},
+          {type:'image', url:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee'},
+          {type:'link',  url:'https://example.com'},
+          {type:'video', url:'https://www.youtube.com/watch?v=dQw4w9WgXcQ'}
+        ]
+      }];
+      edges = [];
+      viewport = {x:0,y:0,scale:1};
+      workspaceId = 'default';
+    }
+  }
 
-    <section id="faq">
-      <h2>FAQ</h2>
-      <p><strong>Сроки?</strong> Зависит от объёма. Предпочитаю этапность: концепт → расчёт → деталировка.</p>
-      <p><strong>Выдача моделей?</strong> BIM/IFC, PDF-комплекты, при необходимости — исходники.</p>
-      <p><strong>Удалённо?</strong> Да. Почта/Telegram, созвоны, отметки в BIM.</p>
-    </section>
+  app.innerHTML='';
 
-    <section id="contact">
-      <h2>Контакты</h2>
-      <p>Можно написать напрямую:</p>
-      <p>
-        Email: <a href="mailto:vitaliy.structengineer@gmail.com">vitaliy.structengineer@gmail.com</a><br>
-        Telegram: <a href="https://t.me/VitaliPro" target="_blank" rel="noopener">@VitaliPro</a>
-      </p>
+  const leftBar = el('div',{class:'toolbar'},
+    el('strong',{},'SAPFIR-style Builder'),
+    el('span',{class:'sep'},'·'),
+    el('a',{href:'#/view',class:'btn'},'Просмотр')
+  );
 
-      <button class="open-form-btn" id="openFormBtn" type="button">📝 Обратная связь</button>
-      <p class="form-note">
-        Если модалка не открывается — <a href="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform?usp=sharing&ouid=105433062778816674270" target="_blank" rel="noopener">открыть форму в новом окне</a>.
-      </p>
-    </section>
-  </main>
+  const wsInput = el('input',{value:workspaceId, placeholder:'ID схемы'});
+  wsInput.addEventListener('input', ()=>{ workspaceId = wsInput.value.trim(); saveLocalDebounced(); });
+  const bSaveCloud = el('button',{class:'btn'},'Сохранить в облако');
+  const bLoadCloud = el('button',{class:'btn'},'Загрузить из облака');
+  bSaveCloud.addEventListener('click', saveRemote);
+  bLoadCloud.addEventListener('click', loadRemote);
 
-  <footer>
-    <p>© 2025 Виталий Овчинников — Сайт инженера</p>
-    <div class="credit" aria-label="Информация о создании сайта">
-      <div class="credit-badge" title="Сайт создан мощным дуэтом: человек × ИИ">
-        <span class="pill">Виталий Овчинников</span>
-        <span class="x">×</span>
-        <span class="pill">GPT-5 Thinking</span>
-      </div>
-    </div>
-  </footer>
+  const btnNew  = el('button',{class:'btn'},'Новый блок');
+  btnNew.addEventListener('click', ()=>addNode());
 
-  <!-- FAB -->
-  <div class="contact-fab" aria-label="Быстрые контакты">
-    <a class="fab-btn" href="#contact">💬 Telegram</a>
-    <a class="fab-btn" href="#contact">✉️ Email</a>
-  </div>
+  const bZoomOut = el('button',{class:'btn'},'–');
+  const bZoomIn  = el('button',{class:'btn'},'+');
+  const bFit     = el('button',{class:'btn'},'Fit');
+  const bJson    = el('button',{class:'btn'},'JSON');
+  const bImport  = el('button',{class:'btn'},'Импорт');
+  const bShare   = el('button',{class:'btn primary'},'Поделиться');
+  const bDel     = el('button',{class:'btn'},'Удалить');
+  const bReset   = el('button',{class:'btn'},'Сбросить');
 
-  <!-- ===== Модалка формы ===== -->
-  <div class="modal-overlay" id="formModal" aria-hidden="true" aria-labelledby="formTitle" role="dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-title" id="formTitle">Форма обратной связи</div>
-        <div class="modal-actions">
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform?usp=sharing&ouid=105433062778816674270" target="_blank" rel="noopener">Открыть в новом окне</a>
-          <button class="modal-close" id="closeFormBtn" type="button" aria-label="Закрыть форму">✕</button>
-        </div>
-      </div>
-      <div class="modal-body">
-        <iframe
-          class="modal-iframe"
-          src="https://docs.google.com/forms/d/e/1FAIpQLSc0SluniovkrdZJl7DJrCVexTyfCAKIUxlMSnBhNtrfyL7z-A/viewform?usp=sharing&ouid=105433062778816674270?embedded=true"
-          title="Форма обратной связи">
-        </iframe>
-      </div>
-    </div>
-  </div>
+  bZoomOut.addEventListener('click', zoomOut);
+  bZoomIn .addEventListener('click', zoomIn);
+  bFit    .addEventListener('click', fitView);
+  bJson   .addEventListener('click', exportJSON);
+  bImport .addEventListener('click', importJSON);
+  bShare  .addEventListener('click', ()=>share(wsInput.value.trim()));
+  bDel    .addEventListener('click', removeSelected);
+  bReset  .addEventListener('click', ()=>{
+    if (!confirm('Очистить локальные данные и вернуть демо?')) return;
+    clearLocal(); nodes=[]; edges=[]; viewport={x:0,y:0,scale:1}; renderBuilder();
+  });
 
-  <script>
-    // Параллакс-фон (лёгкий)
-    (function(){
-      let ticking=false;
-      const onScroll=()=>{
-        if(ticking) return; ticking=true;
-        requestAnimationFrame(()=>{
-          const y=window.scrollY||0;
-          document.body.style.backgroundPositionY = `${-y*0.06}px`; // фикс: шаблонная строка
-          ticking=false;
-        });
+  const rightBar = el('div',{class:'toolbar'},
+    el('div',{class:'wsbox'}, el('span',{},'ID:'), wsInput),
+    bSaveCloud, bLoadCloud,
+    btnNew, bZoomOut, bZoomIn, bFit, bJson, bImport, bShare, bDel, bReset
+  );
+
+  const top = el('div',{class:'topbar'}, leftBar, rightBar);
+
+  const board = el('div',{class:'board'});
+  const grid  = el('div',{class:'grid'});
+  const layer = el('div',{class:'layer'});
+  const svg   = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('class','edges');
+
+  // defs со стрелкой
+  const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+  const marker = document.createElementNS('http://www.w3.org/2000/svg','marker');
+  marker.setAttribute('id','arrow'); marker.setAttribute('markerWidth','10'); marker.setAttribute('markerHeight','10');
+  marker.setAttribute('refX','10'); marker.setAttribute('refY','3.5'); marker.setAttribute('orient','auto-start-reverse');
+  const arrowPath = document.createElementNS('http://www.w3.org/2000/svg','path');
+  arrowPath.setAttribute('d','M0,0 L10,3.5 L0,7 Z'); arrowPath.setAttribute('fill','var(--line)');
+  marker.appendChild(arrowPath); defs.appendChild(marker); svg.appendChild(defs);
+
+  board.append(grid, svg, layer);
+
+  const panel = el('div',{class:'panel'},
+    el('h3',{},'Свойства блока'),
+    el('div',{id:'insp'}, el('p',{class:'muted'},'Выберите блок.'))
+  );
+
+  app.append(top, el('div',{class:'wrap'}, board, panel));
+
+  /* ===== Панорамирование/зум (Pointer Events) ===== */
+  let panning=false, last={x:0,y:0};
+  board.addEventListener('pointerdown', (e)=>{
+    if (e.target!==board && e.target!==grid) return;
+    panning=true; last={x:e.clientX,y:e.clientY};
+    board.setPointerCapture(e.pointerId);
+    document.body.style.cursor='grabbing';
+  });
+  board.addEventListener('pointermove', (e)=>{
+    if(!panning) return;
+    viewport.x += e.clientX-last.x; viewport.y += e.clientY-last.y;
+    last={x:e.clientX,y:e.clientY}; applyViewport(); saveLocalDebounced();
+  });
+  board.addEventListener('pointerup', ()=>{
+    panning=false; document.body.style.cursor='';
+  });
+  board.addEventListener('wheel', (e)=>{
+    e.preventDefault();
+    const k = e.deltaY>0 ? 0.9 : 1.1;
+    const rect = board.getBoundingClientRect();
+    const cx = (e.clientX-rect.left - viewport.x)/viewport.scale;
+    const cy = (e.clientY-rect.top  - viewport.y)/viewport.scale;
+    viewport.scale = clamp(viewport.scale*k, .3, 2.5);
+    viewport.x = e.clientX-rect.left - cx*viewport.scale;
+    viewport.y = e.clientY-rect.top  - cy*viewport.scale;
+    applyViewport(); saveLocalDebounced();
+  }, {passive:false});
+  function applyViewport(){
+    layer.style.transform = `translate(${viewport.x}px,${viewport.y}px) scale(${viewport.scale})`;
+    grid.style.transform  = `translate(${viewport.x}px,${viewport.y}px) scale(${viewport.scale})`;
+    svg.style.transform   = `translate(${viewport.x}px,${viewport.y}px) scale(${viewport.scale})`;
+    svg.style.transformOrigin='0 0';
+    redrawEdges(svg);
+  }
+  applyViewport();
+
+  /* ===== Рендер узлов ===== */
+  function drawNodes(){
+    layer.innerHTML='';
+    nodes.forEach(n=>{
+      const card = el('div',{class:'node',style:{left:n.x+'px',top:n.y+'px',width:n.w+'px',height:n.h+'px'}});
+      if (n.id===selectedId) card.classList.add('selected');
+
+      const titleBar = el('div',{class:'title'},
+        el('div',{class:'dot',style:{background:'#10b981'}}),
+        el('div',{class:'dot',style:{background:'#f59e0b'}}),
+        el('div',{class:'dot',style:{background:'#ef4444'}}),
+        el('strong',{}, ' '+(n.title||'Блок'))
+      );
+
+      card.append(
+        titleBar,
+        renderBody(n),
+        el('div',{class:'handle in','data-id':n.id, title:'Вход'}),
+        el('div',{class:'handle out','data-id':n.id, title:'Выход'}),
+        el('div',{class:'resizer','data-id':n.id, title:'Изменить размер'})
+      );
+
+      /* ---- Smooth drag (Pointer Events + RAF) ---- */
+      let dragging=false, start={x:0,y:0}, orig={x:0,y:0}, rafId=null, dx=0, dy=0;
+      const commit = ()=>{
+        cancelAnimationFrame(rafId); rafId=null;
+        card.style.transform='';
+        n.x = orig.x + dx; n.y = orig.y + dy;
+        card.style.left=n.x+'px'; card.style.top=n.y+'px';
+        redrawEdges(svg); saveLocalDebounced();
       };
-      window.addEventListener('scroll', onScroll, {passive:true});
-    })();
+      const paint = ()=>{
+        card.style.transform = `translate(${dx}px,${dy}px)`;
+        rafId=requestAnimationFrame(paint);
+      };
+      titleBar.addEventListener('pointerdown', (e)=>{
+        e.preventDefault();
+        dragging=true; selectedId=n.id; updateInspector(); drawNodes();
+        const pt = toCanvas(e.clientX,e.clientY,board); start=pt; orig={x:n.x,y:n.y}; dx=dy=0;
+        card.setPointerCapture(e.pointerId); document.body.style.cursor='grabbing';
+        if(!rafId) rafId=requestAnimationFrame(paint);
+      });
+      titleBar.addEventListener('pointermove', (e)=>{
+        if(!dragging) return;
+        const pt = toCanvas(e.clientX,e.clientY,board);
+        dx = (pt.x - start.x); dy = (pt.y - start.y);
+        // Подвигать ребра «на глаз» во время перетаскивания
+        const oldX=n.x, oldY=n.y; n.x=orig.x+dx; n.y=orig.y+dy; redrawEdges(svg); n.x=oldX; n.y=oldY;
+      });
+      titleBar.addEventListener('pointerup', ()=>{
+        if(!dragging) return; dragging=false; document.body.style.cursor=''; commit();
+      });
 
-    // Scroll-reveal
-    (function(){
-      const io = new IntersectionObserver((entries)=>{
-        entries.forEach(entry=>{
-          if(entry.isIntersecting){ entry.target.classList.add('reveal-in'); io.unobserve(entry.target); }
-        });
-      },{threshold:.12});
-      document.querySelectorAll('section, footer').forEach(el=>io.observe(el));
-    })();
+      /* ---- Resize (Pointer Events) ---- */
+      let resizing=false, rs={x:0,y:0}, os={w:0,h:0};
+      card.querySelector('.resizer').addEventListener('pointerdown',(e)=>{
+        e.stopPropagation(); resizing=true; rs={x:e.clientX,y:e.clientY}; os={w:n.w,h:n.h}; card.setPointerCapture(e.pointerId);
+      });
+      card.addEventListener('pointermove',(e)=>{
+        if(!resizing) return;
+        n.w = Math.max(240, os.w + (e.clientX-rs.x)/viewport.scale);
+        n.h = Math.max(160, os.h + (e.clientY-rs.y)/viewport.scale);
+        card.style.width = n.w+'px'; card.style.height = n.h+'px';
+        redrawEdges(svg); saveLocalDebounced();
+      });
+      card.addEventListener('pointerup',()=>{ resizing=false; });
 
-    // ===== Модалка формы
-    (function(){
-      const modal = document.getElementById('formModal');
-      const openBtn = document.getElementById('openFormBtn');
-      const closeBtn = document.getElementById('closeFormBtn');
+      /* ---- Select ---- */
+      card.addEventListener('pointerdown', (e)=>{
+        if(!e.target.classList.contains('out') && !e.target.classList.contains('in') && !e.target.classList.contains('resizer')){
+          selectedId=n.id; updateInspector(); drawNodes();
+        }
+      });
 
-      function openModal(){
-        modal.classList.add('active');
-        modal.setAttribute('aria-hidden','false');
-        document.body.style.overflow='hidden';
-        closeBtn.focus({preventScroll:true});
+      /* ---- Connect: только старт, всё остальное — глобально ---- */
+      const out = card.querySelector('.out');
+      out.addEventListener('pointerdown', (e)=>{
+        e.stopPropagation();
+        startConnect(n.id, e);
+      });
+
+      layer.append(card);
+    });
+    redrawEdges(svg);
+  }
+  drawNodes();
+
+  function renderBody(n){
+    const body = el('div',{class:'body',style:{background:n.color||'#ffffff'}});
+    (n.items||[]).forEach(item=>{
+      if(item.type==='text'){
+        const box = el('div',{class:'text-block'}); box.innerHTML = sanitizeSimple(item.html||''); body.append(box);
+      } else if(item.type==='image'){
+        if (item.url) body.append(el('img',{src:item.url, alt:'image'}));
+      } else if(item.type==='video'){
+        if (item.url){
+          if (isYouTube(item.url)) body.append(el('iframe',{src:toYouTubeEmbed(item.url), allow:'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',allowFullscreen:''}));
+          else body.append(el('video',{src:item.url,controls:''}));
+        }
+      } else if(item.type==='link'){
+        const a = el('a',{href:item.url||'#',target:'_blank'}, item.url||'https://');
+        body.append(a);
       }
-      function closeModal(){
-        modal.classList.remove('active');
-        modal.setAttribute('aria-hidden','true');
-        document.body.style.overflow='';
-        openBtn.focus({preventScroll:true});
-      }
+    });
+    return body;
+  }
 
-      openBtn.addEventListener('click', openModal);
-      closeBtn.addEventListener('click', closeModal);
-      modal.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
-      window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModal(); });
-    })();
+  /* ==== Действия ==== */
+  function addNode(){
+    const n = {id:uid(), x:120,y:120,w:320,h:220, title:'Новый блок', color:'#ffffff', items:[{type:'text', html:'<p>Текст…</p>'}]};
+    nodes.push(n); selectedId=n.id; drawNodes(); updateInspector(); saveLocalDebounced();
+  }
+  function removeSelected(){
+    if(!selectedId) return;
+    nodes = nodes.filter(n=>n.id!==selectedId);
+    edges = edges.filter(e=>e.from!==selectedId && e.to!==selectedId);
+    selectedId=null; updateInspector(); drawNodes(); saveLocalDebounced();
+  }
+  function zoomIn(){ viewport.scale = clamp(viewport.scale*1.1,.3,2.5); applyViewport(); saveLocalDebounced(); }
+  function zoomOut(){ viewport.scale = clamp(viewport.scale*0.9,.3,2.5); applyViewport(); saveLocalDebounced(); }
+  function fitView(){
+    if(nodes.length===0){ viewport={x:0,y:0,scale:1}; return applyViewport(); }
+    const minX=Math.min(...nodes.map(n=>n.x)), minY=Math.min(...nodes.map(n=>n.y));
+    const maxX=Math.max(...nodes.map(n=>n.x+n.w)), maxY=Math.max(...nodes.map(n=>n.y+n.h));
+    const boardRect = board.getBoundingClientRect();
+    const s = 0.9*Math.min(boardRect.width/(maxX-minX+1), boardRect.height/(maxY-minY+1));
+    viewport.scale = clamp(isFinite(s)?s:1,.3,2.5);
+    viewport.x = (boardRect.width - (maxX-minX)*viewport.scale)/2 - minX*viewport.scale;
+    viewport.y = (boardRect.height- (maxY-minY)*viewport.scale)/2 - minY*viewport.scale;
+    applyViewport(); saveLocalDebounced();
+  }
+  function exportJSON(){
+    const data = {nodes,edges,viewport,workspaceId};
+    const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const a = el('a',{href:URL.createObjectURL(blob),download:'workspace.json'}); a.click(); URL.revokeObjectURL(a.href);
+  }
+  function importJSON(){
+    const txt = prompt('Вставьте JSON схемы:');
+    if(!txt) return;
+    try{ const obj=JSON.parse(txt); nodes=obj.nodes||[]; edges=obj.edges||[]; viewport=obj.viewport||viewport; workspaceId=obj.workspaceId||workspaceId; selectedId=null; updateInspector(); drawNodes(); saveLocalDebounced();}
+    catch{ alert('Ошибка JSON'); }
+  }
+  function share(ws){
+    if (ws) {
+      const url = `${location.origin}${location.pathname}#/view?ws=${encodeURIComponent(ws)}`;
+      navigator.clipboard?.writeText(url); alert('Ссылка (облако) скопирована ✔');
+    } else {
+      const data = enc({nodes,edges,viewport});
+      const url = `${location.origin}${location.pathname}#/view?data=${data}`;
+      navigator.clipboard?.writeText(url); alert('Ссылка (встроенные данные) скопирована ✔');
+    }
+  }
 
-    // Скелетон для 3D — скрыть после загрузки
-    (function(){
-      const wrap = document.querySelector('.model-wrap');
-      if(!wrap) return;
-      const iframe = wrap.querySelector('iframe');
-      const skeleton = wrap.querySelector('.model-skeleton');
-      const hide = ()=>{ if(skeleton) skeleton.style.display='none'; };
-      if(iframe){
-        iframe.addEventListener('load', hide, {once:true});
-        setTimeout(hide, 6000); // подстраховка
+  function moveItem(items, from, to){
+    if (to<0 || to>=items.length) return;
+    const [it] = items.splice(from,1);
+    items.splice(to,0,it);
+  }
+
+  function updateInspector(){
+    const insp = document.getElementById('insp');
+    insp.innerHTML='';
+    const n = nodes.find(k=>k.id===selectedId);
+    if(!n){ insp.append(el('p',{class:'muted'},'Выберите блок.')); return; }
+
+    const title = el('input',{value:n.title||''}); title.addEventListener('input',()=>{n.title=title.value; drawNodes(); saveLocalDebounced();});
+    const color = el('input',{type:'color', value:n.color||'#ffffff'}); color.addEventListener('input',()=>{n.color=color.value; drawNodes(); saveLocalDebounced();});
+
+    const contentWrap = el('div',{class:'content-list'});
+    function renderItems(){
+      contentWrap.innerHTML='';
+      (n.items||[]).forEach((it, idx)=>{
+        const card = el('div',{class:'item-card'});
+        const head = el('div',{class:'item-head'},
+          el('div',{class:'type'}, it.type==='text'?'Текст':it.type==='image'?'Фото':it.type==='video'?'Видео':'Ссылка'),
+          el('div',{class:'actions'},
+            (()=>{ const up=el('button',{class:'iconbtn'},'↑'); up.addEventListener('click',()=>{moveItem(n.items,idx,idx-1); renderItems(); drawNodes(); saveLocalDebounced();}); return up;})(),
+            (()=>{ const dn=el('button',{class:'iconbtn'},'↓'); dn.addEventListener('click',()=>{moveItem(n.items,idx,idx+1); renderItems(); drawNodes(); saveLocalDebounced();}); return dn;})(),
+            (()=>{ const rm=el('button',{class:'iconbtn'},'✕'); rm.addEventListener('click',()=>{n.items.splice(idx,1); renderItems(); drawNodes(); saveLocalDebounced();}); return rm;})()
+          )
+        );
+        let bodyFields=null;
+        if (it.type==='text'){
+          const ta=el('textarea',{rows:4}, it.html||''); ta.addEventListener('input',()=>{ it.html = ta.value; drawNodes(); saveLocalDebounced();});
+          bodyFields = el('div',{}, el('label',{},'HTML текст'), ta, el('small',{class:'muted'},'Поддерживается простой HTML (p, b, i, ul, a...).'));
+        } else if (it.type==='image'){
+          const inp=el('input',{value:it.url||'', placeholder:'https://…'}); inp.addEventListener('input',()=>{ it.url = inp.value; drawNodes(); saveLocalDebounced();});
+          bodyFields = el('div',{}, el('label',{},'URL изображения'), inp);
+        } else if (it.type==='video'){
+          const inp=el('input',{value:it.url||'', placeholder:'YouTube или MP4 URL'}); inp.addEventListener('input',()=>{ it.url = inp.value; drawNodes(); saveLocalDebounced();});
+          bodyFields = el('div',{}, el('label',{},'URL видео'), inp);
+        } else {
+          const inp=el('input',{value:it.url||'', placeholder:'https://…'}); inp.addEventListener('input',()=>{ it.url = inp.value; drawNodes(); saveLocalDebounced();});
+          bodyFields = el('div',{}, el('label',{},'URL ссылки'), inp);
+        }
+        card.append(head, bodyFields);
+        contentWrap.append(card);
+      });
+    }
+    renderItems();
+
+    const addRow = el('div',{class:'toolbar',style:{marginTop:'6px'}});
+    const addText = el('button',{class:'btn'},'Добавить текст');
+    const addImg  = el('button',{class:'btn'},'Добавить фото');
+    const addVid  = el('button',{class:'btn'},'Добавить видео');
+    const addLink = el('button',{class:'btn'},'Добавить ссылку');
+    addText.addEventListener('click',()=>{ (n.items ||= []).push({type:'text', html:'<p>Текст…</p>'}); renderItems(); drawNodes(); saveLocalDebounced(); });
+    addImg .addEventListener('click',()=>{ (n.items ||= []).push({type:'image', url:''}); renderItems(); drawNodes(); saveLocalDebounced(); });
+    addVid .addEventListener('click',()=>{ (n.items ||= []).push({type:'video', url:''}); renderItems(); drawNodes(); saveLocalDebounced(); });
+    addLink.addEventListener('click',()=>{ (n.items ||= []).push({type:'link', url:'https://'}); renderItems(); drawNodes(); saveLocalDebounced(); });
+    addRow.append(addText, addImg, addVid, addLink);
+
+    insp.append(
+      el('label',{},'Название'), title,
+      el('label',{},'Цвет фона'), color,
+      el('h3',{},'Контент блока'),
+      contentWrap,
+      addRow,
+      el('small',{class:'muted'},'Можно добавлять несколько элементов и менять их порядок.')
+    );
+  }
+  updateInspector();
+
+  /* ==== Глобальный модуль соединений («резинка») ==== */
+  let connectState = { active:false, sourceId:null, tempPath:null };
+
+  function startConnect(sourceId, e){
+    connectState.active = true;
+    connectState.sourceId = sourceId;
+    if (connectState.tempPath) {
+      try { svg.removeChild(connectState.tempPath); } catch {}
+    }
+    const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('class','edge');
+    p.setAttribute('marker-end','url(#arrow)');
+    svg.appendChild(p);
+    connectState.tempPath = p;
+    document.body.style.cursor='crosshair';
+  }
+
+  function updateConnect(clientX, clientY){
+    if (!connectState.active || !connectState.tempPath) return;
+    const a = nodes.find(x=>x.id===connectState.sourceId);
+    if(!a) return;
+    const r = board.getBoundingClientRect();
+    const cx = (clientX - r.left - viewport.x) / viewport.scale;
+    const cy = (clientY - r.top  - viewport.y) / viewport.scale;
+    const x1 = a.x + a.w, y1 = a.y + a.h/2;
+    const d  = smoothPath(x1, y1, cx, cy, 12);
+    connectState.tempPath.setAttribute('d', d);
+  }
+
+  function finishConnect(clientX, clientY){
+    if (!connectState.active) return;
+    connectState.active = false;
+    document.body.style.cursor='';
+    if (connectState.tempPath){ try{ svg.removeChild(connectState.tempPath);}catch{} connectState.tempPath=null; }
+
+    const stack = document.elementsFromPoint(clientX, clientY);
+    const inlet = stack.find(el => el.classList && el.classList.contains('in')) 
+               || (stack[0]?.closest && stack[0].closest('.in'));
+    if (inlet){
+      const targetId = inlet.getAttribute('data-id');
+      if (targetId && targetId !== connectState.sourceId){
+        edges.push({ from: connectState.sourceId, to: targetId });
+        saveLocalDebounced();
+        redrawEdges(svg);
       }
-    })();
-  </script>
+    }
+  }
+
+  // Никогда не теряем события «резинки»
+  window.addEventListener('pointermove', (e)=>{
+    if (connectState.active) updateConnect(e.clientX, e.clientY);
+  });
+  window.addEventListener('pointerup', (e)=>{
+    if (connectState.active) finishConnect(e.clientX, e.clientY);
+  });
+}
+
+/* ====== Страница: Просмотрщик ====== */
+async function renderViewer(skipInit=false){
+  app.innerHTML='';
+  const wsParam   = qget('ws');
+  const dataParam = qget('data');
+  try{
+    if (wsParam){
+      const snap = await db.collection('workspaces').doc(wsParam).get();
+      if (!snap.exists){ app.innerHTML = '<div style="padding:16px">Нет данных по этому ID.</div>'; return; }
+      const obj = snap.data(); nodes=obj.nodes||[]; edges=obj.edges||[]; viewport=obj.viewport||{x:0,y:0,scale:1};
+    } else if (dataParam){
+      const parsed = dec(dataParam);
+      nodes = parsed.nodes||[]; edges = parsed.edges||[]; viewport = parsed.viewport||{x:0,y:0,scale:1};
+    } else {
+      nodes=[]; edges=[]; viewport={x:0,y:0,scale:1};
+    }
+  }catch{ nodes=[]; edges=[]; viewport={x:0,y:0,scale:1}; }
+
+  const top = el('div',{class:'topbar'},
+    el('div',{class:'toolbar'}, el('strong',{},'SAPFIR-style Viewer'),
+      el('span',{class:'muted'}, wsParam ? `· облако · ${wsParam}` : '· встроенные данные')),
+    el('div',{class:'toolbar'}, (()=>{const b=el('button',{class:'btn'},'Fit'); b.addEventListener('click',fitView); return b;})())
+  );
+  const board = el('div',{class:'board viewer'});
+  const grid  = el('div',{class:'grid'});
+  const layer = el('div',{class:'layer'});
+  const svg   = document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('class','edges');
+
+  const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+  const marker = document.createElementNS('http://www.w3.org/2000/svg','marker');
+  marker.setAttribute('id','arrow'); marker.setAttribute('markerWidth','10'); marker.setAttribute('markerHeight','10');
+  marker.setAttribute('refX','10'); marker.setAttribute('refY','3.5'); marker.setAttribute('orient','auto-start-reverse');
+  const arrowPath = document.createElementNS('http://www.w3.org/2000/svg','path');
+  arrowPath.setAttribute('d','M0,0 L10,3.5 L0,7 Z'); arrowPath.setAttribute('fill','var(--line)');
+  marker.appendChild(arrowPath); defs.appendChild(marker); svg.appendChild(defs);
+
+  board.append(grid, svg, layer);
+  app.append(top, board);
+
+  function draw(){
+    layer.innerHTML=''; svg.querySelectorAll('path.edge').forEach(p=>p.remove());
+    nodes.forEach(n=>{
+      const card = el('div',{class:'node',style:{left:n.x+'px',top:n.y+'px',width:n.w+'px',height:n.h+'px'}});
+      card.append(
+        el('div',{class:'title'},
+          el('div',{class:'dot',style:{background:'#10b981'}}),
+          el('div',{class:'dot',style:{background:'#f59e0b'}}),
+          el('div',{class:'dot',style:{background:'#ef4444'}}),
+          el('strong',{}, ' '+(n.title||'Блок'))
+        ),
+        (()=>{
+          const body = el('div',{class:'body',style:{background:n.color||'#ffffff'}});
+          (n.items||[]).forEach(item=>{
+            if(item.type==='text'){ const box=el('div',{class:'text-block'}); box.innerHTML=sanitizeSimple(item.html||''); body.append(box); }
+            else if(item.type==='image'){ if(item.url) body.append(el('img',{src:item.url})); }
+            else if(item.type==='video'){ if(item.url){ if(isYouTube(item.url)) body.append(el('iframe',{src:toYouTubeEmbed(item.url),allow:'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',allowFullscreen:''})); else body.append(el('video',{src:item.url,controls:''})); } }
+            else if(item.type==='link'){ body.append(el('a',{href:item.url||'#',target:'_blank'},item.url||'https://')); }
+          });
+          return body;
+        })()
+      );
+      layer.append(card);
+    });
+    edges.forEach(e=>{
+      const a=nodes.find(n=>n.id===e.from), b=nodes.find(n=>n.id===e.to);
+      if(!a||!b) return;
+      const x1=a.x+a.w, y1=a.y+a.h/2, x2=b.x, y2=b.y+b.h/2;
+      const d=smoothPath(x1,y1,x2,y2,12);
+      const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+      p.setAttribute('d',d); p.setAttribute('class','edge'); p.setAttribute('marker-end','url(#arrow)');
+      svg.appendChild(p);
+    });
+    applyVP();
+  }
+
+  let panning=false,last={x:0,y:0};
+  board.addEventListener('pointerdown',(e)=>{ panning=true; board.setPointerCapture(e.pointerId); last={x:e.clientX,y:e.clientY}; document.body.style.cursor='grabbing'; });
+  board.addEventListener('pointermove',(e)=>{ if(!panning)return; viewport.x+=e.clientX-last.x; viewport.y+=e.clientY-last.y; last={x:e.clientX,y:e.clientY}; applyVP();});
+  board.addEventListener('pointerup',()=>{ panning=false; document.body.style.cursor=''; });
+  board.addEventListener('wheel',(e)=>{ e.preventDefault(); const k=e.deltaY>0?0.9:1.1; const r=board.getBoundingClientRect(); const cx=(e.clientX-r.left-viewport.x)/viewport.scale; const cy=(e.clientY-r.top-viewport.y)/viewport.scale; viewport.scale=clamp(viewport.scale*k,.3,2.5); viewport.x=e.clientX-r.left-cx*viewport.scale; viewport.y=e.clientY-r.top-cy*viewport.scale; applyVP(); },{passive:false});
+  function applyVP(){
+    layer.style.transform=`translate(${viewport.x}px,${viewport.y}px) scale(${viewport.scale})`;
+    grid.style.transform =`translate(${viewport.x}px,${viewport.y}px) scale(${viewport.scale})`;
+    svg.style.transform  =`translate(${viewport.x}px,${viewport.y}px) scale(${viewport.scale})`;
+    svg.style.transformOrigin='0 0';
+  }
+  function fitView(){
+    if(nodes.length===0){ viewport={x:0,y:0,scale:1}; return applyVP(); }
+    const minX=Math.min(...nodes.map(n=>n.x)), minY=Math.min(...nodes.map(n=>n.y));
+    const maxX=Math.max(...nodes.map(n=>n.x+n.w)), maxY=Math.max(...nodes.map(n=>n.y+n.h));
+    const rect=board.getBoundingClientRect();
+    const s=0.9*Math.min(rect.width/(maxX-minX+1), rect.height/(maxY-minY+1));
+    viewport.scale=clamp(isFinite(s)?s:1,.3,2.5);
+    viewport.x=(rect.width-(maxX-minX)*viewport.scale)/2 - minX*viewport.scale;
+    viewport.y=(rect.height-(maxY-minY)*viewport.scale)/2 - minY*viewport.scale;
+    applyVP();
+  }
+  draw();
+}
+
+/* ====== Роутер ====== */
+function render(){
+  if (route()==='#/view') renderViewer();
+  else renderBuilder();
+}
+render();
+</script>
 </body>
 </html>
