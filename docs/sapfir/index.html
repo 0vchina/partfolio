@@ -52,14 +52,14 @@
 <body>
 <div id="app"></div>
 
-<!-- Firebase SDK (compat для простоты вставки на любую страницу) -->
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore-compat.js"></script>
 
 <script>
 /* ====== Настройки / роутер ====== */
-const PIN = '2701'; // ← смени PIN тут
+const PIN = '2701';
 const app = document.getElementById('app');
 const route = () => (location.hash || '#/build').split('?')[0];
 window.addEventListener('hashchange', render);
@@ -68,7 +68,7 @@ if (!location.hash) location.hash = '#/build';
 /* ====== Состояние ====== */
 let nodes=[], edges=[], viewport={x:0,y:0,scale:1};
 let selectedId = null;
-let workspaceId = 'default'; // ← можно менять в UI
+let workspaceId = 'default';
 const uid = () => Math.random().toString(36).slice(2,9);
 
 /* ====== Утилиты ====== */
@@ -92,7 +92,6 @@ const toCanvas = (clientX, clientY, board) => {
   const y = (clientY - r.top  - viewport.y) / viewport.scale;
   return {x,y};
 };
-
 function sanitizeSimple(html) {
   const tmp = document.createElement('div');
   tmp.innerHTML = html || '';
@@ -109,7 +108,7 @@ const toYouTubeEmbed = (url) => {
     if (u.host.includes('youtu.be')) { const id = u.pathname.replace('/', ''); return `https://www.youtube.com/embed/${id}`; }
     const id = u.searchParams.get('v'); return `https://www.youtube.com/embed/${id||''}`;
   } catch { return url; }
-};
+}
 
 /* --- Плавные ортогональные ребра со стрелкой --- */
 function smoothPath(x1, y1, x2, y2, r = 12) {
@@ -130,7 +129,6 @@ function smoothPath(x1, y1, x2, y2, r = 12) {
     `L ${p4x},${p4y}`
   ].join(' ');
 }
-
 function redrawEdges(svg){
   svg.querySelectorAll('path.edge').forEach(p=>p.remove());
   edges.forEach(e=>{
@@ -159,19 +157,16 @@ function loadLocal() {
 }
 function clearLocal(){ localStorage.removeItem(STORAGE_KEY); }
 
-/* ====== Firebase init (вставьте свой конфиг) ====== */
-/* 1) Создайте проект Firebase, включите Firestore и Anonymous auth.
-   2) Правила Firestore см. ниже в инструкции.
-   3) Скопируйте объект конфигурации Web App сюда: */
+/* ====== Firebase init (с твоим конфигом) ====== */
 const firebaseConfig = {
-  apiKey: "PASTE_YOUR_API_KEY",
-  authDomain: "YOUR.firebaseapp.com",
-  projectId: "YOUR",
-  storageBucket: "YOUR.appspot.com",
-  messagingSenderId: "0000000000",
-  appId: "1:0000000000:web:XXXXXXXXXXXX"
+  apiKey: "AIzaSyDAHKVTQGOtf7Pn7S-VGTuH4th9S6yYaII",
+  authDomain: "ovchina-ecfa1.firebaseapp.com",
+  projectId: "ovchina-ecfa1",
+  storageBucket: "ovchina-ecfa1.firebasestorage.app",
+  messagingSenderId: "1070939824213",
+  appId: "1:1070939824213:web:85cc26bd99431592b274dc",
+  measurementId: "G-RKG91GGFSX"
 };
-// --- Не трогайте дальше ---
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db   = firebase.firestore();
@@ -197,14 +192,12 @@ async function loadRemote(){
   if (!snap.exists){ alert('Нет данных с таким ID'); return; }
   const obj = snap.data();
   nodes = obj.nodes||[]; edges = obj.edges||[]; viewport = obj.viewport||{x:0,y:0,scale:1};
-  saveLocal(); // кэш
-  // перерисуем текущую страницу
+  saveLocal();
   if (route()==='#/build') renderBuilder(true); else renderViewer(true);
 }
 
 /* ====== Страница: Конструктор ====== */
 function renderBuilder(skipInit=false){
-  // PIN gate
   if (sessionStorage.getItem('sapfir_pin_ok')!=='1'){
     app.innerHTML='';
     app.append(
@@ -228,7 +221,6 @@ function renderBuilder(skipInit=false){
     return;
   }
 
-  // Инициализация (если нет локального и это не «перерисовка»)
   if (!skipInit && nodes.length===0) {
     if (!loadLocal()) {
       nodes = [
@@ -250,14 +242,12 @@ function renderBuilder(skipInit=false){
 
   app.innerHTML='';
 
-  /* === Topbar === */
   const leftBar = el('div',{class:'toolbar'},
     el('strong',{},'SAPFIR-style Builder'),
     el('span',{class:'sep'},'·'),
     el('a',{href:'#/view',class:'btn'},'Просмотр')
   );
 
-  // блок облака
   const wsInput = el('input',{value:workspaceId, placeholder:'ID схемы'});
   wsInput.addEventListener('input', ()=>{ workspaceId = wsInput.value.trim(); saveLocalDebounced(); });
   const bSaveCloud = el('button',{class:'btn'},'Сохранить в облако');
@@ -297,14 +287,12 @@ function renderBuilder(skipInit=false){
 
   const top = el('div',{class:'topbar'}, leftBar, rightBar);
 
-  // Холст
   const board = el('div',{class:'board'});
   const grid  = el('div',{class:'grid'});
   const layer = el('div',{class:'layer'});
   const svg   = document.createElementNS('http://www.w3.org/2000/svg','svg');
   svg.setAttribute('class','edges');
 
-  // defs со стрелкой
   const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
   const marker = document.createElementNS('http://www.w3.org/2000/svg','marker');
   marker.setAttribute('id','arrow'); marker.setAttribute('markerWidth','10'); marker.setAttribute('markerHeight','10');
@@ -315,7 +303,6 @@ function renderBuilder(skipInit=false){
 
   board.append(grid, svg, layer);
 
-  // Инспектор
   const panel = el('div',{class:'panel'},
     el('h3',{},'Свойства блока'),
     el('div',{id:'insp'}, el('p',{class:'muted'},'Выберите блок.'))
@@ -323,7 +310,6 @@ function renderBuilder(skipInit=false){
 
   app.append(top, el('div',{class:'wrap'}, board, panel));
 
-  // Панорамирование/зум
   let panning=false, last={x:0,y:0};
   board.addEventListener('mousedown', (e)=>{
     if (e.target!==board && e.target!==grid) return;
@@ -333,8 +319,7 @@ function renderBuilder(skipInit=false){
   window.addEventListener('mousemove', (e)=>{
     if(!panning) return;
     viewport.x += e.clientX-last.x; viewport.y += e.clientY-last.y;
-    last={x:e.clientX,y:e.clientY}; applyViewport();
-    saveLocalDebounced();
+    last={x:e.clientX,y:e.clientY}; applyViewport(); saveLocalDebounced();
   });
   board.addEventListener('wheel', (e)=>{
     e.preventDefault();
@@ -354,7 +339,6 @@ function renderBuilder(skipInit=false){
   }
   applyViewport();
 
-  // Рендер узлов
   function drawNodes(){
     layer.innerHTML='';
     nodes.forEach(n=>{
@@ -373,7 +357,6 @@ function renderBuilder(skipInit=false){
         el('div',{class:'resizer','data-id':n.id})
       );
 
-      // Drag
       let dragging=false, start={x:0,y:0}, orig={x:0,y:0};
       card.addEventListener('mousedown', (e)=>{
         if (e.target.closest('.resizer')|| e.target.classList.contains('handle')) return;
@@ -389,7 +372,6 @@ function renderBuilder(skipInit=false){
         redrawEdges(svg); saveLocalDebounced();
       });
 
-      // Resize
       let resizing=false, rs={x:0,y:0}, os={w:0,h:0};
       card.querySelector('.resizer').addEventListener('mousedown',(e)=>{
         e.stopPropagation(); resizing=true; rs={x:e.clientX,y:e.clientY}; os={w:n.w,h:n.h};
@@ -403,14 +385,12 @@ function renderBuilder(skipInit=false){
         redrawEdges(svg); saveLocalDebounced();
       });
 
-      // Select
       card.addEventListener('click', (e)=>{
         if(!e.target.classList.contains('out') && !e.target.classList.contains('in')) {
           selectedId=n.id; updateInspector(); drawNodes();
         }
       });
 
-      // Connect
       let connecting=false, temp=null, sourceId=null;
       const out = card.querySelector('.out');
       out.addEventListener('mousedown',(e)=>{
@@ -463,7 +443,6 @@ function renderBuilder(skipInit=false){
     return body;
   }
 
-  // Действия
   function addNode(){
     const n = {id:uid(), x:120,y:120,w:320,h:220, title:'Новый блок', color:'#ffffff', items:[{type:'text', html:'<p>Текст…</p>'}]};
     nodes.push(n); selectedId=n.id; drawNodes(); updateInspector(); saveLocalDebounced();
@@ -499,7 +478,6 @@ function renderBuilder(skipInit=false){
     catch{ alert('Ошибка JSON'); }
   }
   function share(ws){
-    // Если задан ws — шлём ссылку с ws, иначе — старая ссылка с data=
     if (ws) {
       const url = `${location.origin}${location.pathname}#/view?ws=${encodeURIComponent(ws)}`;
       navigator.clipboard?.writeText(url); alert('Ссылка (облако) скопирована ✔');
@@ -588,7 +566,6 @@ async function renderViewer(skipInit=false){
   const dataParam = qget('data');
   try{
     if (wsParam){
-      // Загрузка из Firestore по ws
       const snap = await db.collection('workspaces').doc(wsParam).get();
       if (!snap.exists){ app.innerHTML = '<div style="padding:16px">Нет данных по этому ID.</div>'; return; }
       const obj = snap.data(); nodes=obj.nodes||[]; edges=obj.edges||[]; viewport=obj.viewport||{x:0,y:0,scale:1};
@@ -613,7 +590,6 @@ async function renderViewer(skipInit=false){
   const layer = el('div',{class:'layer'});
   const svg   = document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('class','edges');
 
-  // defs со стрелкой
   const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
   const marker = document.createElementNS('http://www.w3.org/2000/svg','marker');
   marker.setAttribute('id','arrow'); marker.setAttribute('markerWidth','10'); marker.setAttribute('markerHeight','10');
@@ -649,8 +625,7 @@ async function renderViewer(skipInit=false){
       );
       layer.append(card);
     });
-    // Ребра
-    edges.forEach(e=>{
+  edges.forEach(e=>{
       const a=nodes.find(n=>n.id===e.from), b=nodes.find(n=>n.id===e.to);
       if(!a||!b) return;
       const x1=a.x+a.w, y1=a.y+a.h/2, x2=b.x, y2=b.y+b.h/2;
