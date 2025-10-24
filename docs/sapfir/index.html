@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SAPFIR-like Workspace (no deps)</title>
+<title>SAPFIR-like Workspace (multi-content blocks)</title>
 <style>
   :root { --bg:#f6f7fb; --panel:#ffffff; --line:#6366f1; --muted:#8a8fa3; }
   html,body,#app{height:100%}
@@ -14,19 +14,28 @@
   .btn:hover{background:#fafbff}
   .btn.primary{background:#4f46e5;color:#fff;border-color:#4f46e5}
   .toolbar{display:flex;gap:.35rem;flex-wrap:wrap;align-items:center}
-  .wrap{display:grid;grid-template-columns: 1fr 320px;height:calc(100% - 52px)}
-  .panel{border-left:1px solid #e6e7ee;background:#ffffffcc;padding:12px;backdrop-filter:blur(6px)}
+  .wrap{display:grid;grid-template-columns: 1fr 360px;height:calc(100% - 52px)}
+  .panel{border-left:1px solid #e6e7ee;background:#ffffffcc;padding:12px;backdrop-filter:blur(6px);overflow:auto}
   .panel h3{margin:6px 0 10px}
   .panel label{font-size:.8rem;color:#666}
   .panel input,.panel select,.panel textarea{width:100%;padding:.5rem .6rem;border:1px solid #e6e7ee;border-radius:10px;margin:.3rem 0 .6rem;background:#fff}
   .panel small{color:#777}
+  .panel .content-list{display:flex;flex-direction:column;gap:10px;margin-top:.5rem}
+  .item-card{border:1px solid #eceef5;border-radius:12px;padding:10px;background:#fff}
+  .item-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .item-head .type{font-size:.85rem;color:#555}
+  .item-head .actions{display:flex;gap:6px}
+  .item-head .iconbtn{border:1px solid #e6e7ee;background:#fff;border-radius:8px;padding:4px 8px;cursor:pointer}
   .board{position:relative;overflow:hidden;background:var(--bg)}
   .grid{position:absolute;inset:0;background-image:radial-gradient(#c7cdfa 1px, transparent 0);background-size:16px 16px;opacity:.5;pointer-events:none;transform-origin:0 0}
   .layer{position:absolute;inset:0;transform-origin:0 0}
-  .node{position:absolute;min-width:220px;min-height:140px;background:#fff;border:1px solid #e6e7ee;border-radius:16px;box-shadow:0 8px 26px rgba(22,28,45,.06);overflow:hidden;user-select:none}
+  .node{position:absolute;min-width:240px;min-height:160px;background:#fff;border:1px solid #e6e7ee;border-radius:16px;box-shadow:0 8px 26px rgba(22,28,45,.06);overflow:hidden;user-select:none}
   .node .title{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid #eceef5;background:linear-gradient(90deg,#eef2ff,#f7faff)}
   .dot{width:10px;height:10px;border-radius:50%}
-  .node .body{padding:10px;font-size:.9rem}
+  .node .body{padding:10px;font-size:.9rem;display:flex;flex-direction:column;gap:8px}
+  .node .body .text-block p{margin:.3rem 0}
+  .node .body img{width:100%;max-height:180px;object-fit:cover;border-radius:12px;border:1px solid #e6e7ee}
+  .node .body iframe,.node .body video{width:100%;aspect-ratio:16/9;border:1px solid #e6e7ee;border-radius:12px}
   .handle{position:absolute;top:50%;transform:translateY(-50%);width:12px;height:12px;border-radius:50%;background:var(--line);cursor:crosshair}
   .handle.out{right:-6px} .handle.in{left:-6px}
   .node .resizer{position:absolute;width:12px;height:12px;right:0;bottom:0;background:var(--line);border-top-left-radius:4px;cursor:nwse-resize}
@@ -74,8 +83,47 @@ const toCanvas = (clientX, clientY, board) => {
   const y = (clientY - r.top  - viewport.y) / viewport.scale;
   return {x,y};
 };
+
+function sanitizeSimple(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html || '';
+  tmp.querySelectorAll('script,style').forEach(el => el.remove());
+  tmp.querySelectorAll('*').forEach(el => {
+    [...el.attributes].forEach(a => { if (a.name.startsWith('on')) el.removeAttribute(a.name); });
+  });
+  return tmp.innerHTML;
+}
+const isYouTube = (url) => { try { return /youtu\.be|youtube\.com/.test(new URL(url).host); } catch { return false; } };
+const toYouTubeEmbed = (url) => {
+  try {
+    const u = new URL(url);
+    if (u.host.includes('youtu.be')) { const id = u.pathname.replace('/', ''); return `https://www.youtube.com/embed/${id}`; }
+    const id = u.searchParams.get('v'); return `https://www.youtube.com/embed/${id||''}`;
+  } catch { return url; }
+};
+
+/* --- Плавные ортогональные ребра со стрелкой --- */
+function smoothPath(x1, y1, x2, y2, r = 12) {
+  const midX = x1 + Math.max(40, (x2 - x1) * 0.5);
+  const p1x=x1, p1y=y1, p2x=midX, p2y=y1, p3x=midX, p3y=y2, p4x=x2, p4y=y2;
+  const r1 = Math.min(r, Math.abs(p2x - p1x), Math.abs(p3y - p2y));
+  const r2 = Math.min(r, Math.abs(p3y - p2y), Math.abs(p4x - p3x));
+  const a1x = p2x - r1, a1y = p2y;
+  const a2x = p2x,      a2y = p2y + Math.sign(p3y - p2y) * r1;
+  const b1x = p3x,      b1y = p3y - Math.sign(p3y - p2y) * r2;
+  const b2x = p3x + Math.sign(p4x - p3x) * r2, b2y = p3y;
+  return [
+    `M ${p1x},${p1y}`,
+    `L ${a1x},${a1y}`,
+    `Q ${p2x},${p2y} ${a2x},${a2y}`,
+    `L ${b1x},${b1y}`,
+    `Q ${p3x},${p3y} ${b2x},${b2y}`,
+    `L ${p4x},${p4y}`
+  ].join(' ');
+}
+
 function redrawEdges(svg){
-  svg.innerHTML='';
+  svg.querySelectorAll('path.edge').forEach(p=>p.remove());
   edges.forEach(e=>{
     const a = nodes.find(n=>n.id===e.from);
     const b = nodes.find(n=>n.id===e.to);
@@ -84,10 +132,12 @@ function redrawEdges(svg){
     const y1 = a.y + a.h/2;
     const x2 = b.x;
     const y2 = b.y + b.h/2;
-    const dx = Math.max(40, Math.abs(x2-x1)*.4);
-    const d = `M ${x1},${y1} C ${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`;
+    const d = smoothPath(x1, y1, x2, y2, 12);
     const p = document.createElementNS('http://www.w3.org/2000/svg','path');
-    p.setAttribute('d', d); p.setAttribute('class','edge'); svg.appendChild(p);
+    p.setAttribute('d', d);
+    p.setAttribute('class','edge');
+    p.setAttribute('marker-end','url(#arrow)');
+    svg.appendChild(p);
   });
 }
 
@@ -120,8 +170,19 @@ function renderBuilder(){
   // Инициализация
   if (nodes.length===0) {
     nodes = [
-      {id:uid(), x:120,y:80,w:280,h:180, title:'Задача', kind:'text', color:'#ffffff', content:'Добавь описание…'},
-      {id:uid(), x:520,y:260,w:260,h:160, title:'Ссылка', kind:'link', color:'#ffffff', link:'https://example.com'},
+      {
+        id:uid(), x:120,y:80,w:320,h:220, title:'Пример блока', color:'#ffffff',
+        items: [
+          {type:'text', html:'<p>Можно хранить <b>текст</b>, изображения, видео и ссылки одновременно.</p>'},
+          {type:'image', url:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee'},
+          {type:'link', url:'https://example.com'},
+          {type:'video', url:'https://www.youtube.com/watch?v=dQw4w9WgXcQ'}
+        ]
+      },
+      {
+        id:uid(), x:540,y:300,w:280,h:180, title:'Пустой блок', color:'#ffffff',
+        items: [{type:'text', html:'<p>Добавь элементы справа — Текст/Фото/Видео/Ссылка.</p>'}]
+      },
     ];
     edges = [];
     viewport = {x:0,y:0,scale:1};
@@ -129,22 +190,15 @@ function renderBuilder(){
 
   app.innerHTML='';
 
-  /* === Topbar со слушателями === */
+  /* === Topbar === */
   const leftBar = el('div',{class:'toolbar'},
     el('strong',{},'SAPFIR-style Builder'),
     el('span',{class:'muted'},'·'),
     el('a',{href:'#/view',class:'btn'},'Страница просмотра')
   );
 
-  const btnText  = el('button',{class:'btn'},'Текст');
-  const btnLink  = el('button',{class:'btn'},'Ссылка');
-  const btnImg   = el('button',{class:'btn'},'Фото');
-  const btnVid   = el('button',{class:'btn'},'Видео');
-  btnText.addEventListener('click', ()=>addNode('text'));
-  btnLink.addEventListener('click', ()=>addNode('link'));
-  btnImg .addEventListener('click', ()=>addNode('image'));
-  btnVid .addEventListener('click', ()=>addNode('video'));
-
+  const btnNew  = el('button',{class:'btn'},'Новый блок');
+  btnNew.addEventListener('click', ()=>addNode());
   const bZoomOut = el('button',{class:'btn'},'–');
   const bZoomIn  = el('button',{class:'btn'},'+');
   const bFit     = el('button',{class:'btn'},'Fit');
@@ -161,8 +215,7 @@ function renderBuilder(){
   bDel    .addEventListener('click', removeSelected);
 
   const rightBar = el('div',{class:'toolbar'},
-    btnText, btnLink, btnImg, btnVid,
-    bZoomOut, bZoomIn, bFit, bJson, bImport, bShare, bDel
+    btnNew, bZoomOut, bZoomIn, bFit, bJson, bImport, bShare, bDel
   );
 
   const top = el('div',{class:'topbar'}, leftBar, rightBar);
@@ -173,6 +226,16 @@ function renderBuilder(){
   const layer = el('div',{class:'layer'});
   const svg   = document.createElementNS('http://www.w3.org/2000/svg','svg');
   svg.setAttribute('class','edges');
+
+  // defs со стрелкой
+  const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+  const marker = document.createElementNS('http://www.w3.org/2000/svg','marker');
+  marker.setAttribute('id','arrow'); marker.setAttribute('markerWidth','10'); marker.setAttribute('markerHeight','10');
+  marker.setAttribute('refX','10'); marker.setAttribute('refY','3.5'); marker.setAttribute('orient','auto-start-reverse');
+  const arrowPath = document.createElementNS('http://www.w3.org/2000/svg','path');
+  arrowPath.setAttribute('d','M0,0 L10,3.5 L0,7 Z'); arrowPath.setAttribute('fill','var(--line)');
+  marker.appendChild(arrowPath); defs.appendChild(marker); svg.appendChild(defs);
+
   board.append(grid, svg, layer);
 
   // Инспектор
@@ -226,35 +289,13 @@ function renderBuilder(){
           el('div',{class:'dot',style:{background:'#ef4444'}}),
           el('strong',{}, ' '+(n.title||'Блок'))
         ),
-        (()=>{
-          const body = el('div',{class:'body',style:{background:n.color||'#ffffff'}});
-          if(n.kind==='text'){
-            body.innerHTML = (n.content||'').replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi,'');
-          }else if(n.kind==='link'){
-            body.append(el('a',{href:n.link||'#',target:'_blank'}, n.link||'https://'));
-          }else if(n.kind==='image'){
-            if(n.image) body.append(el('img',{src:n.image,style:{width:'100%',height:'160px',objectFit:'cover',borderRadius:'12px',border:'1px solid #e6e7ee'}}));
-            else body.append('URL изображения не задан');
-          }else if(n.kind==='video'){
-            if(n.video){
-              if (/youtu\.be|youtube\.com/.test(n.video)){
-                const id = (()=>{
-                  try{const u=new URL(n.video);return u.searchParams.get('v')||u.pathname.slice(1);}catch{return''}
-                })();
-                body.append(el('iframe',{src:'https://www.youtube.com/embed/'+id, allow:'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',allowFullscreen:'',style:{width:'100%',aspectRatio:'16/9',border:'1px solid #e6e7ee',borderRadius:'12px'}}));
-              } else {
-                body.append(el('video',{src:n.video,controls:'',style:{width:'100%',border:'1px solid #e6e7ee',borderRadius:'12px'}}));
-              }
-            } else body.append('URL видео не задан');
-          }
-          return body;
-        })(),
+        renderBody(n),
         el('div',{class:'handle in','data-id':n.id}),
         el('div',{class:'handle out','data-id':n.id}),
         el('div',{class:'resizer','data-id':n.id})
       );
 
-      // Drag node
+      // Drag
       let dragging=false, start={x:0,y:0}, orig={x:0,y:0};
       card.addEventListener('mousedown', (e)=>{
         if (e.target.closest('.resizer')|| e.target.classList.contains('handle')) return;
@@ -278,8 +319,8 @@ function renderBuilder(){
       window.addEventListener('mouseup',()=>resizing=false);
       window.addEventListener('mousemove',(e)=>{
         if(!resizing) return;
-        n.w = Math.max(220, os.w + (e.clientX-rs.x)/viewport.scale);
-        n.h = Math.max(140, os.h + (e.clientY-rs.y)/viewport.scale);
+        n.w = Math.max(240, os.w + (e.clientX-rs.x)/viewport.scale);
+        n.h = Math.max(160, os.h + (e.clientY-rs.y)/viewport.scale);
         card.style.width = n.w+'px'; card.style.height = n.h+'px';
         redrawEdges(svg);
       });
@@ -296,7 +337,9 @@ function renderBuilder(){
       const out = card.querySelector('.out');
       out.addEventListener('mousedown',(e)=>{
         e.stopPropagation(); connecting=true; sourceId = n.id;
-        temp = document.createElementNS('http://www.w3.org/2000/svg','path'); temp.setAttribute('class','edge'); svg.appendChild(temp);
+        temp = document.createElementNS('http://www.w3.org/2000/svg','path');
+        temp.setAttribute('class','edge'); temp.setAttribute('marker-end','url(#arrow)');
+        svg.appendChild(temp);
       });
       window.addEventListener('mouseup',(e)=>{
         if(!connecting) return;
@@ -313,9 +356,8 @@ function renderBuilder(){
         const a = nodes.find(x=>x.id===sourceId);
         const {x:cx,y:cy} = toCanvas(e.clientX,e.clientY,board);
         const x1=a.x+a.w, y1=a.y+a.h/2, x2=cx, y2=cy;
-        const dx=Math.max(40, Math.abs(x2-x1)*.4);
-        const d=`M ${x1},${y1} C ${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`;
-        temp.setAttribute('d',d);
+        const d = smoothPath(x1, y1, x2, y2, 12);
+        temp.setAttribute('d', d);
       });
 
       layer.append(card);
@@ -324,14 +366,30 @@ function renderBuilder(){
   }
   drawNodes();
 
+  function renderBody(n){
+    const body = el('div',{class:'body',style:{background:n.color||'#ffffff'}});
+    (n.items||[]).forEach(item=>{
+      if(item.type==='text'){
+        const box = el('div',{class:'text-block'}); box.innerHTML = sanitizeSimple(item.html||''); body.append(box);
+      } else if(item.type==='image'){
+        if (item.url) body.append(el('img',{src:item.url, alt:'image'}));
+      } else if(item.type==='video'){
+        if (item.url){
+          if (isYouTube(item.url)) body.append(el('iframe',{src:toYouTubeEmbed(item.url), allow:'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',allowFullscreen:''}));
+          else body.append(el('video',{src:item.url,controls:''}));
+        }
+      } else if(item.type==='link'){
+        const a = el('a',{href:item.url||'#',target:'_blank'}, item.url||'https://');
+        body.append(a);
+      }
+    });
+    return body;
+  }
+
   // Действия
-  function addNode(kind){
-    const n = {id:uid(), x:120,y:120,w:280,h:180, title:'Новый блок', kind, color:'#ffffff'};
-    if (kind==='text') n.content = '<p>Текст…</p>';
-    if (kind==='link') n.link = 'https://';
-    if (kind==='image') n.image = 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee';
-    if (kind==='video') n.video = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-    nodes.push(n); drawNodes();
+  function addNode(){
+    const n = {id:uid(), x:120,y:120,w:320,h:220, title:'Новый блок', color:'#ffffff', items:[{type:'text', html:'<p>Текст…</p>'}]};
+    nodes.push(n); selectedId=n.id; drawNodes(); updateInspector();
   }
   function removeSelected(){
     if(!selectedId) return;
@@ -370,55 +428,91 @@ function renderBuilder(){
     alert('Ссылка скопирована ✔');
   }
 
+  function moveItem(items, from, to){
+    if (to<0 || to>=items.length) return;
+    const [it] = items.splice(from,1);
+    items.splice(to,0,it);
+  }
+
   function updateInspector(){
     const insp = document.getElementById('insp');
     insp.innerHTML='';
     const n = nodes.find(k=>k.id===selectedId);
     if(!n){ insp.append(el('p',{class:'muted'},'Выберите блок.')); return; }
-    insp.append(
-      el('label',{},'Название'),
-      (()=>{
-        const i=el('input',{value:n.title||''}); i.addEventListener('input',()=>{n.title=i.value; drawNodes();}); return i;
-      })(),
-      el('label',{},'Тип'),
-      (()=>{
-        const s=el('select',{},
-          el('option',{value:'text',selected:n.kind==='text'},'Текст'),
-          el('option',{value:'link',selected:n.kind==='link'},'Ссылка'),
-          el('option',{value:'image',selected:n.kind==='image'},'Фото'),
-          el('option',{value:'video',selected:n.kind==='video'},'Видео')
+
+    // Заголовок и фон
+    const title = el('input',{value:n.title||''});
+    title.addEventListener('input',()=>{n.title=title.value; drawNodes();});
+    const color = el('input',{type:'color', value:n.color||'#ffffff'});
+    color.addEventListener('input',()=>{n.color=color.value; drawNodes();});
+
+    // Контент списка элементов
+    const contentWrap = el('div',{class:'content-list'});
+
+    function renderItems(){
+      contentWrap.innerHTML='';
+      (n.items||[]).forEach((it, idx)=>{
+        const card = el('div',{class:'item-card'});
+        const head = el('div',{class:'item-head'},
+          el('div',{class:'type'}, it.type==='text'?'Текст':it.type==='image'?'Фото':it.type==='video'?'Видео':'Ссылка'),
+          el('div',{class:'actions'},
+            (()=>{
+              const up = el('button',{class:'iconbtn'},'↑'); up.addEventListener('click',()=>{moveItem(n.items,idx,idx-1); renderItems(); drawNodes();}); return up;
+            })(),
+            (()=>{
+              const dn = el('button',{class:'iconbtn'},'↓'); dn.addEventListener('click',()=>{moveItem(n.items,idx,idx+1); renderItems(); drawNodes();}); return dn;
+            })(),
+            (()=>{
+              const rm = el('button',{class:'iconbtn'},'✕'); rm.addEventListener('click',()=>{n.items.splice(idx,1); renderItems(); drawNodes();}); return rm;
+            })()
+          )
         );
-        s.addEventListener('change',()=>{n.kind=s.value; drawNodes();});
-        return s;
-      })(),
-      ...(n.kind==='text' ? [
-        el('label',{},'HTML содержимое'),
-        (()=>{
-          const t=el('textarea',{rows:6}, n.content||''); t.addEventListener('input',()=>{n.content=t.value; drawNodes();}); return t;
-        })()
-      ] : n.kind==='link' ? [
-        el('label',{},'URL'),
-        (()=>{
-          const t=el('input',{value:n.link||''}); t.addEventListener('input',()=>{n.link=t.value; drawNodes();}); return t;
-        })()
-      ] : n.kind==='image' ? [
-        el('label',{},'URL изображения'),
-        (()=>{
-          const t=el('input',{value:n.image||''}); t.addEventListener('input',()=>{n.image=t.value; drawNodes();}); return t;
-        })()
-      ] : [
-        el('label',{},'URL видео'),
-        (()=>{
-          const t=el('input',{value:n.video||''}); t.addEventListener('input',()=>{n.video=t.value; drawNodes();}); return t;
-        })()
-      ]),
-      el('label',{},'Цвет фона'),
-      (()=>{
-        const t=el('input',{type:'color',value:n.color||'#ffffff'}); t.addEventListener('input',()=>{n.color=t.value; drawNodes();}); return t;
-      })(),
-      el('small',{class:'muted'},'Размер меняется потягиванием правого-нижнего угла.')
+        let bodyFields = null;
+        if (it.type==='text'){
+          const ta = el('textarea',{rows:4}, it.html||'');
+          ta.addEventListener('input',()=>{ it.html = ta.value; drawNodes(); });
+          bodyFields = el('div',{}, el('label',{},'HTML текст'), ta, el('small',{class:'muted'},'Поддерживается простой HTML (p, b, i, ul, a...).'));
+        } else if (it.type==='image'){
+          const inp = el('input',{value:it.url||'', placeholder:'https://…'});
+          inp.addEventListener('input',()=>{ it.url = inp.value; drawNodes(); });
+          bodyFields = el('div',{}, el('label',{},'URL изображения'), inp);
+        } else if (it.type==='video'){
+          const inp = el('input',{value:it.url||'', placeholder:'YouTube или MP4 URL'});
+          inp.addEventListener('input',()=>{ it.url = inp.value; drawNodes(); });
+          bodyFields = el('div',{}, el('label',{},'URL видео'), inp);
+        } else {
+          const inp = el('input',{value:it.url||'', placeholder:'https://…'});
+          inp.addEventListener('input',()=>{ it.url = inp.value; drawNodes(); });
+          bodyFields = el('div',{}, el('label',{},'URL ссылки'), inp);
+        }
+        card.append(head, bodyFields);
+        contentWrap.append(card);
+      });
+    }
+    renderItems();
+
+    // Кнопки добавления элемента
+    const addRow = el('div',{class:'toolbar',style:{marginTop:'6px'}});
+    const addText = el('button',{class:'btn'},'Добавить текст');
+    const addImg  = el('button',{class:'btn'},'Добавить фото');
+    const addVid  = el('button',{class:'btn'},'Добавить видео');
+    const addLink = el('button',{class:'btn'},'Добавить ссылку');
+    addText.addEventListener('click',()=>{ (n.items ||= []).push({type:'text', html:'<p>Текст…</p>'}); renderItems(); drawNodes(); });
+    addImg .addEventListener('click',()=>{ (n.items ||= []).push({type:'image', url:''}); renderItems(); drawNodes(); });
+    addVid .addEventListener('click',()=>{ (n.items ||= []).push({type:'video', url:''}); renderItems(); drawNodes(); });
+    addLink.addEventListener('click',()=>{ (n.items ||= []).push({type:'link', url:'https://'}); renderItems(); drawNodes(); });
+    addRow.append(addText, addImg, addVid, addLink);
+
+    insp.append(
+      el('label',{},'Название'), title,
+      el('label',{},'Цвет фона'), color,
+      el('h3',{},'Контент блока'),
+      contentWrap,
+      addRow,
+      el('small',{class:'muted'},'Можно добавлять несколько элементов и менять их порядок.')
     );
   }
+  updateInspector();
 }
 
 /* ====== Страница: Просмотрщик ====== */
@@ -460,11 +554,21 @@ function renderViewer(){
   const grid  = el('div',{class:'grid'});
   const layer = el('div',{class:'layer'});
   const svg   = document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('class','edges');
+
+  // defs со стрелкой
+  const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+  const marker = document.createElementNS('http://www.w3.org/2000/svg','marker');
+  marker.setAttribute('id','arrow'); marker.setAttribute('markerWidth','10'); marker.setAttribute('markerHeight','10');
+  marker.setAttribute('refX','10'); marker.setAttribute('refY','3.5'); marker.setAttribute('orient','auto-start-reverse');
+  const arrowPath = document.createElementNS('http://www.w3.org/2000/svg','path');
+  arrowPath.setAttribute('d','M0,0 L10,3.5 L0,7 Z'); arrowPath.setAttribute('fill','var(--line)');
+  marker.appendChild(arrowPath); defs.appendChild(marker); svg.appendChild(defs);
+
   board.append(grid, svg, layer);
   app.append(top, board);
 
   function draw(){
-    layer.innerHTML=''; svg.innerHTML='';
+    layer.innerHTML=''; svg.querySelectorAll('path.edge').forEach(p=>p.remove());
     nodes.forEach(n=>{
       const card = el('div',{class:'node',style:{left:n.x+'px',top:n.y+'px',width:n.w+'px',height:n.h+'px'}});
       card.append(
@@ -476,30 +580,25 @@ function renderViewer(){
         ),
         (()=>{
           const body = el('div',{class:'body',style:{background:n.color||'#ffffff'}});
-          if(n.kind==='text'){ body.innerHTML=(n.content||''); }
-          else if(n.kind==='link'){ body.append(el('a',{href:n.link||'#',target:'_blank'},n.link||'https://')); }
-          else if(n.kind==='image'){ if(n.image) body.append(el('img',{src:n.image,style:{width:'100%',height:'160px',objectFit:'cover',borderRadius:'12px',border:'1px solid #e6e7ee'}})); }
-          else if(n.kind==='video'){
-            if(n.video){
-              if (/youtu\.be|youtube\.com/.test(n.video)){
-                const id=(()=>{try{const u=new URL(n.video);return u.searchParams.get('v')||u.pathname.slice(1);}catch{return''}})();
-                body.append(el('iframe',{src:'https://www.youtube.com/embed/'+id, allow:'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',allowFullscreen:'',style:{width:'100%',aspectRatio:'16/9',border:'1px solid #e6e7ee',borderRadius:'12px'}}));
-              } else { body.append(el('video',{src:n.video,controls:'',style:{width:'100%',border:'1px solid #e6e7ee',borderRadius:'12px'}})); }
-            }
-          }
+          (n.items||[]).forEach(item=>{
+            if(item.type==='text'){ const box=el('div',{class:'text-block'}); box.innerHTML=sanitizeSimple(item.html||''); body.append(box); }
+            else if(item.type==='image'){ if(item.url) body.append(el('img',{src:item.url})); }
+            else if(item.type==='video'){ if(item.url){ if(isYouTube(item.url)) body.append(el('iframe',{src:toYouTubeEmbed(item.url),allow:'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',allowFullscreen:''})); else body.append(el('video',{src:item.url,controls:''})); } }
+            else if(item.type==='link'){ body.append(el('a',{href:item.url||'#',target:'_blank'},item.url||'https://')); }
+          });
           return body;
         })()
       );
       layer.append(card);
     });
-    // edges
+    // Ребра
     edges.forEach(e=>{
       const a=nodes.find(n=>n.id===e.from), b=nodes.find(n=>n.id===e.to);
       if(!a||!b) return;
       const x1=a.x+a.w, y1=a.y+a.h/2, x2=b.x, y2=b.y+b.h/2;
-      const dx=Math.max(40,Math.abs(x2-x1)*.4);
+      const d=smoothPath(x1,y1,x2,y2,12);
       const p=document.createElementNS('http://www.w3.org/2000/svg','path');
-      p.setAttribute('d',`M ${x1},${y1} C ${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`); p.setAttribute('class','edge');
+      p.setAttribute('d',d); p.setAttribute('class','edge'); p.setAttribute('marker-end','url(#arrow)');
       svg.appendChild(p);
     });
     applyVP();
