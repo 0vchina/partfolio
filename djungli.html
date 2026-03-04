@@ -4,27 +4,24 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Детский развлекательный дом — Джунгли</title>
-  <meta name="description" content="Очень красивый сайт с анимированными слоями и 3D-фоном Sketchfab (автовращение медленное)." />
 
   <style>
     :root{
       --txt: rgba(255,255,255,.94);
       --muted: rgba(255,255,255,.78);
       --stroke: rgba(255,255,255,.22);
-      --glass: rgba(0,0,0,.16);
-      --glass2: rgba(255,255,255,.10);
       --shadow: 0 20px 70px rgba(0,0,0,.35);
       --r: 20px;
 
-      /* Светлота фона (ЧЕМ МЕНЬШЕ — тем светлее) */
-      --overlayTop: .05;
-      --overlayBottom: .18;
+      /* Насколько затемнять ФОН-КАРТИНКУ (меньше = светлее, больше = темнее) */
+      --bgDimTop: .22;
+      --bgDimBottom: .38;
 
-      /* Акценты */
-      --accent: #36d399;
-      --accent2:#22c55e;
-      --blue: #60a5fa;
-      --gold: #fbbf24;
+      /* Отдельное затемнение под панелью (чтобы читалось) */
+      --panelDim: .18;
+
+      /* Скорость автоворота: меньше = медленнее */
+      --spin: 0.08;
     }
 
     *{ box-sizing:border-box; }
@@ -33,16 +30,45 @@
       margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: var(--txt);
-      background:#05070a;
       overflow-x:hidden;
+      background:#05070a;
     }
 
-    /* ===== 3D BACKGROUND ===== */
+    /* ====== 1) ФОН-КАРТИНКА ДЖУНГЛЕЙ ======
+       Поставь свой файл jungle-bg.jpg рядом с этим html (или поменяй путь ниже).
+    */
+    .bg-image{
+      position:fixed;
+      inset:0;
+      z-index:-10;
+      background:
+        url("jungle-bg.jpg") center/cover no-repeat;
+      transform: scale(1.02);
+      filter: saturate(1.08) contrast(1.05);
+    }
+
+    /* Лёгкое затемнение фон-картинки, чтобы не “засвечивала” панель */
+    .bg-dim{
+      position:fixed;
+      inset:0;
+      z-index:-9;
+      pointer-events:none;
+      background:
+        radial-gradient(1200px 900px at 22% 12%,
+          rgba(0,0,0,var(--bgDimTop)),
+          rgba(0,0,0,0) 58%),
+        linear-gradient(to bottom,
+          rgba(0,0,0,var(--bgDimTop)),
+          rgba(0,0,0,var(--bgDimBottom)));
+    }
+
+    /* ====== 2) SKETCHFAB С ПРОЗРАЧНЫМ ФОНОМ ====== */
     .bg3d{
       position:fixed;
       inset:0;
-      z-index:-5;
+      z-index:-8;
       transform: translateZ(0);
+      pointer-events:none; /* фон не мешает кликам по сайту */
     }
     .bg3d iframe{
       width:100%;
@@ -51,90 +77,20 @@
       display:block;
       transform: scale(1.03);
       transform-origin:center;
-      filter: saturate(1.16) contrast(1.06) brightness(1.10);
+      /* чуть приглушаем 3D, чтобы панель была читабельней */
+      filter: saturate(1.12) contrast(1.06) brightness(1.02);
     }
 
-    /* Светлый читаемый оверлей — НЕ душим */
-    .overlay{
+    /* Дополнительное затемнение именно под контентом (центр экрана) */
+    .content-dim{
       position:fixed;
       inset:0;
-      z-index:-4;
+      z-index:-7;
       pointer-events:none;
       background:
-        radial-gradient(1200px 900px at 22% 12%, rgba(255,255,255,var(--overlayTop)), rgba(0,0,0,0) 58%),
-        linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,var(--overlayBottom)));
-    }
-
-    /* ===== Animated ambience layers (WOW) ===== */
-    /* 1) Цветные “туманы” */
-    .mist{
-      position:fixed;
-      inset:-180px;
-      z-index:-3;
-      pointer-events:none;
-      filter: blur(22px);
-      opacity:.58;
-      mix-blend-mode: screen;
-      background:
-        radial-gradient(700px 520px at 18% 18%, rgba(54,211,153,.22), transparent 62%),
-        radial-gradient(700px 520px at 86% 24%, rgba(96,165,250,.18), transparent 62%),
-        radial-gradient(820px 620px at 55% 92%, rgba(251,191,36,.14), transparent 64%);
-      animation: mistFloat 10s ease-in-out infinite;
-    }
-    @keyframes mistFloat{
-      0%{ transform: translate3d(0,0,0) scale(1); }
-      50%{ transform: translate3d(10px,-8px,0) scale(1.02); }
-      100%{ transform: translate3d(0,0,0) scale(1); }
-    }
-
-    /* 2) Светлячки */
-    .flies{
-      position:fixed;
-      inset:0;
-      z-index:-2;
-      pointer-events:none;
-      mix-blend-mode: screen;
-    }
-    .fly{
-      position:absolute;
-      width:6px; height:6px;
-      border-radius:50%;
-      background: radial-gradient(circle, rgba(255,255,255,.95), rgba(54,211,153,.35), rgba(255,255,255,0) 65%);
-      box-shadow: 0 0 18px rgba(54,211,153,.40);
-      opacity:.7;
-      animation: drift 12s linear infinite;
-    }
-    @keyframes drift{
-      0%{ transform: translate3d(var(--x0), var(--y0), 0) scale(.9); opacity:.25; }
-      25%{ opacity:.85; }
-      60%{ opacity:.55; }
-      100%{ transform: translate3d(var(--x1), var(--y1), 0) scale(1.25); opacity:.20; }
-    }
-
-    /* 3) Лёгкие “лианы” (SVG) параллаксом */
-    .vines{
-      position:fixed;
-      inset:0;
-      z-index:-1;
-      pointer-events:none;
-      opacity:.28;
-    }
-    .vines svg{
-      width:100%;
-      height:100%;
-      display:block;
-      filter: blur(.2px);
-    }
-    .vine{
-      animation: sway 6.5s ease-in-out infinite;
-      transform-origin: top center;
-    }
-    .vine:nth-child(2){ animation-duration: 7.8s; opacity:.9; }
-    .vine:nth-child(3){ animation-duration: 9.2s; opacity:.75; }
-    @keyframes sway{
-      0%{ transform: translateX(0) rotate(-1.2deg); }
-      50%{ transform: translateX(6px) rotate(1.3deg); }
-      100%{ transform: translateX(0) rotate(-1.2deg); }
+        radial-gradient(900px 520px at 50% 25%,
+          rgba(0,0,0,var(--panelDim)),
+          rgba(0,0,0,0) 60%);
     }
 
     /* ===== Layout ===== */
@@ -150,11 +106,6 @@
       justify-content:space-between;
       gap:12px;
       padding: 10px 0 16px;
-      animation: dropIn .75s ease both;
-    }
-    @keyframes dropIn{
-      from{ opacity:0; transform: translateY(-10px); }
-      to{ opacity:1; transform: translateY(0); }
     }
 
     .brand{
@@ -167,23 +118,12 @@
     .logo{
       width:44px; height:44px;
       border-radius: 18px;
-      border:1px solid var(--stroke);
+      border:1px solid rgba(255,255,255,.22);
       background:
         radial-gradient(circle at 30% 30%, rgba(255,255,255,.35), rgba(255,255,255,.05) 55%, rgba(255,255,255,0)),
         linear-gradient(145deg, rgba(54,211,153,.38), rgba(34,197,94,.12));
       box-shadow: 0 12px 30px rgba(0,0,0,.25);
-      position:relative;
-      overflow:hidden;
     }
-    .logo::after{
-      content:"";
-      position:absolute; inset:-45%;
-      background: conic-gradient(from 220deg, rgba(255,255,255,0), rgba(255,255,255,.28), rgba(255,255,255,0));
-      animation: spin 7.8s linear infinite;
-      opacity:.75;
-    }
-    @keyframes spin{ to{ transform: rotate(360deg);} }
-
     .brand b{ display:block; font-size:14px; letter-spacing:.2px; }
     .brand span{ display:block; font-size:12px; color:var(--muted); line-height:1.2; }
 
@@ -197,7 +137,7 @@
 
     .btn{
       border:1px solid rgba(255,255,255,.22);
-      background: rgba(0,0,0,.14);
+      background: rgba(0,0,0,.18);
       color: var(--txt);
       padding: 10px 12px;
       border-radius: 999px;
@@ -212,25 +152,12 @@
       align-items:center;
       gap:8px;
       white-space:nowrap;
-      position:relative;
-      overflow:hidden;
-    }
-    .btn::after{
-      content:"";
-      position:absolute;
-      inset:-50%;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.18), rgba(255,255,255,0) 55%);
-      transform: translateX(-30%);
-      opacity:0;
-      transition: opacity .2s ease;
-      pointer-events:none;
     }
     .btn:hover{
       transform: translateY(-2px);
-      background: rgba(0,0,0,.20);
+      background: rgba(0,0,0,.26);
       border-color: rgba(255,255,255,.34);
     }
-    .btn:hover::after{ opacity:1; }
     .btn:active{ transform: translateY(0); }
 
     .btn-accent{
@@ -240,7 +167,7 @@
       box-shadow: 0 18px 45px rgba(34,197,94,.24);
     }
 
-    /* ===== HERO ===== */
+    /* ===== Панель (читаемая) ===== */
     .hero{
       border-radius: var(--r);
       border:1px solid rgba(255,255,255,.22);
@@ -250,30 +177,17 @@
       overflow:hidden;
       padding: 18px;
       position:relative;
-      animation: rise .9s ease both;
-    }
-    @keyframes rise{
-      from{ opacity:0; transform: translateY(14px) scale(.99); }
-      to{ opacity:1; transform: translateY(0) scale(1); }
     }
     .hero::before{
       content:"";
       position:absolute;
       inset:-1px;
       background:
-        radial-gradient(900px 260px at 18% 0%, rgba(54,211,153,.22), transparent 55%),
-        radial-gradient(900px 260px at 76% 10%, rgba(251,191,36,.14), transparent 55%),
-        radial-gradient(900px 260px at 55% 90%, rgba(96,165,250,.12), transparent 55%);
+        radial-gradient(900px 260px at 18% 0%, rgba(54,211,153,.18), transparent 55%),
+        radial-gradient(900px 260px at 76% 10%, rgba(251,191,36,.12), transparent 55%);
       pointer-events:none;
     }
     .hero > *{ position:relative; }
-
-    .heroGrid{
-      display:grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap: 14px;
-      align-items:stretch;
-    }
 
     .badge{
       display:inline-flex;
@@ -282,19 +196,14 @@
       padding: 9px 11px;
       border-radius:999px;
       border:1px solid rgba(255,255,255,.20);
-      background: rgba(0,0,0,.10);
+      background: rgba(0,0,0,.12);
       color: var(--muted);
       font-size: 13px;
       width: fit-content;
-      animation: shimmer 2.8s ease-in-out infinite;
-    }
-    @keyframes shimmer{
-      0%,100%{ filter: brightness(1); }
-      50%{ filter: brightness(1.08); }
     }
     .dot{
       width:10px;height:10px;border-radius:50%;
-      background: var(--accent);
+      background: #36d399;
       box-shadow: 0 0 0 6px rgba(54,211,153,.12);
     }
 
@@ -322,65 +231,6 @@
       align-items:center;
     }
 
-    .pills{
-      margin-top: 12px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .pill{
-      padding: 9px 11px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.18);
-      background: rgba(0,0,0,.10);
-      color: var(--muted);
-      font-size: 13px;
-      animation: pop .85s ease both;
-    }
-    .pill:nth-child(2){ animation-delay:.06s; }
-    .pill:nth-child(3){ animation-delay:.12s; }
-    .pill:nth-child(4){ animation-delay:.18s; }
-    @keyframes pop{
-      from{ opacity:0; transform: translateY(8px) scale(.98); }
-      to{ opacity:1; transform: translateY(0) scale(1); }
-    }
-
-    /* ===== Right panel (WOW cards) ===== */
-    .panel{
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.18);
-      background: rgba(0,0,0,.12);
-      backdrop-filter: blur(12px);
-      padding: 14px;
-      box-shadow: 0 14px 38px rgba(0,0,0,.16);
-      position:relative;
-      overflow:hidden;
-      animation: floaty 5.8s ease-in-out infinite;
-    }
-    @keyframes floaty{
-      0%,100%{ transform: translateY(0); }
-      50%{ transform: translateY(-3px); }
-    }
-    .panel::after{
-      content:"";
-      position:absolute;
-      right:-60px; top:-60px;
-      width:220px; height:220px;
-      background: radial-gradient(circle at 35% 35%, rgba(96,165,250,.18), transparent 60%);
-      filter: blur(1px);
-      pointer-events:none;
-    }
-    .panel b{ display:block; font-size:14px; margin-bottom:8px; }
-    .panel p{ margin:0; color: var(--muted); font-size:13px; line-height:1.45; }
-
-    .panel .miniRow{
-      margin-top: 12px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    /* ===== Feature cards ===== */
     .grid{
       margin-top: 14px;
       display:grid;
@@ -394,38 +244,9 @@
       backdrop-filter: blur(12px);
       padding: 14px;
       box-shadow: 0 14px 38px rgba(0,0,0,.16);
-      position:relative;
-      overflow:hidden;
-      transition: transform .18s ease, border-color .18s ease;
-      animation: cardIn .9s ease both;
-    }
-    .card:nth-child(2){ animation-delay:.08s; }
-    .card:nth-child(3){ animation-delay:.16s; }
-    @keyframes cardIn{
-      from{ opacity:0; transform: translateY(10px) scale(.99); }
-      to{ opacity:1; transform: translateY(0) scale(1); }
-    }
-    .card:hover{
-      transform: translateY(-4px);
-      border-color: rgba(255,255,255,.30);
     }
     .card h3{ margin:0 0 8px; font-size:14px; }
     .card p{ margin:0; color:var(--muted); font-size:13px; line-height:1.45; }
-
-    /* “искры” на карточках */
-    .spark{
-      position:absolute;
-      left:-50px; bottom:-50px;
-      width:200px; height:200px;
-      background: radial-gradient(circle at 35% 35%, rgba(251,191,36,.16), transparent 60%);
-      pointer-events:none;
-      filter: blur(1px);
-      animation: sparkPulse 3.2s ease-in-out infinite;
-    }
-    @keyframes sparkPulse{
-      0%,100%{ opacity:.55; transform: scale(1); }
-      50%{ opacity:.85; transform: scale(1.05); }
-    }
 
     footer{
       margin-top: 14px;
@@ -438,11 +259,6 @@
       font-size: 12px;
       padding: 6px 0 0;
       text-shadow: 0 10px 26px rgba(0,0,0,.22);
-      animation: fadeIn 1s ease both;
-    }
-    @keyframes fadeIn{
-      from{ opacity:0; transform: translateY(8px); }
-      to{ opacity:1; transform: translateY(0); }
     }
     footer a{
       color: rgba(255,255,255,.92);
@@ -450,103 +266,38 @@
       border-bottom:1px dashed rgba(255,255,255,.34);
     }
 
-    /* ===== FULLSCREEN 3D MODAL (особенно мобилка) ===== */
-    .modal{
-      position:fixed;
-      inset:0;
-      z-index:999;
-      display:none;
-      background: rgba(0,0,0,.58);
-      backdrop-filter: blur(10px);
-    }
-    .modal.open{ display:block; }
-    .modal .bar{
-      position:absolute;
-      left:0; right:0; top:0;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding: 10px 12px;
-      background: linear-gradient(to bottom, rgba(0,0,0,.55), rgba(0,0,0,0));
-      z-index:2;
-    }
-    .modal .bar b{
-      font-size: 13px;
-      color: rgba(255,255,255,.92);
-    }
-    .modal iframe{
-      position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      border:0;
-      display:block;
-      background:#000;
-    }
-
-    /* ===== Mobile optimization ===== */
-    /* На телефоне 3D как фон часто плохо видно/тяжело -> делаем “постер” + 3D в модалке */
-    .poster{ display:none; position:fixed; inset:0; z-index:-5; background:center/cover no-repeat; }
-    @media (max-width: 720px){
-      .bg3d{ display:none; }
-      .poster{ display:block; }
-      .overlay{
-        background:
-          radial-gradient(900px 700px at 22% 12%, rgba(255,255,255,.06), rgba(0,0,0,0) 58%),
-          linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.14));
-      }
-      .heroGrid{ grid-template-columns: 1fr; }
-      .grid{ grid-template-columns: 1fr; }
-    }
+    /* Responsive */
     @media (max-width: 860px){
       .grid{ grid-template-columns: 1fr; }
-    }
-
-    /* Reduced motion */
-    @media (prefers-reduced-motion: reduce){
-      .logo::after, .mist, .vine, .panel, .spark, .badge, .fly{ animation:none !important; }
-      .btn, .card{ transition:none; }
+      .actions{ justify-content:flex-start; }
     }
   </style>
 </head>
 
 <body>
-  <!-- Desktop 3D background: медленное вращение через autospin -->
-  <!-- Sketchfab: autospin принимает числа, меньше = медленнее. -->
-  <!-- Попробуй 0.05–0.2, я поставил 0.08 (медленно и красиво). -->
+  <!-- 1) Фон-картинка джунглей -->
+  <div class="bg-image" aria-hidden="true"></div>
+  <div class="bg-dim" aria-hidden="true"></div>
+
+  <!-- 2) Прозрачный Sketchfab поверх фон-картинки -->
   <div class="bg3d" aria-hidden="true">
     <iframe
       title="Джунгли3"
-      src="https://sketchfab.com/models/9d4bae41c1d946c5b9c5a2f288f0cacc/embed?autospin=0.08&autostart=1&preload=1&ui_theme=dark&ui_infos=0"
       frameborder="0"
-      allow="autoplay; fullscreen; xr-spatial-tracking"
       allowfullscreen
+      mozallowfullscreen="true"
+      webkitallowfullscreen="true"
+      allow="autoplay; fullscreen; xr-spatial-tracking"
+      xr-spatial-tracking
+      execution-while-out-of-viewport
+      execution-while-not-rendered
+      web-share
+      src="https://sketchfab.com/models/9d4bae41c1d946c5b9c5a2f288f0cacc/embed?autospin=0.08&autostart=1&preload=1&transparent=1&ui_infos=0&ui_theme=dark"
     ></iframe>
   </div>
 
-  <!-- Mobile poster (ВАЖНО): поставь свой кадр. -->
-  <!-- 1) сделай скрин/рендер из Sketchfab -->
-  <!-- 2) сохрани как poster.jpg рядом с html -->
-  <div class="poster" id="poster" aria-hidden="true"></div>
-
-  <div class="overlay"></div>
-  <div class="mist" aria-hidden="true"></div>
-
-  <!-- Decorative vines (SVG) -->
-  <div class="vines" aria-hidden="true">
-    <svg viewBox="0 0 1000 600" preserveAspectRatio="none">
-      <path class="vine" d="M120,-30 C160,80 90,140 130,220 C170,300 140,370 170,470 C190,530 210,570 240,630"
-            fill="none" stroke="rgba(54,211,153,.55)" stroke-width="6" stroke-linecap="round"/>
-      <path class="vine" d="M880,-40 C840,70 910,140 870,230 C830,320 860,390 830,480 C810,540 790,585 760,640"
-            fill="none" stroke="rgba(96,165,250,.45)" stroke-width="5" stroke-linecap="round"/>
-      <path class="vine" d="M520,-60 C560,60 500,120 540,210 C580,300 560,360 590,450 C610,520 620,575 650,640"
-            fill="none" stroke="rgba(251,191,36,.35)" stroke-width="4.5" stroke-linecap="round"/>
-    </svg>
-  </div>
-
-  <!-- Fireflies -->
-  <div class="flies" id="flies" aria-hidden="true"></div>
+  <!-- 3) Локальное затемнение под панелью -->
+  <div class="content-dim" aria-hidden="true"></div>
 
   <div class="wrap">
     <header>
@@ -559,68 +310,38 @@
       </div>
 
       <div class="actions">
-        <button class="btn" id="btnOpen3D">🧭 3D на весь экран</button>
         <a class="btn" href="https://sketchfab.com/models/9d4bae41c1d946c5b9c5a2f288f0cacc" target="_blank" rel="nofollow">Sketchfab ↗</a>
-        <button class="btn btn-accent" id="btnBook">Записаться</button>
+        <button class="btn btn-accent" onclick="alert('Скажи куда вести заявку (бот/форма/номер) — вставлю ссылку в кнопку.')">Записаться</button>
       </div>
     </header>
 
     <main class="hero">
-      <div class="heroGrid">
-        <section>
-          <div class="badge"><span class="dot"></span> Вау: живой фон + светлячки + “лианы” + плавные анимации</div>
-          <h1>Зашёл — и ты уже в джунглях.</h1>
-          <p class="lead">
-            Реалистичная атмосфера, безопасные зоны и сценарии для детей. На ПК фон медленно вращается сам,
-            а на телефоне — яркий постер (чтобы всё было видно) + кнопка открыть 3D на весь экран.
-          </p>
+      <div class="badge"><span class="dot"></span> Фон-джунгли + прозрачная 3D-модель поверх</div>
+      <h1>Зашёл — и ты уже в джунглях.</h1>
+      <p class="lead">
+        Теперь фон берётся из картинки “джунглей”, а Sketchfab сверху — с прозрачностью.
+        Панель читается, потому что фон слегка затемнён.
+      </p>
 
-          <div class="row">
-            <button class="btn btn-accent" id="btnOpen3D2">🧭 Покрутить 3D</button>
-            <button class="btn" id="btnLighter">☀ Светлее</button>
-            <button class="btn" id="btnDarker">☾ Темнее</button>
-          </div>
-
-          <div class="pills">
-            <div class="pill">🧒 3–12 лет</div>
-            <div class="pill">🎉 Праздники</div>
-            <div class="pill">🛡️ Мягкие покрытия</div>
-            <div class="pill">📸 Фотозоны</div>
-          </div>
-        </section>
-
-        <aside class="panel">
-          <b>Коротко: почему “ВАУ”</b>
-          <p>Первые 3 секунды решают всё. Тут сразу: атмосфера, движение, свет и “магия” — и ребёнок просит зайти 🙂</p>
-
-          <div class="miniRow">
-            <button class="btn" id="btnPulse">✨ Усилить магию</button>
-            <button class="btn" id="btnCalm">🌙 Спокойнее</button>
-          </div>
-
-          <div class="miniRow">
-            <span class="btn" style="cursor:default;">🌿 Лианы</span>
-            <span class="btn" style="cursor:default;">🏛️ Руины</span>
-            <span class="btn" style="cursor:default;">💦 Водопад</span>
-          </div>
-        </aside>
+      <div class="row">
+        <!-- Быстрые регуляторы “засвета” (настройка под твой вкус) -->
+        <button class="btn" id="lighter">☀ Светлее фон</button>
+        <button class="btn" id="darker">☾ Темнее фон</button>
+        <button class="btn" id="morePanel">🌓 Темнее под панелью</button>
       </div>
 
-      <section class="grid" style="margin-top:14px;">
+      <section class="grid">
         <div class="card">
-          <div class="spark"></div>
           <h3>🌿 Лиановый маршрут</h3>
-          <p>Верёвочные элементы, балансиры, мягкие приземления — много движения, мало риска.</p>
+          <p>Лазалки, балансиры и мягкие зоны.</p>
         </div>
         <div class="card">
-          <div class="spark"></div>
           <h3>🏛️ Руины-лабиринт</h3>
-          <p>Туннели, секретные проходы, “охота за артефактами” — дети залипают.</p>
+          <p>Туннели, “секретные” проходы, мини-квесты.</p>
         </div>
         <div class="card">
-          <div class="spark"></div>
           <h3>💦 Водопад-фотозона</h3>
-          <p>Свет и звук, фототочка для родителей, эффект “как в кино”.</p>
+          <p>Свет и звук, фототочка для родителей.</p>
         </div>
       </section>
     </main>
@@ -634,111 +355,23 @@
     </footer>
   </div>
 
-  <!-- Fullscreen 3D modal -->
-  <div class="modal" id="modal3d" role="dialog" aria-modal="true" aria-label="3D просмотр">
-    <div class="bar">
-      <b>3D-просмотр — крути пальцем/мышью</b>
-      <button class="btn" id="btnClose3D">Закрыть ✕</button>
-    </div>
-
-    <iframe
-      id="modalFrame"
-      title="Джунгли3 — полноэкранный просмотр"
-      src="about:blank"
-      allow="autoplay; fullscreen; xr-spatial-tracking"
-      allowfullscreen
-    ></iframe>
-  </div>
-
   <script>
-    // ===== Mobile poster =====
-    // Поставь свой красивый кадр: сохрани как poster.jpg рядом с html.
-    // Если файла нет — будет просто тёмный фон, но сайт останется рабочим.
-    const poster = document.getElementById('poster');
-    poster.style.backgroundImage = 'url("poster.jpg")';
-
-    // ===== Fireflies generator =====
-    const flies = document.getElementById('flies');
-    const N = 22;
-    const rnd = (min,max) => Math.random()*(max-min)+min;
-
-    for(let i=0;i<N;i++){
-      const el = document.createElement('div');
-      el.className = 'fly';
-
-      const x0 = rnd(-10,110).toFixed(1) + 'vw';
-      const y0 = rnd(-10,110).toFixed(1) + 'vh';
-      const x1 = (parseFloat(x0) + rnd(-35,35)).toFixed(1) + 'vw';
-      const y1 = (parseFloat(y0) + rnd(-35,35)).toFixed(1) + 'vh';
-
-      el.style.left = rnd(0,100) + 'vw';
-      el.style.top  = rnd(0,100) + 'vh';
-      el.style.setProperty('--x0', x0);
-      el.style.setProperty('--y0', y0);
-      el.style.setProperty('--x1', x1);
-      el.style.setProperty('--y1', y1);
-
-      el.style.animationDuration = rnd(8, 16).toFixed(2) + 's';
-      el.style.animationDelay = rnd(-12, 0).toFixed(2) + 's';
-      el.style.opacity = rnd(.18,.9);
-
-      flies.appendChild(el);
-    }
-
-    // ===== Light/Dark overlay controls (реально влияет на видимость фона) =====
+    // Быстрая настройка “затемнения” без правки CSS
     const root = document.documentElement;
-    const setOverlay = (top, bottom) => {
-      root.style.setProperty('--overlayTop', top);
-      root.style.setProperty('--overlayBottom', bottom);
-    };
 
-    // По умолчанию светлее
-    setOverlay(.05, .18);
-
-    document.getElementById('btnLighter').addEventListener('click', () => setOverlay(.03, .12));
-    document.getElementById('btnDarker').addEventListener('click', () => setOverlay(.07, .26));
-
-    // “Магия сильнее / спокойнее” — меняем интенсивность слоёв
-    const mist = document.querySelector('.mist');
-    const vines = document.querySelector('.vines');
-    document.getElementById('btnPulse').addEventListener('click', () => {
-      mist.style.opacity = ".70";
-      vines.style.opacity = ".36";
-      setOverlay(.03, .14);
-    });
-    document.getElementById('btnCalm').addEventListener('click', () => {
-      mist.style.opacity = ".45";
-      vines.style.opacity = ".22";
-      setOverlay(.05, .20);
+    document.getElementById('lighter').addEventListener('click', () => {
+      root.style.setProperty('--bgDimTop', '.16');
+      root.style.setProperty('--bgDimBottom', '.28');
     });
 
-    // ===== Fullscreen 3D modal (лучше всего крутится на мобиле) =====
-    const modal = document.getElementById('modal3d');
-    const frame = document.getElementById('modalFrame');
+    document.getElementById('darker').addEventListener('click', () => {
+      root.style.setProperty('--bgDimTop', '.26');
+      root.style.setProperty('--bgDimBottom', '.44');
+    });
 
-    // В модалке можно оставить autospin=0 (чтобы человек крутил сам)
-    const SKETCH_URL =
-      "https://sketchfab.com/models/9d4bae41c1d946c5b9c5a2f288f0cacc/embed" +
-      "?autostart=1&preload=1&ui_theme=dark&ui_infos=1";
-
-    function open3D(){
-      frame.src = SKETCH_URL;
-      modal.classList.add('open');
-    }
-    function close3D(){
-      modal.classList.remove('open');
-      frame.src = "about:blank";
-    }
-
-    document.getElementById('btnOpen3D').addEventListener('click', open3D);
-    document.getElementById('btnOpen3D2').addEventListener('click', open3D);
-    document.getElementById('btnClose3D').addEventListener('click', close3D);
-    modal.addEventListener('click', (e) => { if(e.target === modal) close3D(); });
-
-    // ===== Book placeholder =====
-    document.getElementById('btnBook').addEventListener('click', () => {
-      // Пример: window.location.href = "https://t.me/your_bot?start=book";
-      alert("Скажи, куда вести заявку (Telegram-бот/форма/номер) — вставлю ссылку в кнопку.");
+    document.getElementById('morePanel').addEventListener('click', () => {
+      const cur = getComputedStyle(root).getPropertyValue('--panelDim').trim();
+      root.style.setProperty('--panelDim', (cur === '.18') ? '.26' : '.18');
     });
   </script>
 </body>
