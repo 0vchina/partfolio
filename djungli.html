@@ -23,6 +23,7 @@
       /* Панель */
       --panelGlassTop: rgba(16, 22, 18, .46);
       --panelGlassBot: rgba(10, 14, 12, .30);
+      --panelStroke: rgba(255,255,255,.14);
 
       /* Цвета джунглей */
       --leaf: rgba(54,211,153,1);
@@ -30,7 +31,7 @@
       --gold: rgba(251,191,36,1);
       --blue: rgba(96,165,250,1);
 
-      /* Автоворот модели */
+      /* Скорость автоворота модели (меньше = медленнее) */
       --spin: 0.08;
 
       /* Светлячки */
@@ -57,7 +58,6 @@
       background: url("jungle-bg.jpg") center/cover no-repeat;
       transform: scale(1.02);
       filter: saturate(1.08) contrast(1.05) brightness(1.02);
-      will-change: transform;
     }
 
     .bg-dim{
@@ -79,9 +79,8 @@
       position:fixed;
       inset:0;
       z-index:-18;
-      pointer-events:none; /* важно: только фон, без интерактива */
+      pointer-events:none;
       transform: translateZ(0);
-      will-change: transform;
     }
     .bg3d iframe{
       width:100%;
@@ -91,10 +90,9 @@
       transform: scale(1.03);
       transform-origin:center;
       filter: saturate(1.10) contrast(1.06) brightness(1.02);
-      transition: opacity 120ms ease;
     }
 
-    /* ====== “Солнечные лучи/туман” ====== */
+    /* ====== “Солнечные лучи/туман” для вау ====== */
     .mist{
       position:fixed;
       inset:-180px;
@@ -269,7 +267,7 @@
       box-shadow: 0 18px 45px rgba(34,197,94,.24);
     }
 
-    /* ====== ВАУ-ПАНЕЛЬ ====== */
+    /* ====== ВАУ-ПАНЕЛЬ (джунгли/руины/лист/верёвки) ====== */
     .panel{
       border-radius: 24px;
       position:relative;
@@ -287,6 +285,7 @@
       to{ opacity:1; transform: translateY(0) scale(1); }
     }
 
+    /* “Каменная кромка” */
     .panel::before{
       content:"";
       position:absolute;
@@ -307,6 +306,7 @@
       pointer-events:none;
     }
 
+    /* “Руины/орнамент” лёгким шумом */
     .panel .texture{
       position:absolute;
       inset:0;
@@ -322,6 +322,7 @@
       filter: blur(.3px);
     }
 
+    /* “Листья” по углам */
     .leaf{
       position:absolute;
       width:260px; height:260px;
@@ -576,7 +577,6 @@
   <!-- Прозрачный Sketchfab поверх -->
   <div class="bg3d" aria-hidden="true">
     <iframe
-      id="bg3dFrame"
       title="Джунгли3"
       frameborder="0"
       allowfullscreen
@@ -658,7 +658,7 @@
           </p>
 
           <div class="row">
-            <button class="btn btn-accent" id="btn3d">🧭 Открыть 3D</button>
+            <button class="btn btn-accent" id="btn3d">🧭 Покрутить 3D</button>
             <button class="btn" id="lighter">☀ Светлее фон</button>
             <button class="btn" id="darker">☾ Темнее фон</button>
           </div>
@@ -715,7 +715,7 @@
   </div>
 
   <script>
-    // ===== Светлячки =====
+    // Светлячки
     const flies = document.getElementById('flies');
     const N = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--flies')) || 28;
     const rnd = (min,max) => Math.random()*(max-min)+min;
@@ -746,7 +746,7 @@
     const root = document.documentElement;
     const mist = document.querySelector('.mist');
 
-    // Светлее/темнее фон
+    // Светлее/темнее фон (картинка + общая атмосфера)
     document.getElementById('lighter').addEventListener('click', () => {
       root.style.setProperty('--bgDimTop', '.18');
       root.style.setProperty('--bgDimBottom', '.30');
@@ -761,12 +761,13 @@
       mist.style.opacity = '.50';
     });
 
-    // Магия
+    // “Магия”
     document.getElementById('magicMore').addEventListener('click', () => {
       mist.style.opacity = '.74';
       root.style.setProperty('--panelSpot', '.18');
       root.style.setProperty('--bgDimTop', '.22');
       root.style.setProperty('--bgDimBottom', '.38');
+      // чуть больше светлячков визуально
       flies.style.filter = 'blur(.05px)';
       flies.style.opacity = '1';
     });
@@ -780,93 +781,15 @@
       flies.style.opacity = '.85';
     });
 
-    // Записаться (заглушка)
+    // Запись (заглушка)
     document.getElementById('btnBook').addEventListener('click', () => {
       alert("Скажи, куда вести заявку (Telegram-бот/форма/номер) — вставлю ссылку в кнопку.");
     });
 
-    // Открыть 3D
+    // 3D (заглушка — можно сделать модалку, если скажешь)
     document.getElementById('btn3d').addEventListener('click', () => {
       window.open("https://sketchfab.com/models/9d4bae41c1d946c5b9c5a2f288f0cacc", "_blank");
     });
-
-    // ===== Desktop: небольшой zoom колесиком + удержание ЛКМ = пауза автоспина =====
-    (() => {
-      const isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-      if (!isDesktop) return;
-
-      const bgImg = document.querySelector('.bg-image');
-      const bg3d  = document.querySelector('.bg3d');
-      const iframe = document.getElementById('bg3dFrame');
-      if (!bgImg || !bg3d || !iframe) return;
-
-      // Узкий диапазон масштаба
-      let zoom = 1.02;
-      const minZ = 1.00;
-      const maxZ = 1.06;     // небольшой диапазон
-      const step = 0.0009;   // плавно
-
-      function applyZoom(){
-        bgImg.style.transform = `scale(${zoom.toFixed(4)})`;
-        bg3d.style.transform  = `scale(${(zoom * 1.01).toFixed(4)})`;
-      }
-      applyZoom();
-
-      // Управление автоспином через смену src (без интерактива)
-      const baseEmbed = "https://sketchfab.com/models/9d4bae41c1d946c5b9c5a2f288f0cacc/embed";
-      const baseParams = "autostart=1&preload=1&transparent=1&ui_infos=0&ui_theme=dark";
-      const spinVal = getComputedStyle(document.documentElement).getPropertyValue('--spin').trim() || "0.08";
-
-      let paused = false;
-      let rafToken = 0;
-
-      function setAutospin(on){
-        const url = on
-          ? `${baseEmbed}?autospin=${encodeURIComponent(spinVal)}&${baseParams}`
-          : `${baseEmbed}?autospin=0&${baseParams}`;
-
-        // мягкий fade, чтобы перезагрузка iframe не резала глаз
-        iframe.style.opacity = "0.0";
-        clearTimeout(rafToken);
-        rafToken = setTimeout(() => {
-          iframe.src = url;
-          setTimeout(() => { iframe.style.opacity = "1"; }, 70);
-        }, 110);
-      }
-
-      // ЛКМ удержание = пауза
-      window.addEventListener('mousedown', (e) => {
-        if (e.button !== 0) return;
-        if (paused) return;
-        paused = true;
-        setAutospin(false);
-      });
-
-      window.addEventListener('mouseup', (e) => {
-        if (e.button !== 0) return;
-        if (!paused) return;
-        paused = false;
-        setAutospin(true);
-      });
-
-      // Wheel zoom (не ломаем Ctrl+колесо для масштабирования браузера)
-      window.addEventListener('wheel', (e) => {
-        if (e.ctrlKey) return;
-
-        e.preventDefault();
-
-        const delta = e.deltaY;
-        zoom *= (1 - delta * step);     // вниз — отдаляем, вверх — приближаем
-        zoom = Math.max(minZ, Math.min(maxZ, zoom));
-        applyZoom();
-      }, { passive:false });
-
-      // Double click — сброс
-      window.addEventListener('dblclick', () => {
-        zoom = 1.02;
-        applyZoom();
-      });
-    })();
   </script>
 </body>
 </html>
