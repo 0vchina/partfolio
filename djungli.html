@@ -1,1 +1,762 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Детский развлекательный дом — Джунгли</title>
+  <meta name="description" content="Интерактивный фон с 3D-сценой джунглей и промо-страница детского развлекательного дома." />
+  <style>
+    :root{
+      --bg:#05070a;
+      --glass: rgba(255,255,255,.10);
+      --glass2: rgba(255,255,255,.14);
+      --stroke: rgba(255,255,255,.18);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.70);
+      --accent: #36d399; /* зелёный */
+      --accent2:#22c55e;
+      --warn:#fbbf24;
+      --shadow: 0 30px 80px rgba(0,0,0,.55);
+      --radius: 18px;
+    }
 
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 800px at 30% 10%, rgba(34,197,94,.20), transparent 60%),
+                  radial-gradient(900px 600px at 80% 20%, rgba(59,130,246,.15), transparent 55%),
+                  radial-gradient(900px 700px at 50% 80%, rgba(251,191,36,.12), transparent 60%),
+                  var(--bg);
+      overflow-x:hidden;
+    }
+
+    /* ====== 3D BACKGROUND ====== */
+    .scene{
+      position:fixed;
+      inset:0;
+      z-index:-3;
+      pointer-events:auto; /* чтобы можно было крутить сцену */
+    }
+    .scene iframe{
+      width:100%;
+      height:100%;
+      border:0;
+      display:block;
+      filter: saturate(1.05) contrast(1.03);
+      transform: scale(1.03);
+      transform-origin:center;
+    }
+
+    /* Тёмный/цветной градиент поверх 3D, чтобы текст читался */
+    .scene-overlay{
+      position:fixed;
+      inset:0;
+      z-index:-2;
+      pointer-events:none;
+      background:
+        radial-gradient(1200px 900px at 20% 20%, rgba(0,0,0,.25), rgba(0,0,0,.55) 60%),
+        linear-gradient(to bottom, rgba(0,0,0,.25), rgba(0,0,0,.65));
+      backdrop-filter: blur(0px);
+    }
+
+    /* Мягкие "листья/свет" пятнами */
+    .glow{
+      position:fixed;
+      inset:-120px;
+      z-index:-1;
+      pointer-events:none;
+      opacity:.55;
+      background:
+        radial-gradient(600px 500px at 15% 20%, rgba(54,211,153,.25), transparent 60%),
+        radial-gradient(520px 460px at 85% 30%, rgba(34,197,94,.22), transparent 62%),
+        radial-gradient(600px 520px at 50% 85%, rgba(251,191,36,.16), transparent 62%);
+      mix-blend-mode: screen;
+      filter: blur(10px);
+    }
+
+    /* ====== LAYOUT ====== */
+    .wrap{
+      width:min(1180px, calc(100% - 32px));
+      margin:0 auto;
+      padding: 18px 0 72px;
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding: 10px 0 14px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      user-select:none;
+    }
+    .logo{
+      width:40px;height:40px;
+      border-radius:14px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.28), rgba(255,255,255,.06) 55%, rgba(255,255,255,.02)),
+        linear-gradient(145deg, rgba(54,211,153,.35), rgba(34,197,94,.12));
+      border:1px solid var(--stroke);
+      box-shadow: 0 18px 45px rgba(0,0,0,.35);
+      position:relative;
+      overflow:hidden;
+    }
+    .logo::after{
+      content:"";
+      position:absolute; inset:-40%;
+      background: conic-gradient(from 200deg, rgba(255,255,255,.0), rgba(255,255,255,.28), rgba(255,255,255,.0));
+      animation: spin 6.5s linear infinite;
+      opacity:.6;
+    }
+    @keyframes spin{ to{ transform:rotate(360deg); } }
+
+    .brand .name{
+      display:flex;
+      flex-direction:column;
+      line-height:1.1;
+    }
+    .brand .name b{ font-size:14px; letter-spacing:.2px; }
+    .brand .name span{ font-size:12px; color:var(--muted); }
+
+    nav{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .chip{
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.07);
+      backdrop-filter: blur(12px);
+      color: var(--text);
+      text-decoration:none;
+      font-size:13px;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    }
+    .chip:hover{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.10);
+      border-color: rgba(255,255,255,.28);
+    }
+
+    /* ====== HERO ====== */
+    .hero{
+      margin-top: 12px;
+      display:grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 18px;
+      align-items:stretch;
+    }
+
+    .panel{
+      border-radius: var(--radius);
+      border:1px solid var(--stroke);
+      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+
+    .panel::before{
+      content:"";
+      position:absolute; inset:-1px;
+      background: radial-gradient(800px 240px at 20% 0%, rgba(54,211,153,.22), transparent 55%);
+      pointer-events:none;
+    }
+
+    .hero-main{
+      padding: 24px 24px 22px;
+      min-height: 340px;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:999px;
+      background: rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,.16);
+      color: var(--muted);
+      font-size:13px;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(54,211,153,.12);
+    }
+
+    h1{
+      margin: 14px 0 10px;
+      font-size: clamp(26px, 3.2vw, 44px);
+      letter-spacing: .2px;
+      line-height:1.05;
+      text-shadow: 0 10px 30px rgba(0,0,0,.55);
+    }
+    .lead{
+      margin:0;
+      max-width: 62ch;
+      font-size: 15px;
+      line-height:1.5;
+      color: var(--muted);
+    }
+
+    .cta-row{
+      margin-top: 18px;
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .btn{
+      appearance:none;
+      border:0;
+      cursor:pointer;
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 14px;
+      color: rgba(0,0,0,.88);
+      background: linear-gradient(180deg, rgba(54,211,153,1), rgba(34,197,94,1));
+      box-shadow: 0 18px 45px rgba(34,197,94,.22);
+      transition: transform .15s ease, filter .15s ease;
+    }
+    .btn:hover{ transform: translateY(-1px); filter: brightness(1.05); }
+    .btn:active{ transform: translateY(0px); }
+
+    .btn-ghost{
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow: none;
+      font-weight: 650;
+    }
+
+    .meta{
+      margin-top: 14px;
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .meta span{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.14);
+    }
+
+    /* ====== SIDE CARD ====== */
+    .hero-side{
+      padding: 18px;
+      display:flex;
+      flex-direction:column;
+      gap: 12px;
+      min-height: 340px;
+    }
+
+    .card{
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      padding: 14px 14px;
+    }
+
+    .card h3{
+      margin:0 0 8px;
+      font-size: 14px;
+      letter-spacing:.2px;
+    }
+    .list{
+      margin:0;
+      padding:0;
+      list-style:none;
+      display:grid;
+      gap:8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height:1.35;
+    }
+    .list li{
+      display:flex; gap:10px; align-items:flex-start;
+    }
+    .tick{
+      width:18px;height:18px;border-radius:6px;
+      background: rgba(54,211,153,.16);
+      border:1px solid rgba(54,211,153,.25);
+      flex: 0 0 auto;
+      position:relative;
+      margin-top:2px;
+    }
+    .tick::after{
+      content:"";
+      position:absolute;
+      left:5px; top:4px;
+      width:6px; height:10px;
+      border:2px solid rgba(255,255,255,.85);
+      border-top:0; border-left:0;
+      transform: rotate(45deg);
+    }
+
+    .call{
+      display:flex; gap:10px; flex-wrap:wrap;
+    }
+    .input{
+      flex:1 1 180px;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.16);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px 12px;
+      outline:none;
+    }
+    .input::placeholder{ color: rgba(255,255,255,.55); }
+
+    /* ====== SECTIONS ====== */
+    .grid{
+      margin-top: 18px;
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 18px;
+    }
+
+    .col-7{ grid-column: span 7; }
+    .col-5{ grid-column: span 5; }
+    .col-4{ grid-column: span 4; }
+    .col-6{ grid-column: span 6; }
+
+    .section{
+      padding: 18px;
+    }
+
+    .section h2{
+      margin: 0 0 10px;
+      font-size: 18px;
+      letter-spacing:.2px;
+    }
+    .section p{
+      margin: 0;
+      color: var(--muted);
+      line-height:1.55;
+      font-size: 14px;
+    }
+
+    .tiles{
+      margin-top: 12px;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .tile{
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      padding: 12px;
+      min-height: 92px;
+      position:relative;
+      overflow:hidden;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+    .tile:hover{
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,.24);
+      background: rgba(0,0,0,.22);
+    }
+    .tile b{ display:block; font-size: 13px; margin-bottom: 6px; }
+    .tile span{ display:block; color: var(--muted); font-size: 13px; line-height:1.35; }
+
+    .spark{
+      position:absolute; right:-30px; top:-30px;
+      width:120px; height:120px;
+      background: radial-gradient(circle at 35% 35%, rgba(251,191,36,.26), transparent 60%);
+      filter: blur(2px);
+      pointer-events:none;
+    }
+
+    .gallery{
+      margin-top: 12px;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .shot{
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.14);
+      overflow:hidden;
+      background: rgba(0,0,0,.18);
+      height: 120px;
+      position:relative;
+      cursor:pointer;
+    }
+    .shot::before{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.02)),
+        radial-gradient(260px 120px at 30% 20%, rgba(54,211,153,.20), transparent 65%),
+        radial-gradient(260px 120px at 70% 70%, rgba(59,130,246,.18), transparent 65%);
+      opacity:.9;
+    }
+    .shot::after{
+      content:"Нажми — фото/рендер";
+      position:absolute; left:12px; bottom:10px;
+      font-size: 12px;
+      color: rgba(255,255,255,.78);
+    }
+
+    footer{
+      margin-top: 18px;
+      display:flex;
+      gap: 12px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 10px 0 0;
+    }
+
+    /* ====== FLOATING CONTROLS ====== */
+    .hud{
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 50;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .hud button{
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.22);
+      backdrop-filter: blur(12px);
+      color: rgba(255,255,255,.90);
+      cursor:pointer;
+      box-shadow: 0 18px 45px rgba(0,0,0,.35);
+      transition: transform .15s ease, background .15s ease;
+      font-size: 18px;
+    }
+    .hud button:hover{ transform: translateY(-1px); background: rgba(0,0,0,.30); }
+    .hud button:active{ transform: translateY(0px); }
+
+    /* ====== MODAL ====== */
+    .modal{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.62);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index: 100;
+      padding: 18px;
+    }
+    .modal.open{ display:flex; }
+    .modal .box{
+      width: min(980px, 100%);
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.35);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .modal .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+    }
+    .modal .top b{ font-size: 13px; }
+    .modal .close{
+      border:0;
+      background: rgba(255,255,255,.10);
+      color: var(--text);
+      border:1px solid rgba(255,255,255,.16);
+      border-radius: 12px;
+      padding: 8px 10px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .modal .content{
+      padding: 14px;
+    }
+    .fake-img{
+      height: 420px;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background:
+        radial-gradient(600px 320px at 30% 25%, rgba(54,211,153,.20), transparent 65%),
+        radial-gradient(560px 320px at 80% 70%, rgba(59,130,246,.18), transparent 65%),
+        linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
+    }
+    .hint{
+      margin-top: 10px;
+      color: rgba(255,255,255,.70);
+      font-size: 12px;
+      line-height:1.45;
+    }
+
+    /* ====== RESPONSIVE ====== */
+    @media (max-width: 980px){
+      .hero{ grid-template-columns: 1fr; }
+      .grid{ grid-template-columns: repeat(6, 1fr); }
+      .col-7{ grid-column: span 6; }
+      .col-5{ grid-column: span 6; }
+      .col-4{ grid-column: span 6; }
+      .col-6{ grid-column: span 6; }
+      .tiles{ grid-template-columns: 1fr; }
+      .gallery{ grid-template-columns: 1fr; }
+      .hero-main{ min-height: unset; }
+      .hero-side{ min-height: unset; }
+    }
+
+    /* Accessibility: reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .logo::after{ animation:none; }
+      .chip, .btn, .tile, .hud button{ transition:none; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 3D as interactive background -->
+  <div class="scene" aria-hidden="true">
+    <iframe
+      title="Джунгли3 — интерактивный фон"
+      src="https://sketchfab.com/models/9d4bae41c1d946c5b9c5a2f288f0cacc/embed?autostart=1&preload=1&ui_infos=0&ui_watermark=0&ui_hint=0&ui_help=0&ui_settings=0&ui_theme=dark"
+      allow="autoplay; fullscreen; xr-spatial-tracking"
+      allowfullscreen
+    ></iframe>
+  </div>
+  <div class="scene-overlay"></div>
+  <div class="glow"></div>
+
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="name">
+          <b>Детский дом “Джунгли”</b>
+          <span>Игровые площадки • Лазалки • Квест-зоны • Праздники</span>
+        </div>
+      </div>
+
+      <nav>
+        <a class="chip" href="#zones">Зоны</a>
+        <a class="chip" href="#safety">Безопасность</a>
+        <a class="chip" href="#birthdays">Дни рождения</a>
+        <a class="chip" href="#contacts">Контакты</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="panel hero-main" id="top">
+        <div class="badge"><span class="dot"></span> Интерактивный 3D-фон: крути джунгли прямо на странице</div>
+        <h1>Твой ребёнок заходит — и сразу попадает в приключение.</h1>
+        <p class="lead">
+          Это не просто игровая — это “мир”, где каждая зона выглядит как часть джунглей:
+          руины, лианы, водопады, мостики, тропы и безопасные маршруты для детей разных возрастов.
+        </p>
+
+        <div class="cta-row">
+          <button class="btn" id="btnBook">Записаться / Узнать цену</button>
+          <button class="btn btn-ghost" id="btnTour">Открыть тур по зонам</button>
+          <a class="chip" href="https://sketchfab.com/models/9d4bae41c1d946c5b9c5a2f288f0cacc" target="_blank" rel="nofollow">Модель на Sketchfab ↗</a>
+        </div>
+
+        <div class="meta">
+          <span>🧭 Возраст: 3–12</span>
+          <span>⏱️ Сеанс: 1–2 часа</span>
+          <span>🎉 Праздники под ключ</span>
+          <span>🛡️ Мягкие покрытия</span>
+        </div>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="card">
+          <h3>Почему детям “заходит”</h3>
+          <ul class="list">
+            <li><span class="tick"></span><span>Сюжетные зоны: “руины”, “пещеры”, “водопад”, “лианы”.</span></li>
+            <li><span class="tick"></span><span>Физика + фантазия: лазалки, горки, мостики, квест-точки.</span></li>
+            <li><span class="tick"></span><span>Фотогенично: родители получают классные кадры без постановки.</span></li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Быстрый контакт</h3>
+          <div class="call">
+            <input class="input" placeholder="Имя" />
+            <input class="input" placeholder="Телефон / Telegram" />
+            <button class="btn" style="flex:1 1 160px">Отправить</button>
+          </div>
+          <div style="margin-top:10px; color:rgba(255,255,255,.65); font-size:12px; line-height:1.4;">
+            Можно заменить на форму/Telegram-бота. Я вставлю тебе готовую интеграцию под твой бот/хостинг.
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <div class="panel section col-7" id="zones">
+        <h2>Игровые зоны</h2>
+        <p>Сделай структуру под реальные аттракционы — ниже шаблон, просто поменяй названия.</p>
+
+        <div class="tiles">
+          <div class="tile"><div class="spark"></div><b>🌿 Лиановый маршрут</b><span>Верёвочные элементы, балансиры, мягкие приземления.</span></div>
+          <div class="tile"><div class="spark"></div><b>🏛️ Руины-лабиринт</b><span>Туннели, скрытые проходы, мини-квесты по меткам.</span></div>
+          <div class="tile"><div class="spark"></div><b>💦 Водопад-зона</b><span>Свет/звук, “пещера”, фототочка, безопасные борта.</span></div>
+        </div>
+      </div>
+
+      <div class="panel section col-5" id="safety">
+        <h2>Безопасность</h2>
+        <p>
+          Мягкие покрытия, контролируемые маршруты, разделение по возрасту и визуальный контроль родителей.
+          Здесь удобно расписать реальные сертификаты/материалы/правила.
+        </p>
+        <div class="tiles" style="grid-template-columns:1fr; margin-top:12px;">
+          <div class="tile"><b>🛡️ Материалы</b><span>Пиши: ПВХ/ЭВА, мягкие маты, закругления, сетки, ограничители.</span></div>
+          <div class="tile"><b>👀 Контроль</b><span>Пиши: обзорные точки, камеры, администратор, правила зон.</span></div>
+          <div class="tile"><b>🧼 Чистота</b><span>Пиши: график уборки, обработка, зона обуви/носков.</span></div>
+        </div>
+      </div>
+
+      <div class="panel section col-6" id="birthdays">
+        <h2>Дни рождения под ключ</h2>
+        <p>Тут хорошо работает “пакетирование”: базовый / стандарт / премиум.</p>
+        <div class="tiles" style="grid-template-columns:1fr; margin-top:12px;">
+          <div class="tile"><b>🎈 Базовый</b><span>Игровая + стол + сопровождение.</span></div>
+          <div class="tile"><b>🎭 Стандарт</b><span>Аниматор + квест + фотозона.</span></div>
+          <div class="tile"><b>👑 Премиум</b><span>Шоу-программа + декор + торт + фото/видео.</span></div>
+        </div>
+      </div>
+
+      <div class="panel section col-6">
+        <h2>Галерея</h2>
+        <p>Сюда вставишь реальные фото/рендеры. Сейчас — кликабельные заглушки.</p>
+        <div class="gallery">
+          <div class="shot" data-title="Рендер 1"></div>
+          <div class="shot" data-title="Рендер 2"></div>
+          <div class="shot" data-title="Рендер 3"></div>
+        </div>
+      </div>
+    </section>
+
+    <footer id="contacts">
+      <div>© Детский дом “Джунгли”. Адрес • Телефон • Время работы</div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <a class="chip" href="#top">Наверх ↑</a>
+        <a class="chip" href="tel:+375000000000">Позвонить</a>
+        <a class="chip" href="https://t.me/" target="_blank" rel="nofollow">Telegram</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- floating HUD -->
+  <div class="hud" aria-label="Управление">
+    <button id="toggleOverlay" title="Сделать фон ярче/темнее">☾</button>
+    <button id="openInfo" title="Подсказка">?</button>
+  </div>
+
+  <!-- modal -->
+  <div class="modal" id="modal">
+    <div class="box">
+      <div class="top">
+        <b id="modalTitle">Просмотр</b>
+        <button class="close" id="modalClose">Закрыть</button>
+      </div>
+      <div class="content">
+        <div class="fake-img" id="fakeImg"></div>
+        <div class="hint">
+          Заглушка для фото/рендера. Когда добавишь реальные картинки — заменю модалку на полноценную галерею
+          (перелистывание, масштаб, подгрузка, оптимизация).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // UI: overlay intensity toggle
+    const overlay = document.querySelector('.scene-overlay');
+    const btn = document.getElementById('toggleOverlay');
+    let dim = true;
+
+    btn.addEventListener('click', () => {
+      dim = !dim;
+      overlay.style.background = dim
+        ? "radial-gradient(1200px 900px at 20% 20%, rgba(0,0,0,.25), rgba(0,0,0,.55) 60%), linear-gradient(to bottom, rgba(0,0,0,.25), rgba(0,0,0,.65))"
+        : "radial-gradient(1200px 900px at 20% 20%, rgba(0,0,0,.12), rgba(0,0,0,.36) 60%), linear-gradient(to bottom, rgba(0,0,0,.10), rgba(0,0,0,.45))";
+      btn.textContent = dim ? "☾" : "☀";
+    });
+
+    // Modal / gallery placeholders
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modalTitle');
+    const closeBtn = document.getElementById('modalClose');
+
+    document.querySelectorAll('.shot').forEach(el => {
+      el.addEventListener('click', () => {
+        modalTitle.textContent = el.dataset.title || "Галерея";
+        modal.classList.add('open');
+      });
+    });
+
+    closeBtn.addEventListener('click', () => modal.classList.remove('open'));
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.remove('open');
+    });
+
+    // Buttons
+    document.getElementById('btnTour').addEventListener('click', () => {
+      document.getElementById('zones').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    document.getElementById('btnBook').addEventListener('click', () => {
+      // тут можно вставить ссылку на Telegram-бот / форму / квиз
+      alert("Подключим форму/бота: напиши, куда вести заявку (Telegram, Google Form, сайт).");
+    });
+
+    // Info
+    document.getElementById('openInfo').addEventListener('click', () => {
+      modalTitle.textContent = "Подсказка";
+      modal.classList.add('open');
+    });
+
+    // Soft parallax for glow (non-intrusive)
+    let raf = null;
+    const glow = document.querySelector('.glow');
+    window.addEventListener('mousemove', (e) => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        const x = (e.clientX / window.innerWidth - 0.5) * 16;
+        const y = (e.clientY / window.innerHeight - 0.5) * 10;
+        glow.style.transform = `translate(${x}px, ${y}px)`;
+        raf = null;
+      });
+    }, { passive:true });
+  </script>
+</body>
+</html>
