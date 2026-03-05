@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Детский развлекательный дом — Джунгли</title>
+  <title>ДЕТСКИЙ ПРИКЛЮЧЕНЧЕСКИЙ ПАРК «ДЖУНГЛИ» — предпроектная концепция</title>
 
   <style>
     :root{
@@ -17,8 +17,6 @@
       --bgDimTop: .26;
       --bgDimBottom: .42;
 
-      /* Под панелью
-
       /* Масштаб фона (колёсиком) */
       --bgScale: 1.00;
       --bgScaleMin: 0.85;
@@ -27,14 +25,8 @@
       /* Под панелью — затемнение, чтобы читалось */
       --panelSpot: .22;
 
-      /* Панель */
-      --panelGlassTop: rgba(16, 22, 18, .46);
-      --panelGlassBot: rgba(10, 14, 12, .30);
-      --panelStroke: rgba(255,255,255,.14);
-
       /* Цвета джунглей */
       --leaf: rgba(54,211,153,1);
-      --leaf2: rgba(34,197,94,1);
       --gold: rgba(251,191,36,1);
       --blue: rgba(96,165,250,1);
 
@@ -53,21 +45,21 @@
       color: var(--txt);
       overflow-x:hidden;
       background:#05070a;
+      font-synthesis-weight: none;
+      text-rendering: geometricPrecision;
     }
 
-    /* ====== ФОН-КАРТИНКА ДЖУНГЛЕЙ ======
-       Положи рядом с html файл: jungle-bg.jpg
-    */
+    /* ====== ФОН-КАРТИНКА ДЖУНГЛЕЙ ====== */
     .bg-image{
       position:fixed;
       isolation:isolate;
       overflow:hidden;
-      
       inset:0;
       z-index:-20;
       background: url("jungle-bg.jpg") center/cover no-repeat;
       transform: scale(var(--bgScale));
       filter: saturate(1.08) contrast(1.05) brightness(1.02);
+      will-change: transform;
     }
 
     .bg-dim{
@@ -102,7 +94,7 @@
       filter: saturate(1.10) contrast(1.06) brightness(1.02);
     }
 
-    /* ====== “Солнечные лучи/туман” для вау ====== */
+    /* ====== “Солнечные лучи/туман” ====== */
     .mist{
       position:fixed;
       inset:-180px;
@@ -167,7 +159,7 @@
       50%{ filter: blur(calc(.05px + var(--tw,.5)*.35px)); }
     }
 
-    /* ====== Точечное затемнение под панелью ====== */
+    /* ====== Затемнение под панелью ====== */
     .content-spot{
       position:fixed;
       inset:0;
@@ -178,7 +170,8 @@
           rgba(0,0,0,var(--panelSpot)),
           rgba(0,0,0,0) 62%);
     }
-    /* ====== Слой для интерактива с фоном (только вне панели) ====== */
+
+    /* ====== Слой интерактива с фоном (вне панели) ====== */
     .bg-interact{
       position:fixed;
       inset:0;
@@ -186,7 +179,6 @@
       pointer-events:auto;
       background: transparent;
     }
-
 
     /* ====== Layout ====== */
     .wrap{
@@ -258,7 +250,7 @@
       font-weight: 850;
       font-size: 13px;
       backdrop-filter: blur(12px);
-      box-shadow: 0 12px 30px rgba(0,0,0,.18);
+      box-shadow: 0 16px 34px rgba(0,0,0,.22);
       transition: transform .18s ease, background .18s ease, border-color .18s ease;
       text-decoration:none;
       display:inline-flex;
@@ -267,6 +259,8 @@
       white-space:nowrap;
       position:relative;
       overflow:hidden;
+      letter-spacing: .2px;
+      transform: translateZ(0);
     }
     .btn::after{
       content:"";
@@ -279,21 +273,21 @@
       pointer-events:none;
     }
     .btn:hover{
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       background: rgba(0,0,0,.26);
       border-color: rgba(255,255,255,.34);
     }
     .btn:hover::after{ opacity:1; }
-    .btn:active{ transform: translateY(0); }
+    .btn:active{ transform: translateY(0px) scale(.985); }
 
     .btn-accent{
       border:0;
       color: rgba(0,0,0,.88);
       background: linear-gradient(180deg, rgba(54,211,153,1), rgba(34,197,94,1));
-      box-shadow: 0 18px 45px rgba(34,197,94,.24);
+      box-shadow: 0 18px 48px rgba(54,211,153,.10), 0 22px 60px rgba(0,0,0,.24);
     }
 
-    /* ====== ВАУ-ПАНЕЛЬ (джунгли/руины/лист/верёвки) ====== */
+    /* ====== Панель ====== */
     .panel{
       border-radius: 24px;
       position:relative;
@@ -301,17 +295,22 @@
       box-shadow: var(--shadow);
       overflow:hidden;
       animation: rise .85s ease both;
-      border: 1px solid rgba(255,255,255,.16);
+      border: 1px solid rgba(255,255,255,.14);
+      backdrop-filter: blur(22px) saturate(1.08);
       background:
-        linear-gradient(180deg, var(--panelGlassTop), var(--panelGlassBot));
-      backdrop-filter: blur(18px);
+        radial-gradient(900px 420px at 20% 0%,
+          rgba(54,211,153,.18),
+          rgba(0,0,0,0) 55%),
+        radial-gradient(900px 420px at 85% 15%,
+          rgba(251,191,36,.14),
+          rgba(0,0,0,0) 55%),
+        linear-gradient(180deg, rgba(10, 14, 11, .56), rgba(8, 10, 9, .42));
     }
     @keyframes rise{
       from{ opacity:0; transform: translateY(14px) scale(.99); }
       to{ opacity:1; transform: translateY(0) scale(1); }
     }
 
-    /* “Каменная кромка” */
     .panel::before{
       content:"";
       position:absolute;
@@ -332,7 +331,21 @@
       pointer-events:none;
     }
 
-    /* “Руины/орнамент” лёгким шумом */
+    .panel::after{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.14), transparent 55%);
+      transform: translateX(-18%) translateY(-12%) rotate(12deg);
+      opacity:.55;
+      pointer-events:none;
+      animation: sheen 7.8s ease-in-out infinite;
+    }
+    @keyframes sheen{
+      0%,100%{ transform: translateX(-20%) translateY(-14%) rotate(10deg); opacity:.45; }
+      50%{ transform: translateX(8%) translateY(6%) rotate(16deg); opacity:.70; }
+    }
+
     .panel .texture{
       position:absolute;
       inset:0;
@@ -348,7 +361,6 @@
       filter: blur(.3px);
     }
 
-    /* “Листья” по углам */
     .leaf{
       position:absolute;
       width:260px; height:260px;
@@ -425,8 +437,8 @@
     .pill{
       padding: 9px 11px;
       border-radius: 999px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.16);
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.14);
       color: rgba(255,255,255,.78);
       font-size: 13px;
       animation: pop .85s ease both;
@@ -441,8 +453,8 @@
 
     .side{
       border-radius: 20px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.14);
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.12);
       backdrop-filter: blur(14px);
       box-shadow: var(--shadow2);
       padding: 14px;
@@ -578,28 +590,7 @@
       border-bottom:1px dashed rgba(255,255,255,.34);
     }
 
-    /* Мобильная сетка */
-    @media (max-width: 860px){
-      .grid{ grid-template-columns: 1fr; }
-    }
-    @media (max-width: 720px){
-      .panelGrid{ grid-template-columns: 1fr; }
-      .actions{ justify-content:flex-start; }
-    }
-
-    /* Reduced motion */
-    @media (prefers-reduced-motion: reduce){
-      .mist, .fly, .badge, .side, .spark, .logo::after{ animation:none !important; }
-      .btn, .card{ transition:none; }
-    }
-  
-    /* ====== WOW polish ====== */
-    body{
-      font-synthesis-weight: none;
-      text-rendering: geometricPrecision;
-    }
-
-    /* мягкая “пленка” поверх всего, чтобы выглядело дороже */
+    /* мягкая “пленка” */
     .wrap::before{
       content:"";
       position:fixed;
@@ -614,7 +605,6 @@
       opacity:.9;
     }
 
-    /* фон: отдельный слой “лучей” */
     .bg-image::before{
       content:"";
       position:absolute;
@@ -632,64 +622,8 @@
     }
     @keyframes slowRotate{ to{ transform: rotate(360deg); } }
 
-    /* Панель: “живой” ободок и легкий блик */
-    .panel{
-      backdrop-filter: blur(22px) saturate(1.08);
-      border: 1px solid rgba(255,255,255,.14);
-      background:
-        radial-gradient(900px 420px at 20% 0%,
-          rgba(54,211,153,.18),
-          rgba(0,0,0,0) 55%),
-        radial-gradient(900px 420px at 85% 15%,
-          rgba(251,191,36,.14),
-          rgba(0,0,0,0) 55%),
-        linear-gradient(180deg, rgba(10, 14, 11, .56), rgba(8, 10, 9, .42));
-    }
-    .panel::after{
-      content:"";
-      position:absolute;
-      inset:-40%;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.14), transparent 55%);
-      transform: translateX(-18%) translateY(-12%) rotate(12deg);
-      opacity:.55;
-      pointer-events:none;
-      animation: sheen 7.8s ease-in-out infinite;
-    }
-    @keyframes sheen{
-      0%,100%{ transform: translateX(-20%) translateY(-14%) rotate(10deg); opacity:.45; }
-      50%{ transform: translateX(8%) translateY(6%) rotate(16deg); opacity:.70; }
-    }
-
-    /* Кнопки: более “премиум” */
-    .btn{
-      letter-spacing: .2px;
-      box-shadow: 0 16px 34px rgba(0,0,0,.22);
-      transform: translateZ(0);
-    }
-    .btn:hover{ transform: translateY(-1px); }
-    .btn:active{ transform: translateY(0px) scale(.985); }
-    .btn.btn-accent{
-      border-color: rgba(54,211,153,.35);
-      box-shadow: 0 18px 48px rgba(54,211,153,.10), 0 22px 60px rgba(0,0,0,.24);
-    }
-
-    /* Пилюли — чуть аккуратнее */
-    .pill{
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.14);
-    }
-
-    /* Сайдбар карточка */
-    .side{
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.12);
-    }
-
-  
     /* =========================
        Мобильный режим Sketchfab
-       - на десктопе: модель на фоне (bg3d)
-       - на телефоне: модель внутри панели (panel3d)
        ========================= */
     .panel3d{ display:none; margin: 16px 0 6px; }
     .panel3d-head{ display:flex; flex-direction:column; gap:4px; margin: 0 0 10px; }
@@ -706,9 +640,17 @@
       background: rgba(0,0,0,.18);
       border: 1px solid rgba(255,255,255,.10);
     }
-    .panel3d-frame iframe{
-      position:absolute; inset:0;
-      width:100%; height:100%;
+    .sketchfab-embed-wrapper{
+      position:absolute;
+      inset:0;
+    }
+    .sketchfab-embed-wrapper iframe{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      border:0;
+      background: transparent;
     }
 
     @media (max-width: 900px), (pointer: coarse){
@@ -716,15 +658,254 @@
       .panel3d{ display:block; }
     }
 
+    /* Мобильная сетка */
+    @media (max-width: 860px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+    @media (max-width: 720px){
+      .panelGrid{ grid-template-columns: 1fr; }
+      .actions{ justify-content:flex-start; }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .mist, .fly, .badge, .side, .spark, .logo::after, .panel::after, .bg-image::before{ animation:none !important; }
+      .btn, .card{ transition:none; }
+    }
+
+    /* ====== Концепция (блоки) ====== */
+    .leadKicker{
+      display:inline-block;
+      font-weight: 900;
+      letter-spacing: .18px;
+      color: rgba(255,255,255,.90);
+    }
+    .soonTag{
+      margin-top: 10px;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(251,191,36,.30);
+      background: rgba(251,191,36,.12);
+      color: rgba(255,255,255,.92);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .22px;
+      box-shadow: 0 14px 34px rgba(0,0,0,.20);
+      width: fit-content;
+    }
+
+    .sectionBlock{
+      margin-top: 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.14);
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow2);
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+      animation: cardIn .9s ease both;
+    }
+    .sectionHead{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom: 10px;
+    }
+    .sectionHead h2{
+      margin:0;
+      font-size: 16px;
+      letter-spacing: .2px;
+      text-shadow: 0 10px 26px rgba(0,0,0,.22);
+    }
+    .sectionSub{
+      font-size: 12px;
+      color: rgba(255,255,255,.72);
+    }
+    .sectionText{
+      margin: 0;
+      color: rgba(255,255,255,.82);
+      font-size: 13px;
+      line-height: 1.55;
+      text-shadow: 0 10px 26px rgba(0,0,0,.18);
+    }
+    .sectionCols{
+      margin-top: 12px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      align-items: stretch;
+    }
+    .bullets{
+      margin:0;
+      padding: 0 0 0 18px;
+      color: rgba(255,255,255,.78);
+      font-size: 13px;
+      line-height: 1.45;
+      display:grid;
+      gap: 6px;
+    }
+    .bullets li::marker{ color: rgba(54,211,153,.95); }
+    .facts{
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.12);
+      padding: 12px;
+      position: relative;
+      overflow:hidden;
+    }
+    .facts::after{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background: radial-gradient(circle at 30% 30%, rgba(251,191,36,.12), transparent 55%);
+      opacity: .6;
+      pointer-events:none;
+    }
+    .factTitle{
+      font-size: 12px;
+      color: rgba(255,255,255,.72);
+      font-weight: 800;
+      letter-spacing: .18px;
+    }
+    .factBig{
+      margin-top: 6px;
+      font-size: 18px;
+      font-weight: 950;
+      letter-spacing: .3px;
+    }
+    .factSmall{
+      margin-top: 8px;
+      font-size: 12px;
+      color: rgba(255,255,255,.72);
+      line-height: 1.4;
+    }
+
+    .renderBtns{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top: 10px;
+    }
+
+    /* ====== Модалка папок Google Drive (только для десктопа) ====== */
+    .modal{
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: none;
+    }
+    .modal.open{ display:block; }
+    .modalBackdrop{
+      position:absolute;
+      inset:0;
+      background: rgba(0,0,0,.62);
+      backdrop-filter: blur(7px);
+    }
+    .modalDialog{
+      position: relative;
+      width: min(1060px, calc(100% - 22px));
+      margin: 16px auto;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(900px 420px at 20% 0%,
+          rgba(54,211,153,.14),
+          rgba(0,0,0,0) 55%),
+        radial-gradient(900px 420px at 85% 15%,
+          rgba(251,191,36,.10),
+          rgba(0,0,0,0) 55%),
+        linear-gradient(180deg, rgba(10, 14, 11, .74), rgba(8, 10, 9, .60));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      animation: rise .35s ease both;
+    }
+    .modalHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      padding: 12px 12px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+    }
+    .modalTitle{
+      font-weight: 950;
+      letter-spacing: .2px;
+      font-size: 14px;
+      color: rgba(255,255,255,.92);
+    }
+    .modalBody{
+      padding: 12px;
+      display:grid;
+      gap: 10px;
+    }
+    .modalViewer{
+      border-radius: 18px;
+      overflow:hidden;
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.10);
+      aspect-ratio: 16 / 10;
+      position:relative;
+    }
+    .modalViewer iframe{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      border:0;
+      display:block;
+      background: transparent;
+    }
+    .modalHint{
+      font-size: 12px;
+      color: rgba(255,255,255,.70);
+      user-select:none;
+      text-align:center;
+    }
+    @media (max-width: 820px){
+      .sectionCols{ grid-template-columns: 1fr; }
+    }
+
+    /* ====== Пасхалка “Подарок” (десктоп) ====== */
+    .gift{
+      position:fixed;
+      left: 0;
+      top: 0;
+      z-index: 55;
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.18);
+      backdrop-filter: blur(12px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      user-select:none;
+      box-shadow: 0 18px 45px rgba(0,0,0,.22);
+      transition: border-color .12s ease;
+      will-change: transform;
+    }
+    .gift:hover{ border-color: rgba(255,255,255,.32); }
+    .gift span{ font-size: 22px; transform: translateY(1px); }
+
+    @media (max-width: 900px), (pointer: coarse){
+      .gift{ display:none !important; }
+    }
   </style>
 </head>
 
 <body>
-  <!-- Фон-джунгли -->
   <div class="bg-image" aria-hidden="true"></div>
   <div class="bg-dim" aria-hidden="true"></div>
 
-  <!-- Прозрачный Sketchfab поверх -->
   <div class="bg3d" aria-hidden="true">
     <iframe id="sfViewer"
       title="Джунгли 3D"
@@ -745,41 +926,51 @@
   <div class="content-spot" aria-hidden="true"></div>
   <div class="bg-interact" id="bgInteract" aria-hidden="true"></div>
 
+  <!-- Пасхалка -->
+  <button class="gift" id="giftBtn" type="button" aria-label="Подарок"><span>🎁</span></button>
+
   <div class="wrap">
     <header>
       <div class="brand">
         <div class="logo" aria-hidden="true"></div>
         <div>
-          <b>Детский дом “Джунгли”</b>
-          <span>Игровые площадки • Праздники • Квест-зоны</span>
+          <b>Детский приключенческий парк “Джунгли”</b>
+          <span>Предпроектная концепция • 3D модель • Рендеры</span>
         </div>
       </div>
 
       <div class="actions">
         <a class="btn" href="https://sketchfab.com/models/9d4bae41c1d946c5b9c5a2f288f0cacc" target="_blank" rel="nofollow">Sketchfab ↗</a>
-        <button class="btn btn-accent" id="btnBook">Записаться</button>
+        <button class="btn btn-accent" id="btnBook">Связаться</button>
       </div>
     </header>
 
     <main class="panel">
       <div class="texture" aria-hidden="true"></div>
 
-
-      <!-- 3D модель (мобильная версия: в панели, можно крутить) -->
+      <!-- 3D модель (мобильная версия: в панели, автозапуск, медленный спин, прозрачный фон) -->
       <section class="panel3d" aria-label="3D модель">
         <div class="panel3d-head">
           <div class="panel3d-title">3D модель</div>
-          <div class="panel3d-sub">На телефоне — внутри панели, чтобы было удобно вращать.</div>
+          <div class="panel3d-sub">На телефоне — внутри панели, автозапуск и мягкое вращение.</div>
         </div>
+
         <div class="panel3d-frame">
-          <iframe
-            title="3D модель (Sketchfab)"
-            src="https://sketchfab.com/models/9d4bae41c1d946c5b9c5a2f288f0cacc/embed?autostart=0&preload=1&ui_theme=dark&ui_infos=0&ui_controls=1&ui_watermark=0"
-            frameborder="0"
-            allow="autoplay; fullscreen; xr-spatial-tracking"
-            allowfullscreen
-            mozallowfullscreen="true"
-            webkitallowfullscreen="true"></iframe>
+          <div class="sketchfab-embed-wrapper">
+            <iframe
+              title="Джунгли3"
+              frameborder="0"
+              allowfullscreen
+              mozallowfullscreen="true"
+              webkitallowfullscreen="true"
+              allow="autoplay; fullscreen; xr-spatial-tracking"
+              xr-spatial-tracking
+              execution-while-out-of-viewport
+              execution-while-not-rendered
+              web-share
+              src="https://sketchfab.com/models/9d4bae41c1d946c5b9c5a2f288f0cacc/embed?autospin=0.06&autostart=1&preload=1&transparent=1&ui_theme=dark&ui_infos=0&ui_controls=1&ui_watermark=0">
+            </iframe>
+          </div>
         </div>
       </section>
 
@@ -820,20 +1011,22 @@
 
       <div class="panelGrid">
         <section>
-          <div class="badge"><span class="dot"></span> Джунгли • Руины • Лианы • Водопады</div>
-          <h1>Зашёл — и ты уже в джунглях.</h1>
+          <div class="badge"><span class="dot"></span> Предпроектная концепция</div>
+          <h1>ДЕТСКИЙ ПРИКЛЮЧЕНЧЕСКИЙ ПАРК<br>«ДЖУНГЛИ»</h1>
           <p class="lead">
-            Игровые маршруты, приключения и фотозоны — для детей и родителей. Внутри — атмосфера, движение и магия.
+            <span class="leadKicker">Предпроектная концепция</span><br>
+            Тематическое пространство в стилистике древних руин, заросших тропическими джунглями.
           </p>
+          <div class="soonTag" title="Статус проекта">СКОРО ОТКРЫТИЕ</div>
 
           <div class="row">
             <button class="btn btn-accent" id="btn3d">🧭 Покрутить 3D</button>
-</div>
+          </div>
 
           <div class="pills">
-            <div class="pill">🧒 3–12 лет</div>
-            <div class="pill">🎉 Дни рождения</div>
-            <div class="pill">🛡️ Безопасные покрытия</div>
+            <div class="pill">🧗‍♂️ Верёвочные трассы</div>
+            <div class="pill">🧩 Игровые маршруты</div>
+            <div class="pill">🏛️ Лабиринты-руины</div>
             <div class="pill">📸 Фотозоны</div>
           </div>
         </section>
@@ -870,6 +1063,48 @@
           <p>Свет, звук и место, где получаются лучшие фото.</p>
         </div>
       </section>
+
+      <section class="sectionBlock" id="aboutProject" aria-label="О проекте">
+        <div class="sectionHead">
+          <h2>О проекте</h2>
+          <div class="sectionSub">Описание концепции и состав решений.</div>
+        </div>
+
+        <p class="sectionText">
+          Проект детского развлекательного комплекса «Джунгли» представляет собой тематическое пространство,
+          выполненное в стилистике древних руин, заросших тропическими джунглями.
+        </p>
+
+        <div class="sectionCols">
+          <ul class="bullets" aria-label="Состав концепции">
+            <li>верёвочные трассы</li>
+            <li>игровые маршруты</li>
+            <li>лабиринты</li>
+            <li>фотозоны</li>
+            <li>интерактивные элементы</li>
+          </ul>
+
+          <div class="facts" aria-label="Статус">
+            <div class="factTitle">Статус</div>
+            <div class="factBig">СКОРО ОТКРЫТИЕ</div>
+            <div class="factSmall">Кнопки ниже: на компьютере — просмотр тут, на телефоне — переход в Google Drive.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sectionBlock" id="projectRenders" aria-label="Рендеры проекта">
+        <div class="sectionHead">
+          <h2>Рендеры проекта</h2>
+          <div class="sectionSub">ПК: модалка • Телефон: открытие папки Google Drive</div>
+        </div>
+
+        <div class="renderBtns">
+          <button class="btn" id="btnRendersSite">🖼️ Рендеры площадки</button>
+          <button class="btn" id="btnRendersRope">🧗 Рендеры верёвочной трассы</button>
+          <button class="btn" id="btnRendersFacade">🏛️ Рендеры фасада</button>
+          <button class="btn btn-accent" id="btnRendersVideo">🎬 Видео рендер</button>
+        </div>
+      </section>
     </main>
 
     <footer>
@@ -881,13 +1116,33 @@
     </footer>
   </div>
 
-  
-  <!-- Sketchfab Viewer API (для паузы автоповорота без перезагрузки) -->
+  <!-- ====== Модалка: просмотр папки Google Drive (десктоп) ====== -->
+  <div class="modal" id="mediaModal" aria-hidden="true">
+    <div class="modalBackdrop" data-close="1" aria-hidden="true"></div>
+
+    <div class="modalDialog" role="dialog" aria-modal="true" aria-labelledby="mediaTitle">
+      <div class="modalHeader">
+        <div class="modalTitle" id="mediaTitle">Рендеры</div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <a class="btn" id="openInDrive" href="#" target="_blank" rel="nofollow">Google Drive ↗</a>
+          <button class="btn" type="button" id="mediaClose" aria-label="Закрыть">✕</button>
+        </div>
+      </div>
+
+      <div class="modalBody">
+        <div class="modalViewer" id="mediaViewer" aria-label="Просмотр">
+          <iframe id="mediaFrame" title="Google Drive Folder" src="about:blank" allow="fullscreen"></iframe>
+        </div>
+        <div class="modalHint">Esc — закрыть • Если папка не отображается: “Все, у кого есть ссылка → Просмотр”.</div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
 
   <script>
     // =========================
-    // Светлячки (плавнее + больше)
+    // Светлячки
     // =========================
     const root = document.documentElement;
     const flies = document.getElementById('flies');
@@ -897,9 +1152,7 @@
     const N = parseInt(getComputedStyle(root).getPropertyValue('--flies')) || 64;
     const rnd = (min,max) => Math.random()*(max-min)+min;
 
-    // чистим (на случай повторного запуска)
     flies.innerHTML = "";
-
     for(let i=0;i<N;i++){
       const el = document.createElement('div');
       el.className = 'fly' + (Math.random() < 0.30 ? ' gold' : '');
@@ -916,7 +1169,6 @@
       el.style.setProperty('--x1', x1);
       el.style.setProperty('--y1', y1);
 
-      // размер и “мерцание”
       el.style.setProperty('--s', rnd(.15, 1.00).toFixed(3));
       el.style.setProperty('--tw', rnd(.10, 1.00).toFixed(3));
 
@@ -928,7 +1180,7 @@
     }
 
     // =========================
-    // Sketchfab: без перезагрузки (как было)
+    // Sketchfab (десктоп фон)
     // =========================
     const MODEL_UID = "9d4bae41c1d946c5b9c5a2f288f0cacc";
     const iframe = document.getElementById('sfViewer');
@@ -959,7 +1211,7 @@
     }
 
     // =========================
-    // Ограничение взаимодействий: фон — только вне панели
+    // Ограничение: фон — только вне панели
     // =========================
     const panelEl = document.querySelector('.panel');
     function isOverPanel(target){
@@ -967,7 +1219,7 @@
     }
 
     // =========================
-    // WOW-анимация фона: инерционный зум + “дыхание” камеры
+    // Фон: инерционный зум + “дыхание”
     // =========================
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
     function getVarNum(name, fallback){
@@ -981,29 +1233,25 @@
     const minS = () => getVarNum('--bgScaleMin', 0.85);
     const maxS = () => getVarNum('--bgScaleMax', 1.35);
 
-    // “агрессивность” колеса и скорость догоняния
-    const wheelStep = 0.070;   // больше = быстрее
-    const follow = 0.14;       // больше = резче догоняет
-
+    const wheelStep = 0.070;
+    const follow = 0.14;
     let t = 0;
 
     window.addEventListener('wheel', (e) => {
       if (isOverPanel(e.target)) return;
       e.preventDefault();
 
-      const dir = Math.sign(e.deltaY || 0); // вниз = zoom-in
+      const dir = Math.sign(e.deltaY || 0);
       targetScale = clamp(targetScale + (dir > 0 ? wheelStep : -wheelStep), minS(), maxS());
       root.style.setProperty('--bgScale', targetScale.toFixed(3));
     }, { passive:false, capture:true });
 
     function tick(){
-      t += 0.008; // скорость “дыхания”
+      t += 0.008;
 
-      // инерция
       currentScale += (targetScale - currentScale) * follow;
       if (Math.abs(targetScale - currentScale) < 0.0006) currentScale = targetScale;
 
-      // микропараллакс (камера)
       const dx = Math.sin(t) * 8;
       const dy = Math.cos(t*0.92) * 5;
 
@@ -1011,7 +1259,6 @@
         bg.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(${currentScale})`;
       }
 
-      // туман слегка подстраивается под зум
       if (mist){
         const k = (currentScale - minS()) / Math.max(0.0001, (maxS() - minS()));
         mist.style.opacity = (0.48 + k * 0.18).toFixed(2);
@@ -1022,7 +1269,7 @@
     requestAnimationFrame(tick);
 
     // =========================
-    // “Магия” (как было)
+    // “Магия”
     // =========================
     const magicMore = document.getElementById('magicMore');
     const magicLess = document.getElementById('magicLess');
@@ -1045,18 +1292,259 @@
       flies.style.opacity = '.86';
     });
 
-    // Запись (заглушка)
+    // =========================
+    // Пауза автоповорота при удержании (десктоп)
+    // =========================
+    const bgInteract = document.getElementById('bgInteract');
+    let isHolding = false;
+
+    function setSpin(speed){
+      if (!sfApi) return;
+      try{
+        if (typeof sfApi.setAutoSpin === 'function') sfApi.setAutoSpin(speed);
+        else if (typeof sfApi.setAutospin === 'function') sfApi.setAutospin(speed);
+      }catch(_){}
+    }
+
+    if (bgInteract){
+      bgInteract.addEventListener('mousedown', (e) => {
+        if (isMobile) return;
+        if (!sfApi) return;
+        if (isOverPanel(e.target)) return;
+        isHolding = true;
+        setSpin(0);
+      });
+      window.addEventListener('mouseup', () => {
+        if (!isHolding) return;
+        isHolding = false;
+        setSpin(defaultSpin);
+      });
+    }
+
+    // =========================
+    // Кнопка “Связаться”
+    // =========================
     const btnBook = document.getElementById('btnBook');
     if (btnBook) btnBook.addEventListener('click', () => {
-      alert("Скажи, куда вести заявку (Telegram-бот/форма/номер) — вставлю ссылку в кнопку.");
+      alert("Скажи, куда вести кнопку: Telegram/WhatsApp/форма/номер — вставлю ссылку.");
     });
 
-    // Открыть модель на Sketchfab (вкладка)
+    // =========================
+    // Открыть модель на Sketchfab
+    // =========================
     const btn3d = document.getElementById('btn3d');
     if (btn3d) btn3d.addEventListener('click', () => {
       window.open("https://sketchfab.com/models/" + MODEL_UID, "_blank");
     });
-  </script>
 
+    // =========================
+    // Google Drive папки (твои ссылки)
+    // - Mobile: просто переход по ссылке
+    // - Desktop: модалка с embeddedfolderview
+    // =========================
+    const MEDIA_FOLDERS = {
+      site:  "https://drive.google.com/drive/folders/1d29kxmpzMztvjHJw59CizUowl8NzqVia?usp=sharing",
+      rope:  "https://drive.google.com/drive/folders/1kpDPIge-eRTBgy29B8uaizht6OTdzkhS?usp=sharing",
+      facade:"https://drive.google.com/drive/folders/1nGr0L9ihOovBZazXAa5IaE2CBdzmavv1?usp=sharing",
+      video: "https://drive.google.com/drive/folders/1nGr0L9ihOovBZazXAa5IaE2CBdzmavv1?usp=sharing"
+    };
+
+    function extractFolderId(input){
+      const s = String(input || "").trim();
+      if (!s) return "";
+      const m = s.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+      if (m && m[1]) return m[1];
+      const m2 = s.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (m2 && m2[1]) return m2[1];
+      if (!/[\/\?]/.test(s)) return s;
+      return "";
+    }
+    function embeddedFolderUrl(folderId, mode){
+      const v = encodeURIComponent(folderId);
+      const hash = mode === 'list' ? 'list' : 'grid';
+      return `https://drive.google.com/embeddedfolderview?id=${v}#${hash}`;
+    }
+
+    // Modal controls (desktop only)
+    const mediaModal = document.getElementById('mediaModal');
+    const mediaTitle = document.getElementById('mediaTitle');
+    const mediaClose = document.getElementById('mediaClose');
+    const openInDrive = document.getElementById('openInDrive');
+    const mediaFrame = document.getElementById('mediaFrame');
+
+    function openFolder(key, title){
+      const link = MEDIA_FOLDERS[key];
+
+      // МОБИЛЬНЫЕ: просто переход по ссылке (как просил)
+      if (isMobile){
+        window.location.href = link;
+        return;
+      }
+
+      // ДЕСКТОП: модалка
+      const id = extractFolderId(link);
+      if (!id){
+        alert("Не найден ID папки Google Drive.");
+        return;
+      }
+      if (mediaTitle) mediaTitle.textContent = title || "Google Drive";
+      if (openInDrive) openInDrive.href = link;
+      if (mediaFrame) mediaFrame.src = embeddedFolderUrl(id, key === 'video' ? 'list' : 'grid');
+
+      if (mediaModal){
+        mediaModal.classList.add('open');
+        mediaModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeFolderModal(){
+      if (!mediaModal) return;
+      mediaModal.classList.remove('open');
+      mediaModal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      if (mediaFrame) mediaFrame.src = 'about:blank';
+      if (openInDrive) openInDrive.href = '#';
+    }
+
+    if (mediaClose) mediaClose.addEventListener('click', closeFolderModal);
+    if (mediaModal){
+      mediaModal.addEventListener('click', (e) => {
+        const t = e.target;
+        if (t && t.dataset && t.dataset.close) closeFolderModal();
+      });
+    }
+    window.addEventListener('keydown', (e) => {
+      if (!mediaModal || !mediaModal.classList.contains('open')) return;
+      if (e.key === 'Escape') closeFolderModal();
+    });
+
+    // Buttons
+    const btnRendersSite = document.getElementById('btnRendersSite');
+    const btnRendersRope = document.getElementById('btnRendersRope');
+    const btnRendersFacade = document.getElementById('btnRendersFacade');
+    const btnRendersVideo = document.getElementById('btnRendersVideo');
+
+    if (btnRendersSite) btnRendersSite.addEventListener('click', () => openFolder('site', 'Рендеры площадки (Google Drive)'));
+    if (btnRendersRope) btnRendersRope.addEventListener('click', () => openFolder('rope', 'Рендеры верёвочной трассы (Google Drive)'));
+    if (btnRendersFacade) btnRendersFacade.addEventListener('click', () => openFolder('facade', 'Рендеры фасада (Google Drive)'));
+    if (btnRendersVideo) btnRendersVideo.addEventListener('click', () => openFolder('video', 'Видео рендер (Google Drive)'));
+
+    // =========================
+    // Подарок: медленно “гуляет”, но быстро убегает от курсора (десктоп)
+    // =========================
+    const giftBtn = document.getElementById('giftBtn');
+
+    const giftSize = 44;
+    const pad = 12;
+
+    let gx = 16, gy = 64;
+    let tx = 220, ty = 140;
+
+    const slowFollow = 0.010;   // медленно перемещается
+    const fastFollow = 0.26;    // резко убегает
+    const fleeRadius = 200;     // если курсор ближе — убегает
+    const panicRadius = 120;    // совсем близко — мгновенно меняет цель
+
+    let mouse = { x: null, y: null, ok: false };
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      mouse.ok = true;
+    }, {passive:true});
+
+    function clamp01(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+    function pickTargetRandom(){
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      tx = pad + Math.random() * (w - pad*2 - giftSize);
+      ty = pad + Math.random() * (h - pad*2 - giftSize);
+    }
+
+    function pickTargetAwayFrom(mx, my){
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+
+      // вектор от курсора к подарку (куда “бежать”)
+      const cx = gx + giftSize/2;
+      const cy = gy + giftSize/2;
+
+      let vx = cx - mx;
+      let vy = cy - my;
+      const len = Math.hypot(vx, vy) || 1;
+
+      vx /= len; vy /= len;
+
+      // цель: дальше от курсора + немного рандома
+      const dist = fleeRadius * 1.25 + Math.random()*120;
+
+      tx = clamp01(cx + vx*dist + (Math.random()*60 - 30), pad, w - pad - giftSize);
+      ty = clamp01(cy + vy*dist + (Math.random()*60 - 30), pad, h - pad - giftSize);
+    }
+
+    // стартовая цель
+    pickTargetRandom();
+
+    function giftTick(){
+      if (!giftBtn || isMobile){
+        requestAnimationFrame(giftTick);
+        return;
+      }
+
+      // иногда просто меняем цель, чтобы не “залипал”
+      const dxT = tx - gx, dyT = ty - gy;
+      if (Math.hypot(dxT, dyT) < 10) pickTargetRandom();
+
+      // если курсор близко — убегаем
+      let follow = slowFollow;
+
+      if (mouse.ok){
+        const cx = gx + giftSize/2;
+        const cy = gy + giftSize/2;
+        const dist = Math.hypot(cx - mouse.x, cy - mouse.y);
+
+        if (dist < fleeRadius){
+          follow = fastFollow;
+          pickTargetAwayFrom(mouse.x, mouse.y);
+        } else if (dist < fleeRadius * 1.35){
+          // легкая паника: чуть ускоряемся, но без резких рывков
+          follow = slowFollow * 1.8;
+        }
+
+        if (dist < panicRadius){
+          // совсем рядом — очень резко в сторону
+          follow = fastFollow;
+          pickTargetAwayFrom(mouse.x, mouse.y);
+        }
+      }
+
+      gx += (tx - gx) * follow;
+      gy += (ty - gy) * follow;
+
+      giftBtn.style.transform = `translate3d(${gx}px, ${gy}px, 0)`;
+
+      requestAnimationFrame(giftTick);
+    }
+    requestAnimationFrame(giftTick);
+
+    // “догонялка”: если навёлся — моментально меняем цель (иначе можно зажать)
+    if (giftBtn){
+      giftBtn.addEventListener('mouseenter', () => {
+        if (mouse.ok) pickTargetAwayFrom(mouse.x, mouse.y);
+        else pickTargetRandom();
+      });
+      giftBtn.addEventListener('click', () => {
+        alert("🎁 Пасхалка! Скоро добавим секретный бонус 🙂");
+      });
+    }
+
+    // resize safety
+    window.addEventListener('resize', () => {
+      if (isMobile) return;
+      // если после ресайза цель вылезла — перекинем
+      pickTargetRandom();
+    }, {passive:true});
+  </script>
 </body>
 </html>
