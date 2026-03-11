@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Мои сайты | Виталий Овчинников</title>
+  <meta name="description" content="Подборка моих отдельных сайтов и спецстраниц: концепции, визуализации, презентации и инженерные проекты." />
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LW6E096HYD"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-LW6E096HYD');
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent:#1CAAD9;
+      --accent-2:#7AD7F0;
+      --text:#111;
+      --muted:#4b5563;
+      --panel-bg:rgba(255,255,255,.84);
+      --panel-brd:rgba(0,0,0,.08);
+      --panel-shadow:0 14px 40px rgba(0,0,0,.16);
+      --hero-overlay:rgba(255,255,255,.58);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:'Inter',sans-serif;
+      color:var(--text);
+      background:
+        linear-gradient(rgba(255,255,255,.42), rgba(255,255,255,.78)),
+        url('a2.webp') center/cover fixed no-repeat;
+    }
+    a{color:inherit}
+    header{
+      position:sticky; top:0; z-index:20;
+      padding:14px 16px;
+      background:rgba(255,255,255,.72);
+      backdrop-filter:blur(10px);
+      border-bottom:1px solid var(--panel-brd);
+    }
+    .topbar{
+      max-width:1160px; margin:0 auto;
+      display:flex; align-items:center; justify-content:space-between; gap:16px;
+      flex-wrap:wrap;
+    }
+    .brand h1{
+      margin:0; font-family:'Montserrat',sans-serif; font-size:1.55rem; line-height:1.05;
+    }
+    .brand p{margin:.25rem 0 0; color:var(--muted); font-size:.96rem}
+    .nav{display:flex; flex-wrap:wrap; gap:12px 18px}
+    .nav a{text-decoration:none; font-weight:600}
+    .nav a:hover{color:var(--accent)}
+
+    .hero{max-width:1160px; margin:26px auto 18px; padding:0 16px}
+    .hero-box{
+      background:var(--hero-overlay);
+      border:1px solid var(--panel-brd);
+      box-shadow:var(--panel-shadow);
+      border-radius:24px;
+      padding:28px;
+      backdrop-filter:blur(8px);
+    }
+    .hero-kicker{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px; border-radius:999px; background:#fff; border:1px solid var(--panel-brd);
+      font-size:.9rem; font-weight:700;
+    }
+    .hero h2{
+      margin:16px 0 10px; font-family:'Montserrat',sans-serif; font-size:clamp(1.9rem,4vw,3.25rem); line-height:1.05;
+    }
+    .hero p{margin:0; max-width:760px; line-height:1.7; color:#1f2937}
+    .hero-actions{display:flex; flex-wrap:wrap; gap:12px; margin-top:18px}
+
+    .btn{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:11px 16px; border-radius:12px; text-decoration:none; font-weight:700;
+      border:1px solid var(--panel-brd); background:#fff; box-shadow:0 8px 24px rgba(0,0,0,.08);
+      transition:transform .18s ease, box-shadow .18s ease;
+    }
+    .btn:hover{transform:translateY(-2px); box-shadow:0 12px 28px rgba(0,0,0,.12)}
+    .btn-primary{background:linear-gradient(90deg,var(--accent),var(--accent-2)); color:#001018; border:none}
+
+    main{max-width:1160px; margin:0 auto; padding:0 16px 32px}
+    .section{
+      background:var(--panel-bg); border:1px solid var(--panel-brd); box-shadow:var(--panel-shadow);
+      border-radius:22px; padding:24px; backdrop-filter:blur(8px);
+    }
+    .section h3{margin:0 0 8px; font-family:'Montserrat',sans-serif; font-size:1.55rem}
+    .section > p{margin:0 0 18px; color:var(--muted); line-height:1.65}
+
+    .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px}
+    .card{
+      background:rgba(255,255,255,.92); border:1px solid var(--panel-brd); border-radius:18px;
+      overflow:hidden; box-shadow:0 8px 26px rgba(0,0,0,.08); display:flex; flex-direction:column;
+      min-height:100%;
+    }
+    .card-cover{
+      min-height:190px; padding:18px; display:flex; align-items:flex-end; position:relative;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,.34)),
+        radial-gradient(circle at 20% 20%, rgba(54,211,153,.60), transparent 34%),
+        radial-gradient(circle at 80% 22%, rgba(251,191,36,.42), transparent 28%),
+        linear-gradient(135deg, #0f172a, #14532d 55%, #0b3b2e);
+      color:#fff;
+    }
+    .card-cover h4{margin:0; font-family:'Montserrat',sans-serif; font-size:1.35rem; line-height:1.1}
+    .tag{
+      position:absolute; top:14px; left:14px; display:inline-flex; align-items:center;
+      padding:7px 10px; border-radius:999px; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.18);
+      backdrop-filter:blur(8px); font-size:.84rem; font-weight:700;
+    }
+    .card-body{padding:18px; display:flex; flex-direction:column; gap:14px; flex:1}
+    .card-body p{margin:0; line-height:1.65; color:#1f2937}
+    .meta{display:flex; flex-wrap:wrap; gap:8px}
+    .meta span{
+      display:inline-flex; padding:7px 10px; border-radius:999px; background:#f3f4f6; font-size:.84rem; color:#374151; font-weight:600;
+    }
+    .card-actions{display:flex; flex-wrap:wrap; gap:10px; margin-top:auto}
+
+    .placeholder{
+      border:2px dashed rgba(0,0,0,.12); border-radius:18px; padding:18px; background:rgba(255,255,255,.52);
+      color:#374151;
+    }
+    .placeholder strong{display:block; margin-bottom:8px; font-size:1.05rem}
+
+    footer{max-width:1160px; margin:20px auto 36px; padding:0 16px; color:#374151}
+    .footer-box{
+      background:rgba(255,255,255,.72); border:1px solid var(--panel-brd); border-radius:18px; padding:18px 20px;
+      backdrop-filter:blur(8px);
+    }
+    @media (max-width:640px){
+      .hero-box,.section{padding:18px}
+      .brand h1{font-size:1.3rem}
+      .nav{gap:10px 14px}
+      .card-cover{min-height:160px}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div class="brand">
+        <h1>Мои сайты</h1>
+        <p>Отдельные страницы, концепции и спецпроекты</p>
+      </div>
+      <nav class="nav" aria-label="Навигация страницы">
+        <a href="index.html">Главная</a>
+        <a href="#sites">Сайты</a>
+        <a href="models.html">3D и рендеры</a>
+        <a href="real.html">Реальные объекты</a>
+        <a href="calc.html">Расчёты</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-box">
+      <div class="hero-kicker">🌐 Каталог отдельных страниц</div>
+      <h2>Здесь собраны мои отдельные сайты и спецстраницы</h2>
+      <p>На этой странице можно разместить переходы на ваши тематические проекты: «Джунгли», презентационные лендинги, спецстраницы под объекты, интерактивные концепции и любые другие отдельные HTML-сайты.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#sites">Открыть каталог</a>
+        <a class="btn" href="index.html">← Вернуться на главную</a>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <section class="section" id="sites">
+      <h3>Мои проекты</h3>
+      <p>Сейчас сюда добавлен ваш сайт «Джунгли». Структура уже готова для расширения: дальше можно добавлять новые карточки с любыми вашими страницами без переделки всей навигации.</p>
+
+      <div class="grid">
+        <article class="card">
+          <div class="card-cover">
+            <div class="tag">Готовый сайт</div>
+            <h4>Джунгли</h4>
+          </div>
+          <div class="card-body">
+            <p>Предпроектная страница детского приключенческого парка с 3D-моделью, рендерами, атмосферным визуалом и отдельными переходами на материалы проекта.</p>
+            <div class="meta">
+              <span>3D / Sketchfab</span>
+              <span>Презентация</span>
+              <span>Концепция</span>
+            </div>
+            <div class="card-actions">
+              <a class="btn btn-primary" href="djungli.html">Открыть сайт</a>
+              <a class="btn" href="https://sketchfab.com/models/9d4bae41c1d946c5b9c5a2f288f0cacc" target="_blank" rel="noopener nofollow">Sketchfab ↗</a>
+            </div>
+          </div>
+        </article>
+
+        <div class="placeholder">
+          <strong>Место для следующего сайта</strong>
+          Сюда можно добавить вторую карточку: например, отдельную страницу объекта, калькулятора, портфолио проекта или коммерческого предложения.
+        </div>
+
+        <div class="placeholder">
+          <strong>Место для ещё одного проекта</strong>
+          Когда пришлёте следующий HTML-файл или ссылку, его можно будет добавить сюда в таком же стиле за пару минут.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-box">
+      <strong>Как подключить на GitHub Pages:</strong> загрузите файл <code>projects.html</code> в корень сайта и убедитесь, что страница «Джунгли» лежит рядом под именем <code>djungli.html</code>. После этого ссылка из <code>index.html</code> откроет каталог автоматически.
+    </div>
+  </footer>
+</body>
+</html>
