@@ -4,7 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Мои сайты | Виталий Овчинников</title>
-  <meta name="description" content="Подборка моих отдельных сайтов и спецстраниц: концепции, визуализации, презентации и инженерные проекты." />
+
+  <link rel="canonical" href="https://0vchina.github.io/partfolio/projects.html" />
+  <meta name="description" content="Каталог отдельных сайтов и спецстраниц Виталия Овчинникова: концепции, презентации, визуализации и тематические проекты." />
+  <link rel="icon" href="file_0000000030986246a48be624a539648a.webp" type="image/webp" />
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-LW6E096HYD"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -14,17 +17,20 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet" />
+
   <style>
-    :root {
+    :root{
+      --header-offset:80px;
       --accent:#1CAAD9;
       --accent-2:#7AD7F0;
+      --panel-bg:rgba(255,255,255,.78);
+      --panel-brd:rgba(0,0,0,.08);
+      --panel-shadow:0 8px 32px rgba(0,0,0,.18);
+      --reveal-y:24px;
+      --reveal-dur:.7s;
       --text:#111;
       --muted:#4b5563;
-      --panel-bg:rgba(255,255,255,.84);
-      --panel-brd:rgba(0,0,0,.08);
-      --panel-shadow:0 14px 40px rgba(0,0,0,.16);
-      --hero-overlay:rgba(255,255,255,.58);
     }
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
@@ -32,187 +38,572 @@
       margin:0;
       font-family:'Inter',sans-serif;
       color:var(--text);
-      background:
-        linear-gradient(rgba(255,255,255,.42), rgba(255,255,255,.78)),
-        url('a2.webp') center/cover fixed no-repeat;
+      background:url('a2.webp') center / cover no-repeat fixed;
+      overflow-x:hidden;
+      will-change: background-position;
     }
-    a{color:inherit}
-    header{
-      position:sticky; top:0; z-index:20;
-      padding:14px 16px;
-      background:rgba(255,255,255,.72);
-      backdrop-filter:blur(10px);
-      border-bottom:1px solid var(--panel-brd);
-    }
-    .topbar{
-      max-width:1160px; margin:0 auto;
-      display:flex; align-items:center; justify-content:space-between; gap:16px;
-      flex-wrap:wrap;
-    }
-    .brand h1{
-      margin:0; font-family:'Montserrat',sans-serif; font-size:1.55rem; line-height:1.05;
-    }
-    .brand p{margin:.25rem 0 0; color:var(--muted); font-size:.96rem}
-    .nav{display:flex; flex-wrap:wrap; gap:12px 18px}
-    .nav a{text-decoration:none; font-weight:600}
-    .nav a:hover{color:var(--accent)}
 
-    .hero{max-width:1160px; margin:26px auto 18px; padding:0 16px}
-    .hero-box{
-      background:var(--hero-overlay);
+    header{
+      background:url('file_0000000030986246a48be624a539648a.webp') center/cover;
+      position:sticky; top:0; z-index:1000;
+      padding:14px 16px; text-align:center;
+      border-bottom:1px solid var(--panel-brd);
+      backdrop-filter: blur(6px);
+    }
+    header h1{
+      font-family:'Montserrat',sans-serif;
+      margin:0;
+      font-size:2.2rem;
+      font-weight:800;
+      text-shadow:0 1px 2px rgba(255,255,255,.95);
+      position:relative;
+      display:inline-block;
+    }
+    header h1::after{
+      content:"";
+      position:absolute;
+      left:50%;
+      bottom:-6px;
+      width:0;
+      height:3px;
+      background:linear-gradient(90deg,var(--accent),var(--accent-2));
+      border-radius:6px;
+      transform:translateX(-50%);
+      animation:underline 1.2s .2s ease forwards;
+    }
+    @keyframes underline{ to{ width:62%; } }
+
+    header p{
+      margin:.25rem 0 0;
+      font-size:1.05rem;
+      text-shadow:0 1px 2px rgba(255,255,255,.95);
+    }
+
+    nav{
+      margin-top:.55rem;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:.25rem .9rem;
+    }
+    nav a{
+      color:#0d0d0d;
+      text-decoration:none;
+      font-weight:600;
+      border-bottom:2px solid transparent;
+      padding-bottom:2px;
+      transition:border-color .2s, color .2s, transform .2s ease;
+    }
+    nav a:hover{
+      border-color:var(--accent);
+      color:#000;
+      transform:translateY(-1px);
+    }
+
+    section{
+      padding:1.8rem 1.2rem;
+      max-width:1120px;
+      margin:1.2rem auto;
+      background:var(--panel-bg);
       border:1px solid var(--panel-brd);
+      border-radius:14px;
       box-shadow:var(--panel-shadow);
-      border-radius:24px;
-      padding:28px;
-      backdrop-filter:blur(8px);
+      transform:translateY(var(--reveal-y));
+      opacity:0;
+      transition:transform var(--reveal-dur) ease, opacity var(--reveal-dur) ease, box-shadow .25s ease;
+    }
+    section.reveal-in{
+      transform:translateY(0);
+      opacity:1;
+    }
+    section[id]::before{
+      content:"";
+      display:block;
+      height:var(--header-offset);
+      margin-top:calc(-1 * var(--header-offset));
+      visibility:hidden;
+    }
+
+    h2{
+      font-family:'Montserrat',sans-serif;
+      font-size:1.45rem;
+      line-height:1.3;
+      font-weight:700;
+      margin:0 0 .85rem;
+      position:relative;
+      display:inline-block;
+    }
+    h2::after{
+      content:"";
+      position:absolute;
+      left:0;
+      bottom:-6px;
+      height:2px;
+      width:58px;
+      background:linear-gradient(90deg,var(--accent),transparent);
+      border-radius:8px;
+      transform-origin:left;
+      transform:scaleX(.2);
+      opacity:.7;
+      transition:transform .6s ease .05s;
+    }
+    section.reveal-in h2::after{
+      transform:scaleX(1);
+    }
+
+    p{
+      line-height:1.75;
+      margin:.7rem 0 0;
+    }
+
+    .hero{
+      position:relative;
+      overflow:hidden;
+      padding:2rem 1.5rem;
+    }
+    .hero::before,
+    .hero::after{
+      content:"";
+      position:absolute;
+      border-radius:50%;
+      filter:blur(8px);
+      pointer-events:none;
+    }
+    .hero::before{
+      width:260px;
+      height:260px;
+      right:-90px;
+      top:-80px;
+      background:radial-gradient(circle, rgba(28,170,217,.22), rgba(122,215,240,0));
+    }
+    .hero::after{
+      width:220px;
+      height:220px;
+      left:-80px;
+      bottom:-80px;
+      background:radial-gradient(circle, rgba(122,215,240,.18), rgba(28,170,217,0));
+    }
+    .hero-grid{
+      display:grid;
+      grid-template-columns:1.25fr .9fr;
+      gap:22px;
+      align-items:center;
+      position:relative;
+      z-index:1;
     }
     .hero-kicker{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:8px 12px; border-radius:999px; background:#fff; border:1px solid var(--panel-brd);
-      font-size:.9rem; font-weight:700;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      background:rgba(255,255,255,.82);
+      border:1px solid var(--panel-brd);
+      border-radius:999px;
+      font-weight:700;
+      font-size:.92rem;
+      box-shadow:0 6px 18px rgba(0,0,0,.08);
     }
-    .hero h2{
-      margin:16px 0 10px; font-family:'Montserrat',sans-serif; font-size:clamp(1.9rem,4vw,3.25rem); line-height:1.05;
+    .hero-title{
+      font-family:'Montserrat',sans-serif;
+      font-size:clamp(2rem, 4vw, 3.1rem);
+      line-height:1.05;
+      margin:.9rem 0 .6rem;
+      font-weight:800;
     }
-    .hero p{margin:0; max-width:760px; line-height:1.7; color:#1f2937}
-    .hero-actions{display:flex; flex-wrap:wrap; gap:12px; margin-top:18px}
+    .hero-text{
+      color:#273240;
+      max-width:760px;
+    }
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:1.2rem;
+    }
 
     .btn{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:11px 16px; border-radius:12px; text-decoration:none; font-weight:700;
-      border:1px solid var(--panel-brd); background:#fff; box-shadow:0 8px 24px rgba(0,0,0,.08);
-      transition:transform .18s ease, box-shadow .18s ease;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:11px 16px;
+      border-radius:12px;
+      text-decoration:none;
+      font-weight:700;
+      border:1px solid var(--panel-brd);
+      background:#fff;
+      color:#111;
+      transition:transform .18s ease, box-shadow .22s ease, border-color .22s ease, background .22s ease;
+      box-shadow:0 8px 20px rgba(0,0,0,.08);
     }
-    .btn:hover{transform:translateY(-2px); box-shadow:0 12px 28px rgba(0,0,0,.12)}
-    .btn-primary{background:linear-gradient(90deg,var(--accent),var(--accent-2)); color:#001018; border:none}
-
-    main{max-width:1160px; margin:0 auto; padding:0 16px 32px}
-    .section{
-      background:var(--panel-bg); border:1px solid var(--panel-brd); box-shadow:var(--panel-shadow);
-      border-radius:22px; padding:24px; backdrop-filter:blur(8px);
+    .btn:hover{
+      transform:translateY(-2px);
+      box-shadow:0 12px 28px rgba(0,0,0,.14);
+      border-color:rgba(28,170,217,.28);
     }
-    .section h3{margin:0 0 8px; font-family:'Montserrat',sans-serif; font-size:1.55rem}
-    .section > p{margin:0 0 18px; color:var(--muted); line-height:1.65}
+    .btn-primary{
+      background:linear-gradient(90deg,var(--accent),var(--accent-2));
+      color:#001018;
+      border-color:transparent;
+    }
 
-    .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px}
-    .card{
-      background:rgba(255,255,255,.92); border:1px solid var(--panel-brd); border-radius:18px;
-      overflow:hidden; box-shadow:0 8px 26px rgba(0,0,0,.08); display:flex; flex-direction:column;
+    .hero-side{
+      display:grid;
+      gap:14px;
+    }
+    .hero-stat{
+      background:rgba(255,255,255,.84);
+      border:1px solid var(--panel-brd);
+      border-radius:16px;
+      padding:16px 18px;
+      box-shadow:0 10px 24px rgba(0,0,0,.08);
+    }
+    .hero-stat strong{
+      display:block;
+      font-size:1.9rem;
+      font-family:'Montserrat',sans-serif;
+      line-height:1;
+      margin-bottom:6px;
+    }
+    .hero-stat span{
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .sites-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:18px;
+      margin-top:1.15rem;
+    }
+    .site-card{
+      position:relative;
+      overflow:hidden;
+      background:rgba(255,255,255,.86);
+      border:1px solid var(--panel-brd);
+      border-radius:18px;
+      box-shadow:0 10px 28px rgba(0,0,0,.10);
+      transition:transform .22s ease, box-shadow .25s ease, border-color .25s ease;
       min-height:100%;
     }
-    .card-cover{
-      min-height:190px; padding:18px; display:flex; align-items:flex-end; position:relative;
+    .site-card:hover{
+      transform:translateY(-4px);
+      box-shadow:0 18px 36px rgba(0,0,0,.15);
+      border-color:rgba(28,170,217,.22);
+    }
+    .site-cover{
+      min-height:220px;
+      padding:18px;
+      display:flex;
+      align-items:flex-end;
+      position:relative;
       background:
-        linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,.34)),
-        radial-gradient(circle at 20% 20%, rgba(54,211,153,.60), transparent 34%),
-        radial-gradient(circle at 80% 22%, rgba(251,191,36,.42), transparent 28%),
-        linear-gradient(135deg, #0f172a, #14532d 55%, #0b3b2e);
+        linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.42)),
+        radial-gradient(circle at 18% 16%, rgba(74,222,128,.55), transparent 30%),
+        radial-gradient(circle at 82% 22%, rgba(250,204,21,.42), transparent 26%),
+        radial-gradient(circle at 50% 100%, rgba(16,185,129,.3), transparent 38%),
+        linear-gradient(135deg, #0f172a 0%, #14532d 50%, #0b3b2e 100%);
       color:#fff;
     }
-    .card-cover h4{margin:0; font-family:'Montserrat',sans-serif; font-size:1.35rem; line-height:1.1}
-    .tag{
-      position:absolute; top:14px; left:14px; display:inline-flex; align-items:center;
-      padding:7px 10px; border-radius:999px; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.18);
-      backdrop-filter:blur(8px); font-size:.84rem; font-weight:700;
+    .site-card.future .site-cover{
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,.16)),
+        radial-gradient(circle at 18% 16%, rgba(28,170,217,.30), transparent 30%),
+        radial-gradient(circle at 82% 22%, rgba(122,215,240,.26), transparent 26%),
+        linear-gradient(135deg, #dbeafe 0%, #eff6ff 55%, #f8fafc 100%);
+      color:#17324b;
     }
-    .card-body{padding:18px; display:flex; flex-direction:column; gap:14px; flex:1}
-    .card-body p{margin:0; line-height:1.65; color:#1f2937}
-    .meta{display:flex; flex-wrap:wrap; gap:8px}
-    .meta span{
-      display:inline-flex; padding:7px 10px; border-radius:999px; background:#f3f4f6; font-size:.84rem; color:#374151; font-weight:600;
+    .site-badge{
+      position:absolute;
+      top:14px;
+      left:14px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 11px;
+      border-radius:999px;
+      background:rgba(255,255,255,.18);
+      border:1px solid rgba(255,255,255,.18);
+      backdrop-filter:blur(6px);
+      font-size:.83rem;
+      font-weight:700;
     }
-    .card-actions{display:flex; flex-wrap:wrap; gap:10px; margin-top:auto}
-
-    .placeholder{
-      border:2px dashed rgba(0,0,0,.12); border-radius:18px; padding:18px; background:rgba(255,255,255,.52);
+    .site-card.future .site-badge{
+      background:rgba(255,255,255,.84);
+      border-color:rgba(0,0,0,.06);
+    }
+    .site-cover h3{
+      margin:0;
+      font-family:'Montserrat',sans-serif;
+      font-size:1.55rem;
+      line-height:1.1;
+      text-shadow:0 2px 10px rgba(0,0,0,.2);
+    }
+    .site-card.future .site-cover h3{
+      text-shadow:none;
+    }
+    .site-body{
+      padding:18px 18px 20px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+    .site-body p{
+      margin:0;
+      color:#1f2937;
+    }
+    .tags{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .tags span{
+      display:inline-flex;
+      align-items:center;
+      padding:7px 10px;
+      border-radius:999px;
+      background:#f3f4f6;
       color:#374151;
+      font-size:.84rem;
+      font-weight:600;
+      border:1px solid rgba(0,0,0,.04);
     }
-    .placeholder strong{display:block; margin-bottom:8px; font-size:1.05rem}
+    .site-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:auto;
+    }
 
-    footer{max-width:1160px; margin:20px auto 36px; padding:0 16px; color:#374151}
-    .footer-box{
-      background:rgba(255,255,255,.72); border:1px solid var(--panel-brd); border-radius:18px; padding:18px 20px;
-      backdrop-filter:blur(8px);
+    .mini-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:14px;
+      margin-top:1rem;
     }
-    @media (max-width:640px){
-      .hero-box,.section{padding:18px}
-      .brand h1{font-size:1.3rem}
-      .nav{gap:10px 14px}
-      .card-cover{min-height:160px}
+    .mini-box{
+      background:rgba(255,255,255,.74);
+      border:1px solid var(--panel-brd);
+      border-radius:16px;
+      padding:16px 18px;
+      box-shadow:0 8px 22px rgba(0,0,0,.07);
+    }
+    .mini-box strong{
+      display:block;
+      font-family:'Montserrat',sans-serif;
+      font-size:1.05rem;
+      margin-bottom:6px;
+    }
+    .mini-box span{
+      color:var(--muted);
+      line-height:1.65;
+      font-size:.96rem;
+    }
+
+    footer{
+      text-align:center;
+      background:#0d0d0d;
+      color:#fff;
+      padding:24px;
+      margin-top:28px;
+      transform:translateY(var(--reveal-y));
+      opacity:0;
+      transition:transform var(--reveal-dur) ease, opacity var(--reveal-dur) ease;
+    }
+    footer.reveal-in{
+      transform:translateY(0);
+      opacity:1;
+    }
+    .footer-note{
+      opacity:.85;
+      margin-top:.35rem;
+    }
+
+    @media (max-width:900px){
+      .hero-grid{
+        grid-template-columns:1fr;
+      }
+      .mini-grid{
+        grid-template-columns:1fr;
+      }
+    }
+    @media (max-width:600px){
+      header h1{font-size:1.7rem}
+      header p{font-size:.98rem}
+      nav{gap:.2rem .7rem}
+      nav a{font-size:.96rem}
+      .hero{
+        padding:1.4rem 1rem;
+      }
+      .site-cover{
+        min-height:190px;
+      }
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="topbar">
-      <div class="brand">
-        <h1>Мои сайты</h1>
-        <p>Отдельные страницы, концепции и спецпроекты</p>
-      </div>
-      <nav class="nav" aria-label="Навигация страницы">
-        <a href="index.html">Главная</a>
-        <a href="#sites">Сайты</a>
-        <a href="models.html">3D и рендеры</a>
-        <a href="real.html">Реальные объекты</a>
-        <a href="calc.html">Расчёты</a>
-      </nav>
-    </div>
+  <header aria-label="Шапка сайта">
+    <h1>Мои сайты</h1>
+    <p>Отдельные страницы, тематические проекты и спецлендинги</p>
+    <nav aria-label="Основная навигация">
+      <a href="index.html">Главная</a>
+      <a href="#sites">Сайты</a>
+      <a href="models.html">3D и рендеры</a>
+      <a href="real.html">Реальные объекты</a>
+      <a href="calc.html">Расчёты</a>
+      <a href="tools.html">Инструменты</a>
+      <a href="#contact">Контакты</a>
+    </nav>
   </header>
 
-  <section class="hero">
-    <div class="hero-box">
-      <div class="hero-kicker">🌐 Каталог отдельных страниц</div>
-      <h2>Здесь собраны мои отдельные сайты и спецстраницы</h2>
-      <p>На этой странице можно разместить переходы на ваши тематические проекты: «Джунгли», презентационные лендинги, спецстраницы под объекты, интерактивные концепции и любые другие отдельные HTML-сайты.</p>
-      <div class="hero-actions">
-        <a class="btn btn-primary" href="#sites">Открыть каталог</a>
-        <a class="btn" href="index.html">← Вернуться на главную</a>
-      </div>
-    </div>
-  </section>
-
   <main>
-    <section class="section" id="sites">
-      <h3>Мои проекты</h3>
-      <p>Сейчас сюда добавлен ваш сайт «Джунгли». Структура уже готова для расширения: дальше можно добавлять новые карточки с любыми вашими страницами без переделки всей навигации.</p>
-
-      <div class="grid">
-        <article class="card">
-          <div class="card-cover">
-            <div class="tag">Готовый сайт</div>
-            <h4>Джунгли</h4>
+    <section class="hero reveal-in">
+      <div class="hero-grid">
+        <div>
+          <div class="hero-kicker">🌐 Каталог проектов</div>
+          <div class="hero-title">Мои отдельные сайты и красивые спецстраницы</div>
+          <p class="hero-text">Здесь собраны проекты, которые живут как самостоятельные страницы: концепции, презентационные лендинги, атмосферные визуальные сайты и тематические решения под конкретные объекты.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#sites">Открыть каталог</a>
+            <a class="btn" href="index.html">← На главную</a>
           </div>
-          <div class="card-body">
-            <p>Предпроектная страница детского приключенческого парка с 3D-моделью, рендерами, атмосферным визуалом и отдельными переходами на материалы проекта.</p>
-            <div class="meta">
-              <span>3D / Sketchfab</span>
-              <span>Презентация</span>
+        </div>
+
+        <div class="hero-side">
+          <div class="hero-stat">
+            <strong>01</strong>
+            <span>Сайт уже добавлен и готов для перехода.</span>
+          </div>
+          <div class="hero-stat">
+            <strong>∞</strong>
+            <span>Страница легко расширяется новыми проектами без переделки дизайна.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="sites">
+      <h2>Каталог сайтов</h2>
+      <p>Подборка моих отдельных веб-страниц, презентаций и визуальных концепций.</p>
+
+      <div class="sites-grid">
+        <article class="site-card">
+          <div class="site-cover">
+            <div class="site-badge">Готовый проект</div>
+            <h3>Джунгли</h3>
+          </div>
+          <div class="site-body">
+            <p>Атмосферная предпроектная страница детского приключенческого пространства с выразительной подачей, 3D-моделью, рендерами и отдельной визуальной стилистикой.</p>
+            <div class="tags">
               <span>Концепция</span>
+              <span>3D</span>
+              <span>Презентация</span>
+              <span>Визуал</span>
             </div>
-            <div class="card-actions">
+            <div class="site-actions">
               <a class="btn btn-primary" href="djungli.html">Открыть сайт</a>
-              <a class="btn" href="https://sketchfab.com/models/9d4bae41c1d946c5b9c5a2f288f0cacc" target="_blank" rel="noopener nofollow">Sketchfab ↗</a>
             </div>
           </div>
         </article>
 
-        <div class="placeholder">
-          <strong>Место для следующего сайта</strong>
-          Сюда можно добавить вторую карточку: например, отдельную страницу объекта, калькулятора, портфолио проекта или коммерческого предложения.
-        </div>
+        <article class="site-card future">
+          <div class="site-cover">
+            <div class="site-badge">Следующий проект</div>
+            <h3>Новый сайт</h3>
+          </div>
+          <div class="site-body">
+            <p>Здесь можно разместить следующую отдельную страницу: объект, презентацию, коммерческий лендинг, интерактивную концепцию или сайт под конкретную услугу.</p>
+            <div class="tags">
+              <span>Свободное место</span>
+              <span>Под новый проект</span>
+            </div>
+            <div class="site-actions">
+              <a class="btn" href="index.html#contact">Добавить позже</a>
+            </div>
+          </div>
+        </article>
 
-        <div class="placeholder">
-          <strong>Место для ещё одного проекта</strong>
-          Когда пришлёте следующий HTML-файл или ссылку, его можно будет добавить сюда в таком же стиле за пару минут.
+        <article class="site-card future">
+          <div class="site-cover">
+            <div class="site-badge">Следующий проект</div>
+            <h3>Ещё один сайт</h3>
+          </div>
+          <div class="site-body">
+            <p>Карточка для следующего отдельного направления: инженерный сервис, портфолио объекта, визуальная презентация или тематический мини-сайт.</p>
+            <div class="tags">
+              <span>Каталог</span>
+              <span>Расширение</span>
+            </div>
+            <div class="site-actions">
+              <a class="btn" href="index.html#contact">Добавить позже</a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Формат страницы</h2>
+      <div class="mini-grid">
+        <div class="mini-box">
+          <strong>Красивый каталог</strong>
+          <span>Все отдельные сайты собраны в одном месте и выглядят как единая аккуратная система.</span>
+        </div>
+        <div class="mini-box">
+          <strong>Быстрый рост</strong>
+          <span>Можно постепенно добавлять новые карточки и собирать полноценную витрину ваших веб-проектов.</span>
+        </div>
+        <div class="mini-box">
+          <strong>В одном стиле</strong>
+          <span>Дизайн сочетается с основной страницей сайта и не выбивается из общего визуального образа.</span>
         </div>
       </div>
+    </section>
+
+    <section id="contact">
+      <h2>Контакты</h2>
+      <p>
+        Email: <a href="mailto:vitaliy.structengineer@gmail.com">vitaliy.structengineer@gmail.com</a><br>
+        Telegram: <a href="https://t.me/VitaliPro" target="_blank" rel="noopener">@VitaliPro</a>
+      </p>
     </section>
   </main>
 
   <footer>
-    <div class="footer-box">
-      <strong>Как подключить на GitHub Pages:</strong> загрузите файл <code>projects.html</code> в корень сайта и убедитесь, что страница «Джунгли» лежит рядом под именем <code>djungli.html</code>. После этого ссылка из <code>index.html</code> откроет каталог автоматически.
-    </div>
+    <div>© 2025 Виталий Овчинников — Каталог сайтов</div>
+    <div class="footer-note">Инженерия, визуализация, отдельные спецпроекты</div>
   </footer>
+
+  <script>
+    (function(){
+      let ticking = false;
+      const onScroll = () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          const y = window.scrollY || 0;
+          document.body.style.backgroundPositionY = `${-y * 0.06}px`;
+          ticking = false;
+        });
+      };
+      window.addEventListener('scroll', onScroll, { passive:true });
+    })();
+
+    (function(){
+      const io = new IntersectionObserver((entries)=>{
+        entries.forEach(entry=>{
+          if(entry.isIntersecting){
+            entry.target.classList.add('reveal-in');
+            io.unobserve(entry.target);
+          }
+        });
+      },{ threshold:.12 });
+
+      document.querySelectorAll('section, footer').forEach(el=>{
+        if(!el.classList.contains('reveal-in')) io.observe(el);
+      });
+    })();
+  </script>
 </body>
 </html>
