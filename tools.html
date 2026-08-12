@@ -3,369 +3,394 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Archicad → Sketchfab Fix | Онлайн-инструмент для исправления .dae и текстур</title>
-
-<link rel="icon" href="file_0000000030986246a48be624a539648a.webp" type="image/webp" />
-<link rel="canonical" href="https://0vchina.github.io/partfolio/tools.html" />
-
-<!-- SEO -->
-<meta name="description" content="Бесплатный офлайн-инструмент: чинит экспорт Archicad → Sketchfab. Переименовывает текстуры, правит ссылки в .dae, убирает кириллицу. Работает в вашем браузере. ZIP с максимальным сжатием."/>
-<meta name="keywords" content="Archicad, Sketchfab, dae, textures, fix, кириллица, Collada, BIM, textures not loading"/>
-
-<!-- Open Graph -->
-<meta property="og:title" content="Archicad → Sketchfab Fix — онлайн-инструмент" />
-<meta property="og:description" content="Исправляет .dae и текстуры после экспорта из Archicad для Sketchfab. Бесплатно, офлайн, прямо в браузере." />
-<meta property="og:image" content="https://0vchina.github.io/partfolio/tool-preview.webp" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://0vchina.github.io/partfolio/tools.html" />
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-LW6E096HYD"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-LW6E096HYD');
-</script>
-
-<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#071116">
+<title>BaziX DAE Optimizer | Archicad ↔ Sketchfab</title>
+<meta name="description" content="Локальный браузерный конвертер и lossless-оптимизатор COLLADA DAE: исправление текстур, удаление пустых mesh и нулевых треугольников без decimate и без потери качества.">
+<link rel="icon" href="file_0000000030986246a48be624a539648a.webp" type="image/webp">
+<link rel="canonical" href="https://0vchina.github.io/partfolio/tools.html">
 <style>
-  :root{ --accent:#1CAAD9; --panel:#ffffffc8; --brd:#00000014; --shadow:0 10px 28px rgba(0,0,0,.16); }
-  *{box-sizing:border-box}
-  body{ margin:0; font-family:Inter,system-ui,Segoe UI,Arial,sans-serif; color:#0d0d0d; background:#0c1216 url('a2.webp') center/cover fixed no-repeat; }
-  header{position:sticky;top:0;z-index:10;background:#ffffffb8;backdrop-filter:blur(6px);border-bottom:1px solid var(--brd)}
-  .wrap{max-width:1100px;margin:0 auto;padding:12px 14px}
-  nav a{margin-right:12px;color:#0d0d0d;text-decoration:none;font-weight:700;border-bottom:2px solid transparent;padding-bottom:2px}
-  nav a:hover{border-color:var(--accent)}
-  h1{margin:.2rem 0;font-size:1.6rem;font-weight:800}
-  main{max-width:1100px;margin:18px auto;padding:0 14px}
-  section{ background:var(--panel); border:1px solid var(--brd); border-radius:14px; box-shadow:var(--shadow); padding:16px; margin:14px 0; }
-  .grid{display:grid; gap:14px}
-  @media(min-width:900px){ .grid-2{grid-template-columns:1.1fr .9fr} }
-  h2{font-size:1.2rem;margin:.2rem 0 8px}
-  p{line-height:1.6;margin:.4rem 0}
-  .drop{ border:2px dashed #7ad7f0; border-radius:14px; padding:16px; text-align:center; background:#f8feff; color:#001018; }
-  .drop.drag{ background:#e9fbff; border-color:#1CAAD9 }
-  .hint{font-size:.95rem;opacity:.85}
-  .row{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
-  .btn{ border:1px solid var(--brd); background:#fff; border-radius:10px; padding:10px 14px; font-weight:700; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,.1); }
-  .btn.primary{ background:linear-gradient(90deg,#1CAAD9,#7AD7F0); color:#001018; }
-  .btn[disabled]{opacity:.5;cursor:not-allowed}
-  .files, .log{font-family:ui-monospace,Consolas,monospace;font-size:.92rem;border-radius:10px}
-  .files{background:#fff;border:1px solid var(--brd);padding:10px;max-height:240px;overflow:auto}
-  .log{background:#0b141a;color:#d6f0ff;padding:12px;max-height:360px;overflow:auto;border:1px solid #0f2833}
-  .stat{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:10px}
-  .pill{background:#fff;border:1px solid var(--brd);border-radius:999px;padding:6px 10px;font-weight:700}
-  footer{color:#fff;opacity:.85;text-align:center;padding:24px}
-  .credit{margin-top:8px}
-  .credit-badge{display:inline-flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--brd);border-radius:999px;padding:8px 12px;box-shadow:var(--shadow);color:#001018;font-weight:800}
-  .credit-badge .pill{background:linear-gradient(90deg,#1CAAD9,#7AD7F0);padding:4px 10px;border-radius:999px}
-
-  /* Справка-свёртка */
-  details.seo{
-    background:#fff; border:1px solid var(--brd); border-radius:12px; padding:10px 12px; margin-top:10px;
-  }
-  details.seo summary{cursor:pointer; list-style:none; font-weight:800}
-  details.seo summary::-webkit-details-marker{display:none}
-  details.seo[open]{box-shadow:0 8px 24px rgba(0,0,0,.08)}
-  .hidden{position:absolute;left:-9999px}
+:root{
+  --bg:#071116;--bg2:#0a171d;--panel:rgba(13,28,35,.82);--panel2:rgba(18,37,45,.72);
+  --line:rgba(162,222,239,.16);--line2:rgba(162,222,239,.27);--txt:#eaf7fb;--muted:#91a9b2;
+  --accent:#55d7f4;--accent2:#8df0ce;--ok:#6ce0a5;--warn:#ffd27a;--bad:#ff8c8c;
+  --shadow:0 28px 80px rgba(0,0,0,.34);--r:22px;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;color:var(--txt);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:
+  radial-gradient(900px 600px at 8% -10%,rgba(85,215,244,.13),transparent 60%),
+  radial-gradient(800px 600px at 94% 4%,rgba(141,240,206,.09),transparent 58%),
+  linear-gradient(180deg,#071116 0%,#081318 38%,#061015 100%);min-height:100vh}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.035;background-image:linear-gradient(rgba(255,255,255,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.35) 1px,transparent 1px);background-size:32px 32px}
+a{color:inherit}.shell{width:min(1220px,calc(100% - 32px));margin:0 auto}
+.topbar{position:sticky;top:0;z-index:30;border-bottom:1px solid var(--line);background:rgba(7,17,22,.78);backdrop-filter:blur(18px)}
+.topbar .shell{height:68px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;font-weight:800;letter-spacing:.01em}.mark{width:34px;height:34px;border-radius:11px;background:linear-gradient(145deg,var(--accent),var(--accent2));box-shadow:0 8px 28px rgba(85,215,244,.22);position:relative}.mark:after{content:"B";position:absolute;inset:0;display:grid;place-items:center;color:#042029;font-size:18px;font-weight:900}.brand small{display:block;color:var(--muted);font-weight:600;font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-top:1px}
+nav{display:flex;gap:6px;flex-wrap:wrap}nav a{text-decoration:none;color:var(--muted);font-size:13px;font-weight:700;padding:9px 11px;border-radius:10px}nav a:hover,nav a.active{color:var(--txt);background:rgba(255,255,255,.055)}
+.hero{padding:64px 0 34px}.eyebrow{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line2);background:rgba(85,215,244,.06);padding:7px 11px;border-radius:999px;color:#cdeff7;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 5px rgba(108,224,165,.09)}
+.hero-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:32px;align-items:end}.hero h1{font-size:clamp(38px,5vw,72px);line-height:.97;letter-spacing:-.055em;margin:18px 0 18px;max-width:900px}.hero h1 span{background:linear-gradient(100deg,#fff 10%,#a6ebf8 55%,#8df0ce 100%);-webkit-background-clip:text;background-clip:text;color:transparent}.lead{font-size:17px;line-height:1.65;color:#a7bec6;max-width:760px;margin:0}.quality-card{border:1px solid var(--line2);background:linear-gradient(145deg,rgba(85,215,244,.08),rgba(141,240,206,.045));border-radius:20px;padding:18px}.quality-top{display:flex;justify-content:space-between;align-items:center;gap:12px}.quality-value{font-size:36px;font-weight:900;letter-spacing:-.05em}.quality-card p{color:var(--muted);font-size:12px;line-height:1.5;margin:8px 0 0}.shield{width:42px;height:42px;border-radius:14px;border:1px solid rgba(108,224,165,.26);display:grid;place-items:center;background:rgba(108,224,165,.07);font-size:20px}
+.workspace{padding-bottom:64px}.grid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(340px,.88fr);gap:18px;align-items:start}.panel{border:1px solid var(--line);background:linear-gradient(180deg,var(--panel),rgba(8,20,25,.87));box-shadow:var(--shadow);border-radius:var(--r);overflow:hidden}.panel-head{padding:19px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:14px}.panel-title{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:850}.step{width:26px;height:26px;border-radius:9px;display:grid;place-items:center;background:rgba(85,215,244,.09);border:1px solid var(--line2);color:#b8f0fb;font-size:12px}.panel-body{padding:20px}
+.drop{min-height:260px;border:1.5px dashed rgba(85,215,244,.38);border-radius:18px;background:linear-gradient(180deg,rgba(85,215,244,.045),rgba(255,255,255,.018));display:grid;place-items:center;text-align:center;padding:28px;transition:.2s ease;cursor:pointer;outline:none}.drop:hover,.drop.drag{border-color:var(--accent);background:rgba(85,215,244,.075);transform:translateY(-1px)}.drop-icon{width:62px;height:62px;margin:0 auto 16px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(145deg,rgba(85,215,244,.18),rgba(141,240,206,.1));border:1px solid var(--line2);font-size:28px}.drop strong{font-size:19px}.drop p{color:var(--muted);margin:8px auto 0;line-height:1.55;max-width:500px}.chips{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:14px}.chip{border:1px solid var(--line);background:rgba(255,255,255,.035);border-radius:999px;padding:5px 8px;font-size:11px;color:#a9c1c9;font-weight:700}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.btn{appearance:none;border:1px solid var(--line2);background:rgba(255,255,255,.045);color:var(--txt);border-radius:12px;padding:11px 14px;font-weight:800;font-size:13px;cursor:pointer;transition:.18s ease}.btn:hover:not(:disabled){transform:translateY(-1px);border-color:rgba(85,215,244,.48);background:rgba(85,215,244,.075)}.btn.primary{border-color:transparent;background:linear-gradient(100deg,var(--accent),var(--accent2));color:#042029;box-shadow:0 12px 26px rgba(85,215,244,.15)}.btn.ghost{border-color:transparent;color:var(--muted);background:transparent}.btn:disabled{opacity:.38;cursor:not-allowed}.hidden{display:none!important}
+.files{margin-top:15px;border-top:1px solid var(--line);padding-top:12px;max-height:210px;overflow:auto}.file-row{display:grid;grid-template-columns:1fr auto;gap:10px;padding:8px 2px;border-bottom:1px solid rgba(255,255,255,.045);font:12px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;color:#c8dce2}.file-row span:last-child{color:var(--muted)}
+.option-list{display:grid;gap:8px}.option{display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:start;border:1px solid var(--line);border-radius:14px;padding:12px 13px;background:rgba(255,255,255,.025)}.option input{margin-top:3px;accent-color:#66d9ee}.option strong{display:block;font-size:13px}.option small{display:block;color:var(--muted);margin-top:3px;line-height:1.45}.badge{font-size:10px;font-weight:900;padding:4px 7px;border-radius:999px;border:1px solid rgba(108,224,165,.2);color:#aaf1ca;background:rgba(108,224,165,.055);white-space:nowrap}.badge.safe{color:#aaf1ca}.badge.compat{color:#b9eaf4;border-color:rgba(85,215,244,.2);background:rgba(85,215,244,.055)}
+.runbox{margin-top:14px;border:1px solid var(--line2);border-radius:16px;padding:14px;background:linear-gradient(145deg,rgba(85,215,244,.055),rgba(141,240,206,.025))}.runline{display:flex;justify-content:space-between;gap:12px;align-items:center}.progress{height:7px;background:rgba(255,255,255,.065);border-radius:99px;overflow:hidden;margin-top:12px}.progress>i{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .18s ease}.status{font-size:12px;color:var(--muted);margin-top:8px;min-height:18px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}.metric{border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(255,255,255,.026)}.metric .v{font-size:23px;font-weight:900;letter-spacing:-.035em}.metric .k{font-size:11px;color:var(--muted);margin-top:4px}.metric.good .v{color:#9ff0c5}.metric.warn .v{color:#ffe0a1}
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.report{min-height:255px;background:#061015;border:1px solid var(--line);border-radius:16px;padding:14px;overflow:auto;max-height:400px;font:11.5px/1.62 ui-monospace,SFMono-Regular,Consolas,monospace;color:#b8d4dc;white-space:pre-wrap}.issues{display:grid;gap:8px}.issue{border:1px solid var(--line);border-radius:12px;padding:10px 11px;font-size:12px;line-height:1.45;background:rgba(255,255,255,.025)}.issue.ok{border-color:rgba(108,224,165,.18)}.issue.warn{border-color:rgba(255,210,122,.18)}.issue.bad{border-color:rgba(255,140,140,.18)}.issue strong{display:block;margin-bottom:2px}.issue span{color:var(--muted)}
+.note{font-size:11px;line-height:1.55;color:var(--muted);margin-top:10px}.lockline{display:flex;gap:8px;align-items:center;color:#aaf1ca;font-size:11px;font-weight:800}.download-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}.save{font-size:12px;color:var(--muted)}
+footer{padding:18px 0 40px;color:#738b94;font-size:12px}.foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:18px}
+@media(max-width:900px){.hero-grid,.grid,.report-grid{grid-template-columns:1fr}.quality-card{max-width:420px}.metrics{grid-template-columns:repeat(2,1fr)}nav{display:none}.hero{padding-top:42px}.hero h1{font-size:48px}}
+@media(max-width:520px){.shell{width:min(100% - 20px,1220px)}.topbar .shell{height:60px}.hero h1{font-size:40px}.hero{padding-top:34px}.panel-body,.panel-head{padding:15px}.metrics{grid-template-columns:1fr 1fr}.metric .v{font-size:19px}.drop{min-height:220px;padding:20px}.option{grid-template-columns:auto 1fr}.option .badge{grid-column:2}.btn{width:100%}.actions .btn.ghost{width:auto}}
 </style>
 </head>
 <body>
-<header>
-  <div class="wrap">
-    <nav>
-      <a href="index.html">Главная</a>
-      <a href="models.html">3D и рендеры</a>
-      <a href="real.html">Реальные объекты</a>
-      <a href="calc.html">Расчёты</a>
-      <a href="tools.html" style="border-color:var(--accent)">Инструменты</a>
-    </nav>
-    <h1>Archicad → Sketchfab Fix — бесплатный онлайн-инструмент</h1>
-
-    <!-- Справка: по умолчанию закрыта -->
-    <details class="seo">
-      <summary>Справка — что делает инструмент?</summary>
-      <p><strong>Назначение:</strong> исправляет «слетающие» текстуры после экспорта из Archicad в Sketchfab.</p>
-      <p>Инструмент переименовывает текстуры в формат <code>prefix_1234.ext</code> (транслит кириллицы), а в <code>.dae</code>
-        приводит пути в <code>&lt;init_from&gt;</code> к чистым именам и заменяет их на новые.</p>
-      <p>Работает локально в браузере — файлы никуда не отправляются. Архив — ZIP (DEFLATE 9). RAR из браузера создать нельзя.</p>
-      <p class="hint">Поддержка: .zip (dae+textures), .dae, .png, .jpg, .jpeg, .webp, .tga, .bmp, .tif, .tiff, .dds</p>
-    </details>
+<header class="topbar">
+  <div class="shell">
+    <a class="brand" href="index.html"><span class="mark"></span><span>BaziX Engineering<small>DAE tools</small></span></a>
+    <nav><a href="index.html">Главная</a><a href="models.html">3D</a><a href="calc.html">Расчёты</a><a class="active" href="tools.html">DAE Optimizer</a></nav>
   </div>
 </header>
 
-<main>
-  <section class="grid grid-2">
+<section class="hero">
+  <div class="shell hero-grid">
     <div>
-      <h2>1) Загрузка</h2>
-      <div id="drop" class="drop" tabindex="0">
-        <strong>Перетащите сюда</strong> <code>.dae</code> + текстуры <em>или</em> один <strong>.zip</strong><br>
-        <span class="hint">Можно также выбрать файлы/папку/ZIP кнопками ниже</span>
-      </div>
-
-      <div class="row">
-        <button id="btnFiles" class="btn">Выбрать файлы…</button>
-        <input id="inFiles" type="file" multiple class="hidden">
-
-        <button id="btnDir" class="btn">Выбрать папку…</button>
-        <input id="inDir" type="file" webkitdirectory directory multiple class="hidden">
-
-        <button id="btnZip" class="btn">Выбрать ZIP…</button>
-        <input id="inZip" type="file" accept=".zip" class="hidden">
-
-        <button id="clearBtn" class="btn">Очистить список</button>
-      </div>
-
-      <div id="filesList" class="files" style="margin-top:10px;display:none"></div>
+      <div class="eyebrow"><span class="dot"></span> Local processing · файлы не загружаются на сервер</div>
+      <h1><span>DAE Optimizer</span><br>для Archicad и Sketchfab</h1>
+      <p class="lead">Чинит пути к текстурам, убирает экспортный мусор COLLADA и собирает компактный ZIP. Оптимизация работает без decimate, без пережатия текстур и без изменения видимой геометрии.</p>
     </div>
+    <div class="quality-card">
+      <div class="quality-top"><div><div class="quality-value">100%</div><strong>Geometry Lock</strong></div><div class="shield">◆</div></div>
+      <p>Координаты нормальных вершин, UV, нормали и непустые грани не упрощаются. Удаляются только данные, которые не дают видимой площади/содержимого.</p>
+    </div>
+  </div>
+</section>
 
-    <div>
-      <h2>2) Обработка</h2>
-      <p class="hint">Всё автоматически: транслит + <code>prefix_1234.ext</code> + правка <code>&lt;init_from&gt;</code></p>
-      <div class="row">
-        <button id="runBtn" class="btn primary" disabled>Запустить фиксацию</button>
-        <button id="zipBtn" class="btn" disabled>Скачать ZIP (max)</button>
+<main class="workspace shell">
+  <div class="grid">
+    <section class="panel">
+      <div class="panel-head"><div class="panel-title"><span class="step">1</span> Модель</div><span id="inputSummary" class="save">Нет файлов</span></div>
+      <div class="panel-body">
+        <div id="drop" class="drop" tabindex="0" role="button" aria-label="Загрузить DAE или ZIP">
+          <div>
+            <div class="drop-icon">⇧</div>
+            <strong>Перетащи DAE + текстуры или ZIP</strong>
+            <p>Можно выбрать экспортированную папку целиком. Для больших моделей лучше загружать ZIP.</p>
+            <div class="chips"><span class="chip">.dae</span><span class="chip">.zip</span><span class="chip">PNG / JPG / WEBP</span><span class="chip">TGA / TIFF / DDS</span></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="btnZip" class="btn primary">Выбрать ZIP</button>
+          <button id="btnFiles" class="btn">Файлы</button>
+          <button id="btnDir" class="btn">Папка</button>
+          <button id="clearBtn" class="btn ghost">Очистить</button>
+        </div>
+        <input id="inZip" class="hidden" type="file" accept=".zip">
+        <input id="inFiles" class="hidden" type="file" multiple>
+        <input id="inDir" class="hidden" type="file" webkitdirectory directory multiple>
+        <div id="files" class="files hidden"></div>
       </div>
-      <div class="stat" id="stat" style="display:none">
-        <div class="pill" id="daeStat">DAE: —</div>
-        <div class="pill" id="texStat">Текстур переименовано: —</div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><div class="panel-title"><span class="step">2</span> Lossless-профиль</div><span class="lockline">◆ QUALITY LOCK</span></div>
+      <div class="panel-body">
+        <div class="option-list">
+          <label class="option"><input id="opPaths" type="checkbox" checked><span><strong>Исправить текстуры</strong><small>Нормализует пути &lt;init_from&gt;, транслит и коллизии имён.</small></span><span class="badge compat">совместимость</span></label>
+          <label class="option"><input id="opDegenerate" type="checkbox" checked><span><strong>Удалить нулевые треугольники</strong><small>Только треугольники с повторными вершинами или площадью на уровне вычислительного нуля.</small></span><span class="badge safe">без потерь</span></label>
+          <label class="option"><input id="opEmpty" type="checkbox" checked><span><strong>Удалить пустые mesh</strong><small>Убирает geometry без отображаемых примитивов и их instance_geometry.</small></span><span class="badge safe">без потерь</span></label>
+          <label class="option"><input id="opDupeTex" type="checkbox" checked><span><strong>Объединить одинаковые текстуры</strong><small>SHA-256: только побайтово идентичные файлы, без рекомпрессии.</small></span><span class="badge safe">без потерь</span></label>
+          <label class="option"><input id="opCompact" type="checkbox" checked><span><strong>Компактный XML + ZIP-9</strong><small>Убирает служебные отступы между тегами и максимально сжимает контейнер.</small></span><span class="badge safe">без потерь</span></label>
+        </div>
+        <div class="runbox">
+          <div class="runline"><strong>Готов к обработке</strong><button id="runBtn" class="btn primary" disabled>Анализ + оптимизация</button></div>
+          <div class="progress"><i id="progress"></i></div>
+          <div id="status" class="status">Добавь модель, чтобы запустить проверку.</div>
+        </div>
+        <p class="note">Не используется: polygon decimation, merge-by-distance, пересчёт UV/нормалей, изменение точности координат, JPEG/WebP recompression. Это сознательно исключено из режима без потери качества.</p>
+      </div>
+    </section>
+  </div>
+
+  <section id="resultPanel" class="panel hidden" style="margin-top:18px">
+    <div class="panel-head"><div class="panel-title"><span class="step">3</span> Результат</div><span id="resultState" class="lockline">◆ ПРОВЕРЕНО</span></div>
+    <div class="panel-body">
+      <div class="metrics">
+        <div class="metric"><div id="mTriangles" class="v">—</div><div class="k">Треугольников исходно</div></div>
+        <div class="metric good"><div id="mDegenerate" class="v">—</div><div class="k">Нулевых удалено</div></div>
+        <div class="metric good"><div id="mEmpty" class="v">—</div><div class="k">Пустых mesh удалено</div></div>
+        <div class="metric good"><div id="mDupes" class="v">—</div><div class="k">Дублей текстур</div></div>
+        <div class="metric"><div id="mDaeBefore" class="v">—</div><div class="k">DAE до</div></div>
+        <div class="metric good"><div id="mDaeAfter" class="v">—</div><div class="k">DAE после</div></div>
+        <div class="metric warn"><div id="mBroken" class="v">—</div><div class="k">Неразрешённых ссылок</div></div>
+        <div class="metric good"><div id="mSaved" class="v">—</div><div class="k">Экономия DAE</div></div>
+      </div>
+      <div class="report-grid">
+        <div>
+          <h3 style="font-size:13px;margin:0 0 9px">Диагностика</h3>
+          <div id="issues" class="issues"></div>
+        </div>
+        <div>
+          <h3 style="font-size:13px;margin:0 0 9px">Технический лог</h3>
+          <div id="log" class="report"></div>
+        </div>
+      </div>
+      <div class="download-row">
+        <button id="downloadBtn" class="btn primary" disabled>Скачать оптимизированный ZIP</button>
+        <span id="zipInfo" class="save"></span>
       </div>
     </div>
-  </section>
-
-  <section>
-    <h2>3) Отчёт</h2>
-    <div id="log" class="log">Здесь появится лог изменений…</div>
   </section>
 </main>
 
-<footer>
-  <div>© 2025 Виталий Овчинников</div>
-  <div class="credit">
-    <div class="credit-badge">
-      <span class="pill">Виталий Овчинников</span><span>×</span><span class="pill">GPT-5 Thinking</span>
-    </div>
-  </div>
-</footer>
+<footer><div class="shell foot"><span>© BaziX Engineering · Vitaliy Ovchinnikov</span><span>COLLADA lossless repair / optimization</span></div></footer>
 
-<!-- JSZip для распаковки/сборки ZIP -->
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 (() => {
-  const IMAGE_EXTS = new Set([".png",".jpg",".jpeg",".webp",".tga",".bmp",".tif",".tiff",".dds"]);
-  const $ = sel => document.querySelector(sel);
+'use strict';
+const IMAGE_EXTS = new Set(['.png','.jpg','.jpeg','.webp','.tga','.bmp','.tif','.tiff','.dds']);
+const PRIMITIVES = ['triangles','polylist','polygons','lines','linestrips','trifans','tristrips'];
+const $ = s => document.querySelector(s);
+const state = { files:new Map(), zipBlob:null, sourceZipBytes:0, report:null };
 
-  const logEl = $("#log"), filesListEl = $("#filesList");
-  const runBtn = $("#runBtn"), zipBtn = $("#zipBtn");
-  const daeStatEl = $("#daeStat"), texStatEl = $("#texStat");
+const els = {
+  drop:$('#drop'), files:$('#files'), inputSummary:$('#inputSummary'), run:$('#runBtn'), progress:$('#progress'), status:$('#status'),
+  result:$('#resultPanel'), issues:$('#issues'), log:$('#log'), download:$('#downloadBtn'), zipInfo:$('#zipInfo')
+};
 
-  const drop = $("#drop");
-  const btnFiles = $("#btnFiles"), inFiles = $("#inFiles");
-  const btnDir = $("#btnDir"), inDir = $("#inDir");
-  const btnZip = $("#btnZip"), inZip = $("#inZip");
+function extOf(name){ const i=name.lastIndexOf('.'); return i>=0 ? name.slice(i).toLowerCase() : ''; }
+function baseName(p){ return String(p||'').split(/[\\/]/).pop(); }
+function stemOf(p){ const b=baseName(p), i=b.lastIndexOf('.'); return i>0?b.slice(0,i):b; }
+function fmtBytes(n){ if(!Number.isFinite(n))return '—'; const u=['B','KB','MB','GB']; let i=0,v=n; while(v>=1024&&i<u.length-1){v/=1024;i++;} return `${v>=100||i===0?v.toFixed(0):v.toFixed(1)} ${u[i]}`; }
+function fmtInt(n){ return Number(n||0).toLocaleString('ru-RU'); }
+function escRe(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function getAttr(tag,name){ const m=tag.match(new RegExp('\\b'+escRe(name)+'\\s*=\\s*["\\\']([^"\\\']*)["\\\']','i')); return m?m[1]:null; }
+function setProgress(v,text){ els.progress.style.width=Math.max(0,Math.min(100,v))+'%'; if(text)els.status.textContent=text; }
+function yieldUI(){ return new Promise(r=>setTimeout(r,0)); }
+function log(s){ const line=String(s); els.log.textContent += (els.log.textContent?'\n':'')+line; els.log.scrollTop=els.log.scrollHeight; }
 
-  const fileMap = new Map(); // rel -> File
-  let lastZipBlob = null;
+function translit(s){
+  const t={'А':'A','Б':'B','В':'V','Г':'G','Д':'D','Е':'E','Ё':'E','Ж':'Zh','З':'Z','И':'I','Й':'Y','К':'K','Л':'L','М':'M','Н':'N','О':'O','П':'P','Р':'R','С':'S','Т':'T','У':'U','Ф':'F','Х':'Kh','Ц':'Ts','Ч':'Ch','Ш':'Sh','Щ':'Sch','Ъ':'','Ы':'Y','Ь':'','Э':'E','Ю':'Yu','Я':'Ya','а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'e','ж':'zh','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'sch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya','’':'','‘':'','ʼ':''};
+  return String(s).replace(/./g,ch=>t[ch]??ch);
+}
+function normalizeTexName(name){
+  const bn=baseName(name), dot=bn.lastIndexOf('.'), stem=dot>=0?bn.slice(0,dot):bn, ext=dot>=0?bn.slice(dot).toLowerCase():'';
+  const parts=stem.split('_'); let out=stem;
+  if(parts.length>=2){ const tail=parts.slice(1).join('_'); const m=tail.match(/^\d+/); if(m)out=`${parts[0]}_${m[0]}`; }
+  out=translit(out).normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9._-]+/g,'_').replace(/^_+|_+$/g,'') || 'texture';
+  return out+ext;
+}
+function canonicalPath(p){
+  let s=String(p||'').trim().replace(/^file:\/\//i,'').replace(/\\/g,'/').replace(/^[A-Za-z]:/,'').replace(/^\/+/, '');
+  try{s=decodeURIComponent(s)}catch(_){ }
+  s=s.replace(/^\.\//,'').replace(/\/\.\//g,'/');
+  return s;
+}
 
-  const addLog = s => { logEl.textContent += (logEl.textContent ? "\n" : "") + s; logEl.scrollTop = logEl.scrollHeight; };
-  const extOf = n => { const i=n.lastIndexOf("."); return i>=0 ? n.slice(i).toLowerCase() : ""; };
-  const baseName = p => p.split(/[\\/]/).pop();
+async function sha256(blob){
+  const data=await blob.arrayBuffer(); const hash=await crypto.subtle.digest('SHA-256',data);
+  return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 
-  // Транслит
-  function translitBasic(s){
-    const t={"А":"A","Б":"B","В":"V","Г":"G","Д":"D","Е":"E","Ё":"E","Ж":"Zh","З":"Z","И":"I","Й":"Y","К":"K","Л":"L","М":"M","Н":"N","О":"O","П":"P","Р":"R","С":"S","Т":"T","У":"U","Ф":"F","Х":"Kh","Ц":"Ts","Ч":"Ch","Ш":"Sh","Щ":"Sch","Ъ":"","Ы":"Y","Ь":"","Э":"E","Ю":"Yu","Я":"Ya","а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"e","ж":"zh","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"kh","ц":"ts","ч":"ch","ш":"sh","щ":"sch","ъ":"","ы":"y","ь":"","э":"e","ю":"yu","я":"ya","’":"","‘":"","ʼ":""};
-    return s.replace(/./g, ch => t[ch] ?? ch);
+async function ingestZip(file){
+  state.sourceZipBytes=file.size||0; setProgress(3,'Распаковываю ZIP…');
+  const zip=await JSZip.loadAsync(file); let count=0;
+  for(const [name,entry] of Object.entries(zip.files)){
+    if(entry.dir)continue; const ext=extOf(name); if(ext!=='.dae'&&!IMAGE_EXTS.has(ext))continue;
+    const blob=await entry.async('blob'); const f=new File([blob],baseName(name),{type:blob.type||'application/octet-stream'});
+    state.files.set(name.replace(/\\/g,'/'),f); count++;
+    if(count%20===0)await yieldUI();
   }
+  setProgress(0,`Из ZIP загружено файлов: ${count}`); renderFiles();
+}
+function ingestFiles(list){
+  state.sourceZipBytes=0;
+  for(const f of list){ const rel=(f.webkitRelativePath||f.name).replace(/\\/g,'/'); if(extOf(rel)==='.zip'){ ingestZip(f).catch(e=>fail(e)); } else state.files.set(rel,f); }
+  renderFiles();
+}
+function renderFiles(){
+  const rows=[]; let dae=0,tex=0,bytes=0;
+  for(const [p,f] of state.files){ const ext=extOf(p); bytes+=f.size||0; if(ext==='.dae')dae++; if(IMAGE_EXTS.has(ext))tex++; rows.push(`<div class="file-row"><span>${escapeHtml(p)}</span><span>${fmtBytes(f.size||0)}</span></div>`); }
+  els.files.innerHTML=rows.join(''); els.files.classList.toggle('hidden',!rows.length); els.inputSummary.textContent=rows.length?`${dae} DAE · ${tex} текстур · ${fmtBytes(bytes)}`:'Нет файлов';
+  els.run.disabled=dae===0; state.zipBlob=null; els.download.disabled=true; els.result.classList.add('hidden');
+  if(dae>1)els.status.textContent='Найдено несколько DAE — будет обработан первый файл.'; else els.status.textContent=dae?'Модель готова к анализу.':'Добавь модель, чтобы запустить проверку.';
+}
+function clearAll(){ state.files.clear(); state.zipBlob=null; state.report=null; state.sourceZipBytes=0; els.log.textContent=''; setProgress(0,'Добавь модель, чтобы запустить проверку.'); renderFiles(); }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
 
-  // Имя текстуры: prefix_1234.ext (цифры сразу после первого "_"), с транслитом
-  function normalizeTexName(name){
-    const bn = baseName(name);
-    const dot = bn.lastIndexOf(".");
-    const stem = dot>=0 ? bn.slice(0,dot) : bn;
-    const ext = dot>=0 ? bn.slice(dot) : "";
-    const parts = stem.split("_");
-    if(parts.length < 2) return translitBasic(bn);
-    const prefix = parts[0];
-    const tail = parts.slice(1).join("_");
-    let digits = "";
-    for(const ch of tail){ if(/\d/.test(ch)) digits += ch; else break; }
-    const result = digits ? `${prefix}_${digits}${ext}` : bn;
-    return translitBasic(result);
+async function buildTexturePlan(files, dedupe){
+  const textures=[]; for(const [path,file] of files){ if(IMAGE_EXTS.has(extOf(path)))textures.push({path:canonicalPath(path),file}); }
+  const taken=new Set(), hashToRep=new Map(), pathMap=new Map(), baseCandidates=new Map(), outputs=new Map(); let dupes=0, renamed=0;
+  for(let i=0;i<textures.length;i++){
+    const t=textures[i]; let name=normalizeTexName(baseName(t.path));
+    if(taken.has(name)){ const dot=name.lastIndexOf('.'), stem=dot>=0?name.slice(0,dot):name, ext=dot>=0?name.slice(dot):''; let k=2,c=`${stem}-${k}${ext}`; while(taken.has(c))c=`${stem}-${++k}${ext}`; name=c; }
+    let repName=name;
+    if(dedupe){ const h=await sha256(t.file); if(hashToRep.has(h)){ repName=hashToRep.get(h); dupes++; } else { hashToRep.set(h,name); taken.add(name); outputs.set(name,t.file); } }
+    else { taken.add(name); outputs.set(name,t.file); }
+    pathMap.set(t.path,repName); const b=baseName(t.path); if(!baseCandidates.has(b))baseCandidates.set(b,new Set()); baseCandidates.get(b).add(repName);
+    if(repName!==b)renamed++;
+    if(i%10===0){ setProgress(8+8*(i/Math.max(1,textures.length)),`Проверяю текстуры ${i+1}/${textures.length}…`); await yieldUI(); }
   }
+  const baseMap=new Map(); for(const [b,set] of baseCandidates){ if(set.size===1)baseMap.set(b,[...set][0]); }
+  return {outputs,pathMap,baseMap,dupes,renamed,total:textures.length};
+}
 
-  // Переписываем <init_from> → только базовое имя, применяем mapping/нормализацию
-  function rewriteDaeTextByMapping(text, mapping){
-    let changed = 0;
-    const out = text.replace(/(<init_from>\s*)([^<]+?)(\s*<\/init_from>)/gi, (full,p1,inner,p3)=>{
-      // убираем file://, диски Windows, ведущие слеши, папки
-      const raw = inner.trim()
-        .replace(/^file:\/\//i,"")
-        .replace(/^[A-Za-z]:/,"")
-        .replace(/^\/+/,"");
-      const key = baseName(raw);
-      let target = mapping.get(key) || normalizeTexName(key);
-      if(target !== key) changed++;
-      return `${p1}${target}${p3}`;
-    });
-    return {text: out, count: changed};
-  }
-
-  async function addZip(file){
-    try{
-      const zip = await JSZip.loadAsync(file);
-      let count=0;
-      await Promise.all(Object.keys(zip.files).map(async (name)=>{
-        const entry = zip.files[name];
-        if(entry.dir) return;
-        const bn = baseName(name);
-        const ext = extOf(bn);
-        if(ext===".zip") return;
-        if(ext===".dae" || IMAGE_EXTS.has(ext)){
-          const blob = await entry.async("blob");
-          const f = new File([blob], bn, {type: blob.type || "application/octet-stream"});
-          fileMap.set(bn, f); count++;
-        }
-      }));
-      addLog(`Загружено из ZIP: ${count} файлов.`);
-    }catch(e){
-      addLog("Ошибка чтения ZIP: "+e);
+function rewriteInitFrom(text,plan,enabled){
+  const unresolved=[]; let changed=0, total=0;
+  if(!enabled)return {text,changed,total,unresolved};
+  const out=text.replace(/(<init_from>\s*)([^<]*?)(\s*<\/init_from>)/gi,(full,a,inner,b)=>{
+    const raw=inner.trim(); if(!raw)return full; total++;
+    const c=canonicalPath(raw), bn=baseName(c); let target=plan.pathMap.get(c)||plan.baseMap.get(bn)||null;
+    if(!target){
+      // Некоторые init_from в COLLADA указывают на ID, а не на файл. Ошибкой считаем только похожие на файловые пути.
+      if(raw.includes('/') || raw.includes('\\') || extOf(c)) unresolved.push(raw);
+      return full;
     }
-  }
-
-  function addFiles(list){
-    for(const f of list){
-      const rel = f.webkitRelativePath || f.name;
-      if(extOf(rel)===".zip"){ addZip(f); } else { fileMap.set(rel, f); }
-    }
-    renderFiles();
-  }
-
-  function renderFiles(){
-    if(fileMap.size===0){ filesListEl.style.display="none"; filesListEl.textContent=""; runBtn.disabled=true; return; }
-    const lines=[]; let hasDae=false;
-    for(const [rel,f] of fileMap.entries()){
-      lines.push(`${rel} (${Math.round((f.size||0)/1024)} KB)`);
-      if(extOf(rel)===".dae") hasDae=true;
-    }
-    filesListEl.textContent = lines.join("\n");
-    filesListEl.style.display="block";
-    runBtn.disabled = !hasDae;
-    zipBtn.disabled = true;
-    document.getElementById("stat").style.display="none";
-    daeStatEl.textContent="DAE: —"; texStatEl.textContent="Текстур переименовано: —";
-  }
-
-  // ——— DnD на зоне (как в рабочей версии)
-  drop.addEventListener("dragover", e=>{ e.preventDefault(); drop.classList.add("drag"); });
-  drop.addEventListener("dragleave", ()=> drop.classList.remove("drag"));
-  drop.addEventListener("drop", e=>{
-    e.preventDefault(); drop.classList.remove("drag");
-    if(e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files);
+    if(target!==raw){changed++; return `${a}${target}${b}`;} return full;
   });
+  return {text:out,changed,total,unresolved:[...new Set(unresolved)]};
+}
 
-  // ——— Кнопки выбора
-  btnFiles.addEventListener("click", ()=> inFiles.click());
-  btnZip  .addEventListener("click", ()=> inZip.click());
-  btnDir  .addEventListener("click", ()=>{
-    if (!('webkitdirectory' in inDir)) {
-      alert('Выбор папки не поддерживается этим браузером. Откройте в Chrome/Edge.');
-      return;
-    }
-    inDir.click();
+function parseFloatArrayForSource(geometry,sourceId){
+  const re=new RegExp('<source\\b[^>]*\\bid=["\\\']'+escRe(sourceId)+'["\\\'][^>]*>([\\s\\S]*?)<\\/source>','i');
+  const sm=geometry.match(re); if(!sm)return null; const body=sm[1]; const fm=body.match(/<float_array\b[^>]*>([\s\S]*?)<\/float_array>/i); if(!fm)return null;
+  const am=body.match(/<accessor\b[^>]*\bstride=["'](\d+)["'][^>]*>/i); const stride=am?Math.max(1,Number(am[1])):3;
+  const raw=fm[1].trim(); if(!raw)return {values:[],stride}; const vals=raw.split(/\s+/).map(Number); if(vals.some(v=>!Number.isFinite(v)))return null; return {values:vals,stride};
+}
+function getVerticesPositionMap(geometry){
+  const map=new Map(); const re=/<vertices\b([^>]*)>([\s\S]*?)<\/vertices>/gi; let m;
+  while((m=re.exec(geometry))){ const id=getAttr(m[1],'id'); if(!id)continue; const im=m[2].match(/<input\b[^>]*\bsemantic=["']POSITION["'][^>]*>/i); if(!im)continue; const src=getAttr(im[0],'source'); if(src)map.set(id,src.replace(/^#/,'')); }
+  return map;
+}
+function isNumericallyZeroTriangle(a,b,c){
+  if(!a||!b||!c)return false;
+  if((a[0]===b[0]&&a[1]===b[1]&&a[2]===b[2])||(a[0]===c[0]&&a[1]===c[1]&&a[2]===c[2])||(b[0]===c[0]&&b[1]===c[1]&&b[2]===c[2]))return true;
+  const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
+  const cx=uy*vz-uz*vy,cy=uz*vx-ux*vz,cz=ux*vy-uy*vx; const cross2=cx*cx+cy*cy+cz*cz;
+  if(cross2===0)return true;
+  // Strict lossless: никаких допусков. Удаляем только площадь, равную нулю в double.
+  return false;
+}
+function pointAt(pos,index){ const o=index*pos.stride; if(o<0||o+2>=pos.values.length)return null; return [pos.values[o],pos.values[o+1],pos.values[o+2]]; }
+
+function pruneUnusedZeroSources(geometry){
+  let removed=0;
+  const out=geometry.replace(/<source\b[^>]*\bid=["']([^"']+)["'][^>]*>[\s\S]*?<\/source>/gi,(full,id)=>{
+    const fm=full.match(/<float_array\b[^>]*\bcount=["'](\d+)["']/i); if(!fm||Number(fm[1])!==0)return full;
+    const ref=new RegExp(`\\bsource\\s*=\\s*["']#${escRe(id)}["']`,'i');
+    if(ref.test(geometry))return full;
+    removed++; return '';
   });
-
-  inFiles.addEventListener("change", e=> addFiles(e.target.files));
-  inZip  .addEventListener("change", e=> addFiles(e.target.files));
-  inDir  .addEventListener("change", e=> addFiles(e.target.files));
-
-  document.getElementById("clearBtn").addEventListener("click", ()=>{ fileMap.clear(); renderFiles(); logEl.textContent="Список очищен."; });
-
-  // ——— Обработка
-  document.getElementById("runBtn").addEventListener("click", async ()=>{
-    logEl.textContent=""; lastZipBlob=null; zipBtn.disabled=true;
-
-    // Находим .dae
-    let daePath=null; for(const [rel] of fileMap.entries()){ if(extOf(rel)===".dae"){ daePath=rel; break; } }
-    if(!daePath){ addLog("Не найден .dae."); return; }
-    addLog(`DAE: ${daePath}`);
-
-    // Строим mapping имён текстур с уникализацией
-    const mapping = new Map();
-    const taken = new Set();
-    let renamedCount = 0;
-
-    for(const [rel,f] of fileMap.entries()){
-      if(extOf(rel)===".dae") continue;
-      if(!IMAGE_EXTS.has(extOf(rel))) continue;
-      const oldBase = baseName(rel);
-      let cand = normalizeTexName(oldBase);
-      if(taken.has(cand)){
-        let k=1, withIdx=cand;
-        const dot = cand.lastIndexOf(".");
-        const stem = dot>=0?cand.slice(0,dot):cand;
-        const ext  = dot>=0?cand.slice(dot):"";
-        while(taken.has(withIdx)){ withIdx = `${stem}-${k}${ext}`; k++; }
-        cand = withIdx;
-      }
-      taken.add(cand);
-      mapping.set(oldBase, cand);
-      if(cand !== oldBase){
-        renamedCount++;
-        addLog(`TEX: ${oldBase} → ${cand}`);
-      }
-    }
-    if(renamedCount===0) addLog("Текстуры не требуют переименования.");
-
-    // Читаем/правим .dae
-    const daeText = await fileMap.get(daePath).text();
-    const {text: patchedText, count: daeFixCount} = rewriteDaeTextByMapping(daeText, mapping);
-    addLog(`Обновлено ссылок в .dae: ${daeFixCount}`);
-
-    // Сборка ZIP (max compression)
-    const zip = new JSZip();
-    zip.file("model_fixed.dae", patchedText);
-
-    for(const [rel,f] of fileMap.entries()){
-      if(extOf(rel)===".dae") continue;
-      if(!IMAGE_EXTS.has(extOf(rel))) continue;
-      const oldBase = baseName(rel);
-      const newBase = mapping.get(oldBase) || normalizeTexName(oldBase);
-      const data = await f.arrayBuffer();
-      zip.file(newBase, data);
-    }
-
-    const report = [
-      "Archicad → Sketchfab Fix report",
-      `dae file: ${daePath}`,
-      `links updated in dae: ${daeFixCount}`,
-      `textures renamed: ${renamedCount}`,
-      "",
-      ...[...mapping.entries()].map(([o,n]) => (o===n?`=`:`*`) + ` ${o} -> ${n}`)
-    ].join("\n");
-    zip.file("report.txt", report);
-
-    lastZipBlob = await zip.generateAsync({
-      type:"blob",
-      compression:"DEFLATE",
-      compressionOptions:{level:9}
-    });
-    zipBtn.disabled=false;
-
-    document.getElementById("stat").style.display="grid";
-    daeStatEl.textContent = `DAE: обновлено ссылок: ${daeFixCount}`;
-    texStatEl.textContent = `Текстур переименовано: ${renamedCount}`;
-    addLog("Готово. Можно скачать ZIP.");
+  return {text:out,removed};
+}
+function dedupeInstanceMaterials(text){
+  let removed=0;
+  const out=text.replace(/<bind_material\b[^>]*>[\s\S]*?<\/bind_material>/gi,block=>{
+    const seen=new Set();
+    return block.replace(/<instance_material\b[^>]*\/>/gi,tag=>{ const key=tag.replace(/\s+/g,' ').trim(); if(seen.has(key)){removed++;return '';} seen.add(key); return tag; });
   });
+  return {text:out,removed};
+}
 
-  document.getElementById("zipBtn").addEventListener("click", ()=>{
-    if(!lastZipBlob) return;
-    const a=document.createElement("a");
-    a.href=URL.createObjectURL(lastZipBlob);
-    a.download="sketchfab_fixed.zip";
-    document.body.appendChild(a); a.click();
-    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },0);
+function optimizeTrianglesInGeometry(geometry,enabled){
+  let total=0,removed=0,groups=0,skipped=0; if(!enabled){
+    geometry.replace(/<triangles\b[^>]*\bcount=["'](\d+)["']/gi,(_,n)=>{total+=Number(n)||0;return _;});
+    return {text:geometry,total,removed,groups,skipped};
+  }
+  const vmap=getVerticesPositionMap(geometry); const posCache=new Map();
+  const out=geometry.replace(/<triangles\b([^>]*)>([\s\S]*?)<\/triangles>/gi,(full,attrs,body)=>{
+    const declared=Number(getAttr(attrs,'count')||0); total+=declared; groups++;
+    const inputs=[...body.matchAll(/<input\b[^>]*>/gi)].map(m=>m[0]); if(!inputs.length){skipped++;return full;}
+    let maxOff=-1,vertexInput=null; for(const tag of inputs){ const off=Number(getAttr(tag,'offset')||0); if(off>maxOff)maxOff=off; if((getAttr(tag,'semantic')||'').toUpperCase()==='VERTEX')vertexInput=tag; }
+    const stride=maxOff+1, vertexOffset=vertexInput?Number(getAttr(vertexInput,'offset')||0):0, verticesId=vertexInput?(getAttr(vertexInput,'source')||'').replace(/^#/,''):''; const posId=vmap.get(verticesId);
+    if(!posId||stride<1){skipped++;return full;}
+    let pos=posCache.get(posId); if(!pos){pos=parseFloatArrayForSource(geometry,posId); if(pos)posCache.set(posId,pos);} if(!pos){skipped++;return full;}
+    const pm=body.match(/<p\b[^>]*>([\s\S]*?)<\/p>/i); if(!pm){skipped++;return full;} const raw=pm[1].trim(); if(!raw)return full;
+    const idx=raw.split(/\s+/).map(Number); const unit=3*stride; if(idx.length%unit!==0||idx.some(v=>!Number.isInteger(v))){skipped++;return full;}
+    const kept=[]; let localRemoved=0;
+    for(let o=0;o<idx.length;o+=unit){ const ia=idx[o+vertexOffset],ib=idx[o+stride+vertexOffset],ic=idx[o+2*stride+vertexOffset]; const deg=ia===ib||ia===ic||ib===ic||isNumericallyZeroTriangle(pointAt(pos,ia),pointAt(pos,ib),pointAt(pos,ic)); if(deg){localRemoved++;continue;} for(let k=0;k<unit;k++)kept.push(idx[o+k]); }
+    if(!localRemoved)return full; removed+=localRemoved; const newCount=kept.length/unit;
+    let newAttrs=attrs; if(/\bcount\s*=/.test(attrs))newAttrs=attrs.replace(/\bcount\s*=\s*["']\d+["']/i,`count="${newCount}"`); else newAttrs+=' count="'+newCount+'"';
+    const newP=`<p>${kept.join(' ')}</p>`; const newBody=body.replace(/<p\b[^>]*>[\s\S]*?<\/p>/i,newP); return `<triangles${newAttrs}>${newBody}</triangles>`;
   });
+  return {text:out,total,removed,groups,skipped};
+}
+function hasVisiblePrimitive(geometry){
+  for(const p of PRIMITIVES){ const re=new RegExp('<'+p+'\\b[^>]*\\bcount=["\\\'](\\d+)["\\\']','gi'); let m; while((m=re.exec(geometry))){ if(Number(m[1])>0)return true; } }
+  return false;
+}
+
+async function optimizeGeometryLibrary(text,opts){
+  const re=/<geometry\b[^>]*>[\s\S]*?<\/geometry>/gi; const chunks=[]; const removedIds=new Set(); let last=0,m,n=0,totalTriangles=0,removedTriangles=0,skippedGroups=0,empty=0,zeroSourcesRemoved=0,protectedEmptySkipped=0;
+  const protectedGeometryIds=new Set([...text.matchAll(/<(?:skin|morph)\b[^>]*\bsource=["']#([^"']+)["']/gi)].map(m=>m[1]));
+  const approximate=(text.match(/<geometry\b/gi)||[]).length||1;
+  while((m=re.exec(text))){ chunks.push(text.slice(last,m.index)); let g=m[0]; const open=g.match(/^<geometry\b[^>]*>/i); const id=open?getAttr(open[0],'id'):null;
+    const tri=optimizeTrianglesInGeometry(g,opts.degenerate); g=tri.text; totalTriangles+=tri.total; removedTriangles+=tri.removed; skippedGroups+=tri.skipped;
+    const pruned=pruneUnusedZeroSources(g); g=pruned.text; zeroSourcesRemoved+=pruned.removed;
+    const isEmpty=!hasVisiblePrimitive(g); if(opts.empty&&isEmpty&&id&&!protectedGeometryIds.has(id)){removedIds.add(id);empty++;} else { if(opts.empty&&isEmpty&&id&&protectedGeometryIds.has(id))protectedEmptySkipped++; chunks.push(g); }
+    last=re.lastIndex; n++; if(n%20===0){setProgress(22+52*(n/approximate),`Геометрия ${n}/${approximate} · удалено нулевых граней ${fmtInt(removedTriangles)}`); await yieldUI();}
+  }
+  chunks.push(text.slice(last)); let out=chunks.join(''); let instancesRemoved=0;
+  if(removedIds.size){
+    // Важно: сначала self-closing, иначе regex парного тега может захватить следующий </instance_geometry>.
+    out=out.replace(/<instance_geometry\b[^>]*\/>/gi,full=>{ const url=getAttr(full,'url'); if(url&&removedIds.has(url.replace(/^#/,''))){instancesRemoved++;return '';} return full; });
+    out=out.replace(/<instance_geometry\b[^>]*>[\s\S]*?<\/instance_geometry>/gi,full=>{ const om=full.match(/^<instance_geometry\b[^>]*>/i); const url=om?getAttr(om[0],'url'):null; if(url&&removedIds.has(url.replace(/^#/,''))){instancesRemoved++;return '';} return full; });
+  }
+  const mat=dedupeInstanceMaterials(out); out=mat.text;
+  return {text:out,totalTriangles,removedTriangles,empty,instancesRemoved,skippedGroups,zeroSourcesRemoved,duplicateMaterialBindingsRemoved:mat.removed,protectedEmptySkipped};
+}
+function compactXml(text){ return text.replace(/<!--[\s\S]*?-->/g,'').replace(/>\s+</g,'><').trim(); }
+function countBrokenLikelyRefs(unresolved){ return unresolved.filter(x=>{ const c=canonicalPath(x); return c.includes('/')||extOf(c); }); }
+
+async function run(){
+  try{
+    els.run.disabled=true; els.download.disabled=true; els.result.classList.remove('hidden'); els.log.textContent=''; els.issues.innerHTML=''; setProgress(2,'Читаю DAE…');
+    const daeEntry=[...state.files.entries()].find(([p])=>extOf(p)==='.dae'); if(!daeEntry)throw new Error('DAE не найден.'); const [daePath,daeFile]=daeEntry;
+    let dae=await daeFile.text(); const beforeBytes=new Blob([dae]).size; log(`DAE: ${daePath}`); log(`Размер DAE до: ${fmtBytes(beforeBytes)}`);
+    const opts={paths:$('#opPaths').checked,degenerate:$('#opDegenerate').checked,empty:$('#opEmpty').checked,dupeTex:$('#opDupeTex').checked,compact:$('#opCompact').checked};
+
+    setProgress(7,'Проверяю текстуры…'); const plan=await buildTexturePlan(state.files,opts.dupeTex); log(`Текстур: ${plan.total}; побайтовых дублей: ${plan.dupes}; переименований/перелинковок: ${plan.renamed}`);
+    setProgress(18,'Исправляю ссылки на текстуры…'); const rew=rewriteInitFrom(dae,plan,opts.paths); dae=rew.text; log(`Ссылок <init_from>: ${rew.total}; обновлено: ${rew.changed}; не разрешено: ${rew.unresolved.length}`);
+
+    setProgress(22,'Проверяю геометрию…'); const geo=await optimizeGeometryLibrary(dae,opts); dae=geo.text; log(`Треугольников исходно: ${fmtInt(geo.totalTriangles)}`); log(`Нулевых треугольников удалено: ${fmtInt(geo.removedTriangles)}`); log(`Пустых mesh удалено: ${fmtInt(geo.empty)}; instance_geometry: ${fmtInt(geo.instancesRemoved)}`); log(`Пустых неиспользуемых source удалено: ${fmtInt(geo.zeroSourcesRemoved)}; дублей material binding: ${fmtInt(geo.duplicateMaterialBindingsRemoved)}`); if(geo.skippedGroups)log(`Групп triangles пропущено из-за нестандартной структуры: ${fmtInt(geo.skippedGroups)}`);
+
+    if(opts.compact){ setProgress(78,'Компактирую XML без изменения данных…'); dae=compactXml(dae); await yieldUI(); }
+    const afterBytes=new Blob([dae]).size; const saved=Math.max(0,beforeBytes-afterBytes), savedPct=beforeBytes?saved/beforeBytes*100:0;
+
+    setProgress(82,'Собираю ZIP…'); const zip=new JSZip(); const daeOut=`${normalizeOutputStem(stemOf(daePath))}_optimized.dae`; zip.file(daeOut,dae);
+    for(const [name,file] of plan.outputs)zip.file(name,await file.arrayBuffer());
+    const report={version:'BaziX DAE Optimizer 2.0',mode:'100% Geometry Lock',source:daePath,created:new Date().toISOString(),options:opts,dae_bytes_before:beforeBytes,dae_bytes_after:afterBytes,triangles_before:geo.totalTriangles,degenerate_triangles_removed:geo.removedTriangles,empty_meshes_removed:geo.empty,instance_geometry_removed:geo.instancesRemoved,textures_input:plan.total,duplicate_textures_removed:plan.dupes,texture_links_updated:rew.changed,unresolved_texture_refs:rew.unresolved,skipped_triangle_groups:geo.skippedGroups,unused_zero_sources_removed:geo.zeroSourcesRemoved,duplicate_material_bindings_removed:geo.duplicateMaterialBindingsRemoved,protected_empty_meshes_kept:geo.protectedEmptySkipped};
+    zip.file('bazix-optimizer-report.json',JSON.stringify(report,null,2));
+    state.zipBlob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:9}},meta=>setProgress(82+17*(meta.percent/100),`Сжимаю ZIP · ${meta.percent.toFixed(0)}%`));
+    state.report=report;
+
+    fillMetrics(report,savedPct); renderIssues(report); els.download.disabled=false; els.zipInfo.textContent=`ZIP: ${fmtBytes(state.zipBlob.size)} · ${daeOut}`; setProgress(100,'Готово. Модель оптимизирована без decimate и без рекомпрессии текстур.'); log(`Размер DAE после: ${fmtBytes(afterBytes)} (−${savedPct.toFixed(1)}%)`); log(`ZIP результата: ${fmtBytes(state.zipBlob.size)}`);
+  }catch(e){ fail(e); }finally{els.run.disabled=![...state.files.keys()].some(p=>extOf(p)==='.dae');}
+}
+function normalizeOutputStem(s){ return translit(s).replace(/[^A-Za-z0-9._-]+/g,'_').replace(/^_+|_+$/g,'')||'model'; }
+function fillMetrics(r,savedPct){
+  $('#mTriangles').textContent=fmtInt(r.triangles_before); $('#mDegenerate').textContent=fmtInt(r.degenerate_triangles_removed); $('#mEmpty').textContent=fmtInt(r.empty_meshes_removed); $('#mDupes').textContent=fmtInt(r.duplicate_textures_removed); $('#mDaeBefore').textContent=fmtBytes(r.dae_bytes_before); $('#mDaeAfter').textContent=fmtBytes(r.dae_bytes_after); $('#mBroken').textContent=fmtInt(r.unresolved_texture_refs.length); $('#mSaved').textContent=`${savedPct.toFixed(1)}%`;
+}
+function renderIssues(r){
+  const items=[];
+  items.push(issue('ok','Geometry Lock включён','Decimate, merge-by-distance и изменение точности координат не используются.'));
+  items.push(issue(r.degenerate_triangles_removed?'warn':'ok',r.degenerate_triangles_removed?`Удалено нулевых граней: ${fmtInt(r.degenerate_triangles_removed)}`:'Нулевые грани не обнаружены','Удалены только геометрически невидимые треугольники с нулевой площадью.'));
+  items.push(issue(r.empty_meshes_removed?'warn':'ok',r.empty_meshes_removed?`Пустых mesh: ${fmtInt(r.empty_meshes_removed)}`:'Пустых mesh не обнаружено','Пустая geometry не содержит отображаемых примитивов.'));
+  items.push(issue(r.duplicate_textures_removed?'warn':'ok',r.duplicate_textures_removed?`Дубли текстур: ${fmtInt(r.duplicate_textures_removed)}`:'Дублей текстур нет','Сверка по SHA-256, изображения не пережимаются.'));
+  if(r.unresolved_texture_refs.length)items.push(issue('bad',`Неразрешённых ссылок: ${r.unresolved_texture_refs.length}`,r.unresolved_texture_refs.slice(0,4).join(' · ')+(r.unresolved_texture_refs.length>4?' …':'')));
+  else items.push(issue('ok','Все найденные файловые ссылки разрешены','Пути к загруженным текстурам успешно сопоставлены.'));
+  if(r.skipped_triangle_groups)items.push(issue('warn',`Нестандартных groups пропущено: ${fmtInt(r.skipped_triangle_groups)}`,'Они оставлены без изменений, чтобы не рисковать геометрией.'));
+  els.issues.innerHTML=items.join('');
+}
+function issue(cls,title,text){ return `<div class="issue ${cls}"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(text)}</span></div>`; }
+function fail(e){ console.error(e); const msg=e?.message||String(e); setProgress(0,'Ошибка: '+msg); log('ERROR: '+msg); els.result.classList.remove('hidden'); els.issues.innerHTML=issue('bad','Обработка остановлена',msg); }
+
+// UI events
+els.drop.addEventListener('click',()=>$('#inZip').click()); els.drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')$('#inZip').click();});
+els.drop.addEventListener('dragover',e=>{e.preventDefault();els.drop.classList.add('drag');}); els.drop.addEventListener('dragleave',()=>els.drop.classList.remove('drag')); els.drop.addEventListener('drop',e=>{e.preventDefault();els.drop.classList.remove('drag'); if(e.dataTransfer?.files?.length)ingestFiles(e.dataTransfer.files);});
+$('#btnZip').addEventListener('click',()=>$('#inZip').click()); $('#btnFiles').addEventListener('click',()=>$('#inFiles').click()); $('#btnDir').addEventListener('click',()=>$('#inDir').click()); $('#clearBtn').addEventListener('click',clearAll);
+$('#inZip').addEventListener('change',e=>ingestFiles(e.target.files)); $('#inFiles').addEventListener('change',e=>ingestFiles(e.target.files)); $('#inDir').addEventListener('change',e=>ingestFiles(e.target.files));
+els.run.addEventListener('click',run); els.download.addEventListener('click',()=>{ if(!state.zipBlob)return; const a=document.createElement('a'); a.href=URL.createObjectURL(state.zipBlob); a.download='bazix_dae_optimized.zip'; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},100); });
+renderFiles();
 })();
 </script>
 </body>
